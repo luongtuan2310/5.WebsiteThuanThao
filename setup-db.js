@@ -26,8 +26,8 @@ async function setupDatabase() {
 
     console.log('✅ Đã kết nối tới MySQL Server thành công.');
 
-    // 2. Đọc file schema.sql
-    const sqlPath = path.join(__dirname, 'database', 'schema.sql');
+    // 2. Đọc file clinicvip_latest.sql (CSDL đầy đủ nhất)
+    const sqlPath = path.join(__dirname, 'database', 'clinicvip_latest.sql');
     if (!fs.existsSync(sqlPath)) {
       throw new Error(`Không tìm thấy file schema.sql tại: ${sqlPath}`);
     }
