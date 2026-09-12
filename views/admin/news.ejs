@@ -1,0 +1,179 @@
+<%- include('../layouts/admin-top') %>
+
+<style>
+  /* Switch Toggle CSS for News Rows */
+  .switch-tbl {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    vertical-align: middle;
+    margin: 0;
+  }
+  .switch-tbl input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .slider-tbl {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #cbd5e1;
+    transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 24px;
+  }
+  .slider-tbl:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  }
+  .switch-tbl input:checked + .slider-tbl {
+    background-color: #10b981;
+  }
+  .switch-tbl input:checked + .slider-tbl:before {
+    transform: translateX(20px);
+  }
+  .status-cell-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .status-badge {
+    font-size: 0.76rem;
+    font-weight: 700;
+    padding: 3px 8px;
+    border-radius: 6px;
+    transition: all 0.2s ease;
+  }
+  .status-badge.badge-published {
+    background: #ecfdf5;
+    color: #059669;
+    border: 1px solid #a7f3d0;
+  }
+  .status-badge.badge-draft {
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #cbd5e1;
+  }
+</style>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">Tin Tức (<%= newsList.length %>)</div>
+    <a href="/admin/news/create" class="btn btn-primary"><i class="fas fa-plus"></i> Viết bài mới</a>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Ảnh</th>
+          <th>Tiêu đề</th>
+          <th>Danh mục</th>
+          <th>Ngày đăng</th>
+          <th>Trạng thái (Hiển thị)</th>
+          <th>Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (newsList && newsList.length > 0) { %>
+          <% newsList.forEach(function(n) { %>
+          <tr id="news-row-<%= n.id %>">
+            <td><%= n.id %></td>
+            <td class="td-img">
+              <img src="<%= n.image_url || 'https://via.placeholder.com/60x45' %>" alt="" style="width: 56px; height: 38px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border);">
+            </td>
+            <td>
+              <strong><%= n.title.substring(0,60) %><%= n.title.length > 60 ? '...' : '' %></strong>
+            </td>
+            <td>
+              <span style="font-size: 0.8rem; font-weight: 700; background: #e0f2fe; color: #0284c7; padding: 3px 8px; border-radius: 4px;">
+                <%= n.category %>
+              </span>
+            </td>
+            <td><%= new Date(n.published_at).toLocaleDateString('vi-VN') %></td>
+            <td>
+              <div class="status-cell-wrap">
+                <label class="switch-tbl">
+                  <input type="checkbox" class="toggle-news-status" data-id="<%= n.id %>" <%= n.is_active ? 'checked' : '' %>>
+                  <span class="slider-tbl"></span>
+                </label>
+                <span class="status-badge <%= n.is_active ? 'badge-published' : 'badge-draft' %>" id="status-badge-<%= n.id %>">
+                  <%= n.is_active ? 'Đã đăng' : 'Bản nháp' %>
+                </span>
+              </div>
+            </td>
+            <td>
+              <div style="display: flex; align-items: center; gap: 6px;">
+                <a href="/tin-tuc/<%= n.slug %>" target="_blank" class="btn btn-secondary btn-sm" title="Xem bài viết ngoài website">
+                  <i class="fas fa-eye"></i>
+                </a>
+                <a href="/admin/news/<%= n.id %>/edit" class="btn btn-warning btn-sm" title="Sửa bài viết">
+                  <i class="fas fa-edit"></i>
+                </a>
+                <form action="/admin/news/<%= n.id %>/delete" method="POST" style="display:inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa bài viết này không?');">
+                  <button class="btn btn-danger btn-sm" title="Xóa"><i class="fas fa-trash"></i></button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          <% }) %>
+        <% } else { %>
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 24px; color: #64748b;">
+              Chưa có bài viết nào. Hãy bấm <strong>Viết bài mới</strong> để tạo bài viết đầu tiên.
+            </td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  // AJAX Toggle News Status (Ẩn / Hiện - Đã đăng / Bản nháp)
+  document.querySelectorAll('.toggle-news-status').forEach(function(toggle) {
+    toggle.addEventListener('change', async function() {
+      const id = this.getAttribute('data-id');
+      const isChecked = this.checked;
+      const badge = document.getElementById('status-badge-' + id);
+
+      try {
+        const res = await fetch('/admin/news/' + id + '/toggle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          if (badge) {
+            if (data.is_active) {
+              badge.textContent = 'Đã đăng';
+              badge.className = 'status-badge badge-published';
+            } else {
+              badge.textContent = 'Bản nháp';
+              badge.className = 'status-badge badge-draft';
+            }
+          }
+        } else {
+          alert('Không thể đổi trạng thái: ' + (data.message || 'Lỗi server'));
+          this.checked = !isChecked; // Revert
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Có lỗi khi kết nối server');
+        this.checked = !isChecked; // Revert
+      }
+    });
+  });
+</script>
+
+<%- include('../layouts/admin-bottom') %>

@@ -1,0 +1,83 @@
+<%- include('./layouts/main-top') %>
+
+<section class="section">
+  <div class="container">
+    <div class="article-layout">
+      <!-- Main Article -->
+      <article class="article-main">
+        <nav class="breadcrumb">
+          <a href="/">Trang chủ</a> <i class="fas fa-chevron-right"></i>
+          <a href="/tin-tuc">Tin tức</a> <i class="fas fa-chevron-right"></i>
+          <span><%= article.title.substring(0, 40) %><%= article.title.length > 40 ? '...' : '' %></span>
+        </nav>
+
+        <div class="article-header">
+          <span class="news-category"><%= article.category %></span>
+          <h1 class="article-title"><%= article.title %></h1>
+          <div class="article-meta">
+            <span><i class="fas fa-calendar"></i>
+              <%= new Date(article.published_at).toLocaleDateString('vi-VN', {year:'numeric',month:'long',day:'numeric'}) %>
+            </span>
+          </div>
+        </div>
+
+        <% if (article.image_url) { %>
+        <figure class="article-cover">
+          <img src="<%= article.image_url %>" alt="<%= article.title %>" loading="eager">
+        </figure>
+        <% } %>
+
+        <div class="article-content"><%- article.content %></div>
+
+        <!-- Share -->
+        <div class="article-share">
+          <span>Chia sẻ:</span>
+          <a href="https://www.facebook.com/sharer/sharer.php?u=<%= encodeURIComponent('http://localhost:3000/tin-tuc/' + article.slug) %>"
+             target="_blank" rel="noopener" class="share-btn fb">
+            <i class="fab fa-facebook-f"></i> Facebook
+          </a>
+        </div>
+      </article>
+
+      <!-- Sidebar -->
+      <aside class="article-sidebar">
+        <div class="sidebar-widget">
+          <h3 class="widget-title">Bài Viết Liên Quan</h3>
+          <% if (related && related.length > 0) { %>
+          <% related.forEach(function(r) { %>
+          <a href="/tin-tuc/<%= r.slug %>" class="related-item">
+            <figure class="related-thumb">
+              <img src="<%= r.image_url || 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=100&h=70&fit=crop' %>"
+                   alt="<%= r.title %>" loading="lazy">
+            </figure>
+            <div class="related-info">
+              <p class="related-title"><%= r.title %></p>
+              <span class="related-date">
+                <i class="fas fa-calendar"></i>
+                <%= new Date(r.published_at).toLocaleDateString('vi-VN') %>
+              </span>
+            </div>
+          </a>
+          <% }) %>
+          <% } %>
+        </div>
+
+        <div class="sidebar-widget sidebar-cta">
+          <div class="sidebar-cta-badge">
+            <i class="fas fa-heartbeat"></i> <span>Tư vấn y khoa</span>
+          </div>
+          <h3>Đặt Lịch Khám Nhanh</h3>
+          <p>Đội ngũ bác sĩ chuyên khoa luôn sẵn sàng hỗ trợ, tư vấn và sắp xếp lịch khám thuận tiện nhất cho bạn.</p>
+          <a href="/dat-lich" class="sidebar-cta-btn-primary">
+            <i class="fas fa-calendar-check"></i> <span>Đặt lịch khám ngay</span> <i class="fas fa-arrow-right" style="font-size: 0.8rem; margin-left: 2px;"></i>
+          </a>
+          <a href="/lien-he" class="sidebar-cta-btn-secondary">
+            <i class="fas fa-phone-alt"></i> <span>Liên hệ tư vấn</span>
+          </a>
+        </div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<%- include('./layouts/main-bottom') %>

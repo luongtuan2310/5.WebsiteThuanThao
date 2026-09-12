@@ -1,0 +1,324 @@
+<%- include('../layouts/admin-top') %>
+
+<style>
+  /* Logs Stat Cards */
+  .log-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+  .log-stat-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 18px 20px;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: transform 0.2s ease;
+  }
+  .log-stat-card:hover {
+    transform: translateY(-2px);
+  }
+  .log-stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    flex-shrink: 0;
+  }
+  .log-stat-icon.total { background: #e0f2fe; color: #0284c7; }
+  .log-stat-icon.today { background: #ede9fe; color: #7c3aed; }
+  .log-stat-icon.logins { background: #dcfce7; color: #15803d; }
+  .log-stat-icon.changes { background: #fef3c7; color: #d97706; }
+  
+  .log-stat-val {
+    font-size: 1.65rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: #0f172a;
+  }
+  .log-stat-lbl {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-top: 3px;
+  }
+
+  /* Action Badges */
+  .action-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+  .action-badge.login { background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+  .action-badge.login_failed { background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; }
+  .action-badge.logout { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+  .action-badge.create { background: #e0f2fe; color: #0284c7; border: 1px solid #bae6fd; }
+  .action-badge.update { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+  .action-badge.delete { background: #fee2e2; color: #dc2626; border: 1px solid #fca5a5; }
+  .action-badge.toggle { background: #ede9fe; color: #6d28d9; border: 1px solid #ddd6fe; }
+
+  /* Module Badge */
+  .module-tag {
+    display: inline-block;
+    padding: 2px 7px;
+    border-radius: 4px;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    font-size: 0.76rem;
+    font-family: monospace;
+    font-weight: 700;
+    color: #334155;
+  }
+
+  /* Filter form styling */
+  .filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 12px;
+    align-items: end;
+  }
+  .filter-input {
+    width: 100%;
+    padding: 7px 10px;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    outline: none;
+    font-family: inherit;
+  }
+  .filter-input:focus {
+    border-color: var(--primary);
+  }
+</style>
+
+<!-- 1. STATS CARDS -->
+<div class="log-stats-grid">
+  <div class="log-stat-card">
+    <div class="log-stat-icon total"><i class="fas fa-history"></i></div>
+    <div>
+      <div class="log-stat-val"><%= stats.total %></div>
+      <div class="log-stat-lbl">Tổng bản ghi nhật ký</div>
+    </div>
+  </div>
+
+  <div class="log-stat-card">
+    <div class="log-stat-icon today"><i class="fas fa-calendar-day"></i></div>
+    <div>
+      <div class="log-stat-val"><%= stats.today %></div>
+      <div class="log-stat-lbl">Hoạt động hôm nay</div>
+    </div>
+  </div>
+
+  <div class="log-stat-card">
+    <div class="log-stat-icon logins"><i class="fas fa-key"></i></div>
+    <div>
+      <div class="log-stat-val"><%= stats.logins %></div>
+      <div class="log-stat-lbl">Lượt đăng nhập</div>
+    </div>
+  </div>
+
+  <div class="log-stat-card">
+    <div class="log-stat-icon changes"><i class="fas fa-edit"></i></div>
+    <div>
+      <div class="log-stat-val"><%= stats.changes %></div>
+      <div class="log-stat-lbl">Thao tác sửa / xóa dữ liệu</div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. FILTER & LOGS LIST CARD -->
+<div class="card">
+  <div class="card-header" style="flex-wrap: wrap; gap: 12px; padding-bottom: 12px; border-bottom: 1px solid var(--border);">
+    <div>
+      <div class="card-title" style="font-size: 1.05rem; font-weight: 800; margin: 0;">
+        <i class="fas fa-clipboard-list" style="color: var(--primary); margin-right: 6px;"></i> Nhật Ký Hoạt Động & Truy Vết Hệ Thống
+      </div>
+      <div style="font-size: 0.8rem; color: #64748b; margin-top: 3px;">
+        Ghi nhận tự động lịch sử đăng nhập và tất cả các thao tác thay đổi dữ liệu của tài khoản người dùng.
+      </div>
+    </div>
+
+    <% if (locals.hasPermission && locals.hasPermission('logs.delete')) { %>
+      <div>
+        <form method="POST" action="/admin/logs/clear" style="margin: 0;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa dọn dẹp các bản ghi nhật ký cũ hơn 30 ngày?');">
+          <input type="hidden" name="days" value="30">
+          <button type="submit" class="btn btn-outline btn-sm" style="padding: 6px 12px; color: #dc2626; border-color: #fca5a5; font-weight: 700; border-radius: 6px;">
+            <i class="fas fa-trash-alt"></i> Dọn nhật ký (>30 ngày)
+          </button>
+        </form>
+      </div>
+    <% } %>
+  </div>
+
+  <!-- MULTI-FILTER FORM -->
+  <form method="GET" action="/admin/logs" style="margin: 16px 0; padding: 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0;">
+    <div class="filter-grid">
+      <div>
+        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Từ khóa</label>
+        <input type="text" name="q" class="filter-input" placeholder="Nội dung, IP, tên..." value="<%= filters.q || '' %>">
+      </div>
+
+      <div>
+        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Người thực hiện</label>
+        <select name="user" class="filter-input">
+          <option value="">-- Tất cả người dùng --</option>
+          <% if (usersList && usersList.length > 0) { %>
+            <% usersList.forEach(function(uName) { %>
+              <option value="<%= uName %>" <%= filters.user === uName ? 'selected' : '' %>>@<%= uName %></option>
+            <% }) %>
+          <% } %>
+        </select>
+      </div>
+
+      <div>
+        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Phân hệ</label>
+        <select name="module" class="filter-input">
+          <option value="">-- Tất cả phân hệ --</option>
+          <option value="auth" <%= filters.module === 'auth' ? 'selected' : '' %>>Đăng nhập / Đăng xuất</option>
+          <option value="appointments" <%= filters.module === 'appointments' ? 'selected' : '' %>>Lịch hẹn</option>
+          <option value="contacts" <%= filters.module === 'contacts' ? 'selected' : '' %>>Liên hệ</option>
+          <option value="users" <%= filters.module === 'users' ? 'selected' : '' %>>Người dùng</option>
+          <option value="roles" <%= filters.module === 'roles' ? 'selected' : '' %>>Nhóm quyền</option>
+          <option value="services" <%= filters.module === 'services' ? 'selected' : '' %>>Bảng giá dịch vụ</option>
+          <option value="doctors" <%= filters.module === 'doctors' ? 'selected' : '' %>>Bác sĩ</option>
+          <option value="news" <%= filters.module === 'news' ? 'selected' : '' %>>Tin tức</option>
+          <option value="banners" <%= filters.module === 'banners' ? 'selected' : '' %>>Banner</option>
+          <option value="settings" <%= filters.module === 'settings' ? 'selected' : '' %>>Cài đặt & Thương hiệu</option>
+        </select>
+      </div>
+
+      <div>
+        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Hành động</label>
+        <select name="action" class="filter-input">
+          <option value="">-- Tất cả hành động --</option>
+          <option value="login" <%= filters.action === 'login' ? 'selected' : '' %>>Đăng nhập</option>
+          <option value="login_failed" <%= filters.action === 'login_failed' ? 'selected' : '' %>>Đăng nhập thất bại</option>
+          <option value="create" <%= filters.action === 'create' ? 'selected' : '' %>>Thêm mới</option>
+          <option value="update" <%= filters.action === 'update' ? 'selected' : '' %>>Chỉnh sửa</option>
+          <option value="delete" <%= filters.action === 'delete' ? 'selected' : '' %>>Xóa</option>
+          <option value="toggle" <%= filters.action === 'toggle' ? 'selected' : '' %>>Bật/tắt trạng thái</option>
+        </select>
+      </div>
+
+      <div>
+        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Từ ngày</label>
+        <input type="date" name="from_date" class="filter-input" value="<%= filters.from_date || '' %>">
+      </div>
+
+      <div>
+        <label style="display: block; font-size: 0.75rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Đến ngày</label>
+        <input type="date" name="to_date" class="filter-input" value="<%= filters.to_date || '' %>">
+      </div>
+
+      <div style="display: flex; gap: 6px;">
+        <button type="submit" class="btn btn-primary" style="flex: 1; padding: 7px; font-weight: 700; font-size: 0.82rem; border-radius: 6px;">
+          <i class="fas fa-filter"></i> Lọc
+        </button>
+        <a href="/admin/logs" class="btn btn-outline" style="padding: 7px 10px; font-size: 0.82rem; border-radius: 6px; text-decoration: none;" title="Xóa bộ lọc">
+          <i class="fas fa-rotate-left"></i>
+        </a>
+      </div>
+    </div>
+  </form>
+
+  <!-- TABLE -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 140px;">Thời gian</th>
+          <th>Người thực hiện</th>
+          <th>Hành động</th>
+          <th>Phân hệ</th>
+          <th>Nội dung mô tả thao tác</th>
+          <th>Địa chỉ IP</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (logs && logs.length > 0) { %>
+          <% logs.forEach(function(l) { %>
+          <tr>
+            <td>
+              <div style="font-weight: 800; color: #0f172a; font-size: 0.84rem;">
+                <%= new Date(l.created_at).toLocaleDateString('vi-VN') %>
+              </div>
+              <div style="font-size: 0.75rem; color: #64748b;">
+                <%= new Date(l.created_at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) %>
+              </div>
+            </td>
+            <td>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="width: 28px; height: 28px; border-radius: 50%; background: #e2e8f0; color: #334155; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.78rem;">
+                  <%= (l.username || 'U').charAt(0).toUpperCase() %>
+                </div>
+                <strong style="color: #0f172a; font-size: 0.88rem;">@<%= l.username %></strong>
+              </div>
+            </td>
+            <td>
+              <span class="action-badge <%= l.action %>">
+                <% if (l.action === 'login') { %>
+                  <i class="fas fa-sign-in-alt"></i> Login
+                <% } else if (l.action === 'login_failed') { %>
+                  <i class="fas fa-exclamation-circle"></i> Login Fail
+                <% } else if (l.action === 'logout') { %>
+                  <i class="fas fa-sign-out-alt"></i> Logout
+                <% } else if (l.action === 'create') { %>
+                  <i class="fas fa-plus-circle"></i> Thêm mới
+                <% } else if (l.action === 'update') { %>
+                  <i class="fas fa-edit"></i> Cập nhật
+                <% } else if (l.action === 'delete') { %>
+                  <i class="fas fa-trash"></i> Xóa
+                <% } else if (l.action === 'toggle') { %>
+                  <i class="fas fa-toggle-on"></i> Bật/Tắt
+                <% } else { %>
+                  <%= l.action %>
+                <% } %>
+              </span>
+            </td>
+            <td>
+              <span class="module-tag">
+                <%= l.module %>
+              </span>
+            </td>
+            <td>
+              <div style="font-size: 0.88rem; color: #1e293b; font-weight: 600;">
+                <%= l.description %>
+              </div>
+              <% if (l.target_id) { %>
+                <small style="color: #64748b; font-size: 0.75rem;">Mục ID: #<%= l.target_id %></small>
+              <% } %>
+            </td>
+            <td>
+              <code style="font-size: 0.78rem; color: #64748b; background: #f1f5f9; padding: 2px 6px; border-radius: 4px;">
+                <%= l.ip_address || '127.0.0.1' %>
+              </code>
+            </td>
+          </tr>
+          <% }) %>
+        <% } else { %>
+          <tr>
+            <td colspan="6" style="text-align: center; padding: 36px 20px; color: #64748b;">
+              <i class="fas fa-history" style="font-size: 2.2rem; color: #cbd5e1; margin-bottom: 8px; display: block;"></i>
+              Chưa có nhật ký hoạt động nào phù hợp với bộ lọc.
+            </td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('../layouts/admin-bottom') %>

@@ -1,0 +1,3 @@
+database:cbtamth_tamthientam.vn
+User: cbtamth_tamthientam
+PW: Tamthientam@2026

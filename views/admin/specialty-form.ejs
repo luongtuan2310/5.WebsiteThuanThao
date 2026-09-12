@@ -1,0 +1,344 @@
+<%- include('../layouts/admin-top') %>
+
+<style>
+  .specialty-editor-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.9fr);
+    gap: 24px;
+    align-items: start;
+  }
+  @media (max-width: 1024px) {
+    .specialty-editor-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .required-star {
+    color: #ef4444;
+    font-weight: 800;
+    margin-left: 2px;
+  }
+
+  /* Icon Selector Styling */
+  .icon-select-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .icon-select-preview {
+    position: absolute;
+    left: 12px;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    background: var(--primary, #0090a1);
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    pointer-events: none;
+    z-index: 2;
+    transition: all 0.2s ease;
+  }
+  .icon-select-input {
+    padding-left: 54px !important;
+    font-weight: 600;
+    cursor: pointer;
+    background: #fff;
+    width: 100%;
+  }
+
+  /* Image Preview */
+  .current-img {
+    max-width: 140px;
+    max-height: 90px;
+    border-radius: 8px;
+    object-fit: cover;
+    display: block;
+    margin-bottom: 8px;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  }
+
+  /* Live Preview Column */
+  .live-preview-wrapper {
+    position: sticky;
+    top: 80px;
+  }
+  .preview-badge-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .preview-badge {
+    background: #f0fdf4;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .preview-pulse-dot {
+    width: 8px;
+    height: 8px;
+    background: #22c55e;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.3);
+  }
+
+  /* Specialty Card Replica */
+  .specialty-card-replica {
+    background: #ffffff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+  }
+  .spec-thumb-wrap {
+    position: relative;
+    aspect-ratio: 16/10;
+    width: 100%;
+    overflow: hidden;
+    background: #e2e8f0;
+  }
+  .spec-thumb-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .spec-overlay-replica {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.3) 100%);
+  }
+  .spec-icon-badge-replica {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 44px;
+    height: 44px;
+    background: var(--primary, #0090a1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 1.15rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    z-index: 2;
+    transition: all 0.3s;
+  }
+  .spec-info-replica {
+    padding: 22px 20px;
+    display: flex;
+    flex-direction: column;
+  }
+  .spec-name-replica {
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+  .spec-desc-replica {
+    color: var(--text-muted, #64748b);
+    font-size: 0.88rem;
+    line-height: 1.6;
+    margin-bottom: 18px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>
+
+<%
+  const iconsList = [
+    { value: 'fa-stethoscope', label: 'Ống nghe y tế (Tổng quát)' },
+    { value: 'fa-heart-pulse', label: 'Tim mạch' },
+    { value: 'fa-baby', label: 'Nhi khoa / Sản nhi' },
+    { value: 'fa-person-pregnant', label: 'Sản phụ khoa' },
+    { value: 'fa-brain', label: 'Thần kinh' },
+    { value: 'fa-bone', label: 'Cơ xương khớp' },
+    { value: 'fa-tooth', label: 'Răng hàm mặt' },
+    { value: 'fa-eye', label: 'Mắt / Nhãn khoa' },
+    { value: 'fa-lungs', label: 'Hô hấp / Phổi' },
+    { value: 'fa-ear-listen', label: 'Tai mũi họng' },
+    { value: 'fa-virus', label: 'Truyền nhiễm / Da liễu' },
+    { value: 'fa-syringe', label: 'Tiêm chủng / Xét nghiệm' },
+    { value: 'fa-pills', label: 'Dược / Nội tiết' },
+    { value: 'fa-hospital', label: 'Đa khoa / Bệnh viện' },
+    { value: 'fa-user-md', label: 'Bác sĩ chuyên gia' }
+  ];
+  const currentIcon = (specialty && specialty.icon) ? specialty.icon : 'fa-stethoscope';
+%>
+
+<div class="specialty-editor-layout">
+  <!-- LEFT COLUMN: FORM -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><%= specialty ? 'Sửa Chuyên Khoa' : 'Thêm Chuyên Khoa Mới' %></div>
+    </div>
+
+    <form action="/admin/specialties/<%= specialty ? specialty.id + '/edit' : 'create' %>" method="POST" enctype="multipart/form-data" id="specialtyForm">
+      
+      <!-- Tên chuyên khoa -->
+      <div class="form-group">
+        <label for="specName">Tên chuyên khoa <span class="required-star">*</span></label>
+        <input type="text" id="specName" name="name" value="<%= specialty ? specialty.name : '' %>" placeholder="Nhập tên chuyên khoa..." required autocomplete="off">
+      </div>
+
+      <!-- Icon Dropdown & Thứ tự sắp xếp -->
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label for="specIcon">Icon chuyên khoa</label>
+          <div class="icon-select-wrap">
+            <div class="icon-select-preview" id="iconBoxPreview">
+              <i class="fas <%= currentIcon %>" id="iconDisplay"></i>
+            </div>
+            <select name="icon" id="specIcon" class="icon-select-input">
+              <% iconsList.forEach(function(item) { %>
+                <option value="<%= item.value %>" <%= currentIcon === item.value ? 'selected' : '' %>>
+                  <%= item.label %>
+                </option>
+              <% }) %>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="specSortOrder">Thứ tự sắp xếp</label>
+          <input type="number" id="specSortOrder" name="sort_order" value="<%= specialty ? specialty.sort_order : 0 %>" min="0">
+        </div>
+      </div>
+
+      <!-- Mô tả -->
+      <div class="form-group">
+        <label for="specDescription">Mô tả (Giới thiệu & Năng lực chuyên môn)</label>
+        <textarea id="specDescription" name="description" rows="6" placeholder="Nhập nội dung giới thiệu & năng lực chuyên môn của chuyên khoa..."><%= specialty ? specialty.description : '' %></textarea>
+      </div>
+
+      <!-- Ảnh chuyên khoa -->
+      <div class="form-group">
+        <label for="specImage">
+          <span>Ảnh chuyên khoa</span>
+          <span style="font-size: 0.78rem; color: #0284c7; font-weight: 700; margin-left: 4px; background: #e0f2fe; padding: 2px 6px; border-radius: 4px;">Kích thước chuẩn: 600 x 400 px (Tỉ lệ 16:10 hoặc 3:2)</span>
+        </label>
+        <% if (specialty && specialty.image_url) { %>
+          <img src="<%= specialty.image_url %>" class="current-img" alt="<%= specialty.name %>">
+        <% } %>
+        <input type="file" id="specImage" name="image" accept="image/*">
+        <div style="font-size: 0.76rem; color: #64748b; margin-top: 4px;">Ảnh đại diện chuyên khoa hiển thị trên trang chủ và danh sách chuyên khoa.</div>
+      </div>
+
+      <!-- Submit Buttons Aligned to Right -->
+      <div style="display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);">
+        <a href="/admin/specialties" class="btn btn-secondary" style="padding: 10px 20px;">Hủy bỏ</a>
+        <button type="submit" class="btn btn-primary" style="padding: 10px 24px; font-size: 0.95rem;">
+          <i class="fas fa-save"></i> Lưu chuyên khoa
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- RIGHT COLUMN: LIVE PREVIEW -->
+  <div class="live-preview-wrapper">
+    <div class="preview-badge-header">
+      <div class="preview-badge">
+        <span class="preview-pulse-dot"></span> Live Preview
+      </div>
+      <span style="font-size: 0.8rem; color: #64748b; font-weight: 600;">Giao diện hiển thị thực tế</span>
+    </div>
+
+    <!-- Card Replica -->
+    <div class="specialty-card-replica">
+      <div class="spec-thumb-wrap">
+        <img id="previewImage" 
+             src="<%= (specialty && specialty.image_url) ? specialty.image_url : 'https://images.unsplash.com/photo-1584515933487-779824d29309?w=600&h=400&fit=crop' %>" 
+             alt="Preview">
+        <div class="spec-overlay-replica"></div>
+        <div class="spec-icon-badge-replica" id="previewIconBadge">
+          <i class="fas <%= currentIcon %>" id="previewIconEl"></i>
+        </div>
+      </div>
+      
+      <div class="spec-info-replica">
+        <h2 class="spec-name-replica" id="previewNameText">
+          <%= (specialty && specialty.name) ? specialty.name : 'Tên Chuyên Khoa' %>
+        </h2>
+        <p class="spec-desc-replica" id="previewDescText">
+          <%= (specialty && specialty.description) ? specialty.description : 'Mô tả tóm tắt về năng lực chuyên môn và các dịch vụ khám điều trị của chuyên khoa...' %>
+        </p>
+        <div style="margin-top: auto;">
+          <span class="btn btn-primary btn-sm" style="pointer-events: none; display: inline-flex; align-items: center; gap: 6px;">
+            <span>Xem thêm</span> <i class="fas fa-arrow-right" style="font-size: 0.82rem;"></i>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Live Preview Elements
+  const specName = document.getElementById('specName');
+  const specIcon = document.getElementById('specIcon');
+  const specDescription = document.getElementById('specDescription');
+  const specImage = document.getElementById('specImage');
+  
+  const iconDisplay = document.getElementById('iconDisplay');
+  const previewNameText = document.getElementById('previewNameText');
+  const previewDescText = document.getElementById('previewDescText');
+  const previewIconEl = document.getElementById('previewIconEl');
+  const previewImage = document.getElementById('previewImage');
+
+  // Name Live Update
+  if (specName) {
+    specName.addEventListener('input', function() {
+      previewNameText.textContent = this.value.trim() || 'Tên Chuyên Khoa';
+    });
+  }
+
+  // Description Live Update
+  if (specDescription) {
+    specDescription.addEventListener('input', function() {
+      previewDescText.textContent = this.value.trim() || 'Mô tả tóm tắt về năng lực chuyên môn và các dịch vụ khám điều trị của chuyên khoa...';
+    });
+  }
+
+  // Icon Live Update
+  if (specIcon) {
+    specIcon.addEventListener('change', function() {
+      const selectedClass = this.value;
+      if (iconDisplay) iconDisplay.className = 'fas ' + selectedClass;
+      if (previewIconEl) previewIconEl.className = 'fas ' + selectedClass;
+    });
+  }
+
+  // Image Live Update
+  if (specImage) {
+    specImage.addEventListener('change', function() {
+      if (this.files && this.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          if (previewImage) previewImage.src = e.target.result;
+        };
+        reader.readAsDataURL(this.files[0]);
+      }
+    });
+  }
+</script>
+
+<%- include('../layouts/admin-bottom') %>

@@ -1,0 +1,74 @@
+<%- include('./layouts/main-top') %>
+
+<!-- Page Hero -->
+<section class="page-hero">
+  <div class="container">
+    <nav class="breadcrumb">
+      <a href="/">Trang chủ</a> <i class="fas fa-chevron-right"></i> <span>Tin Tức</span>
+    </nav>
+    <h1 class="page-title">Tin Tức & Sức Khỏe</h1>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <% if (newsList && newsList.length > 0) { %>
+    <div class="news-grid">
+      <% newsList.forEach(function(article, i) { %>
+      <article class="news-card" data-aos="fade-up" data-aos-delay="<%= (i % 3) * 100 %>">
+        <a href="/tin-tuc/<%= article.slug %>" class="news-card-img-link">
+          <figure class="news-thumb">
+            <img src="<%= article.image_url || 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&h=210&fit=crop' %>"
+                 alt="<%= article.title %>" loading="lazy">
+          </figure>
+        </a>
+        <div class="news-body">
+          <span class="news-category"><%= article.category %></span>
+          <h3 class="news-title">
+            <a href="/tin-tuc/<%= article.slug %>"><%= article.title %></a>
+          </h3>
+          <p class="news-excerpt"><%= article.excerpt %></p>
+          <div class="news-footer">
+            <span class="news-date">
+              <i class="fas fa-calendar"></i>
+              <%= new Date(article.published_at).toLocaleDateString('vi-VN') %>
+            </span>
+            <a href="/tin-tuc/<%= article.slug %>" class="news-read-more">
+              Xem thêm <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+      </article>
+      <% }) %>
+    </div>
+
+    <!-- Pagination -->
+    <% if (totalPages > 1) { %>
+    <div class="pagination" data-aos="fade-up">
+      <% if (page > 1) { %>
+      <a href="/tin-tuc?page=<%= page-1 %><%= category ? '&category='+category : '' %>" class="page-btn">
+        <i class="fas fa-chevron-left"></i>
+      </a>
+      <% } %>
+      <% for (var i = 1; i <= totalPages; i++) { %>
+      <a href="/tin-tuc?page=<%= i %><%= category ? '&category='+category : '' %>"
+         class="page-btn <%= page === i ? 'active' : '' %>"><%= i %></a>
+      <% } %>
+      <% if (page < totalPages) { %>
+      <a href="/tin-tuc?page=<%= page+1 %><%= category ? '&category='+category : '' %>" class="page-btn">
+        <i class="fas fa-chevron-right"></i>
+      </a>
+      <% } %>
+    </div>
+    <% } %>
+
+    <% } else { %>
+    <div class="empty-state">
+      <i class="fas fa-newspaper"></i>
+      <p>Chưa có bài viết nào.</p>
+    </div>
+    <% } %>
+  </div>
+</section>
+
+<%- include('./layouts/main-bottom') %>

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng nhập Quản trị | <%= typeof clinicName !== 'undefined' ? clinicName : 'ClinicVIP' %></title>
+  <link rel="icon" href="<%= typeof clinicFavicon !== 'undefined' && clinicFavicon ? clinicFavicon : '/images/logo.svg' %>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Mulish:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { 
+      font-family: 'Mulish', sans-serif; 
+      background: radial-gradient(circle at 50% 50%, #f0f9ff 0%, #e0f2fe 50%, #f1f5f9 100%); 
+      min-height: 100vh; 
+      display: flex; 
+      align-items: center; 
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    /* Hình mờ Favicon kích thước x2 siêu lớn bao phủ toàn màn hình */
+    .bg-watermark {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: min(160vw, 1900px);
+      height: min(160vh, 1900px);
+      background-image: url('<%= typeof clinicFavicon !== "undefined" && clinicFavicon ? clinicFavicon : (typeof clinicLogo !== "undefined" && clinicLogo ? clinicLogo : "/images/logo.svg") %>');
+      background-repeat: no-repeat;
+      background-position: center center;
+      background-size: contain;
+      opacity: 0.075;
+      pointer-events: none;
+      z-index: 0;
+      user-select: none;
+    }
+    .login-card { 
+      position: relative;
+      z-index: 1;
+      background: rgba(255, 255, 255, 0.96); 
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      border-radius: 18px; 
+      padding: 40px 36px; 
+      width: 100%; 
+      max-width: 480px; 
+      box-shadow: 0 20px 45px -10px rgba(0, 144, 161, 0.14), 0 10px 25px -5px rgba(15, 23, 42, 0.06); 
+    }
+    .login-logo { 
+      text-align: center; 
+      margin-bottom: 26px; 
+    }
+    .login-logo img { 
+      max-height: 70px; 
+      max-width: 240px; 
+      object-fit: contain; 
+      margin-bottom: 12px; 
+      display: inline-block;
+    }
+    .login-logo i.default-logo-icon { 
+      font-size: 2.8rem; 
+      color: #0090a1; 
+      margin-bottom: 10px;
+      display: inline-block;
+    }
+    .login-logo h1 { 
+      font-size: 1.25rem; 
+      font-weight: 800;
+      margin-top: 6px; 
+      color: <%= typeof primaryColor !== 'undefined' && primaryColor ? primaryColor : '#0090a1' %>; 
+      line-height: 1.3;
+    }
+    .login-logo p { 
+      color: #64748b; 
+      font-size: 0.85rem; 
+      font-weight: 600;
+      margin-top: 3px;
+    }
+    .form-group { 
+      margin-bottom: 18px; 
+    }
+    .form-group label { 
+      display: block; 
+      margin-bottom: 6px; 
+      font-weight: 700; 
+      font-size: 0.84rem; 
+      color: #334155; 
+    }
+    .form-group .input-wrapper { 
+      position: relative; 
+    }
+    .form-group .input-wrapper i.input-icon { 
+      position: absolute; 
+      left: 13px; 
+      top: 50%; 
+      transform: translateY(-50%); 
+      color: #94a3b8; 
+      font-size: 0.95rem;
+    }
+    .form-group input { 
+      width: 100%; 
+      padding: 11px 40px 11px 38px; 
+      border: 1.5px solid #cbd5e1; 
+      border-radius: 8px; 
+      font-size: 0.92rem; 
+      outline: none; 
+      transition: all 0.2s; 
+      font-family: inherit;
+    }
+    .form-group input:focus { 
+      border-color: #0090a1; 
+      box-shadow: 0 0 0 3px rgba(0, 144, 161, 0.15);
+    }
+    .eye-toggle-btn {
+      position: absolute;
+      right: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: #94a3b8;
+      cursor: pointer;
+      font-size: 0.92rem;
+      padding: 6px;
+      transition: color 0.15s;
+    }
+    .eye-toggle-btn:hover {
+      color: #0090a1;
+    }
+    .alert { 
+      padding: 10px 14px; 
+      border-radius: 8px; 
+      margin-bottom: 18px; 
+      font-size: 0.85rem; 
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .alert-error { 
+      background: #fee2e2; 
+      color: #b91c1c; 
+      border: 1px solid #fecaca;
+      font-weight: 600;
+    }
+    .btn-login { 
+      position: relative;
+      overflow: hidden;
+      width: 100%; 
+      padding: 12px; 
+      background: linear-gradient(135deg, #0090a1 0%, #007a8a 100%); 
+      color: #fff; 
+      border: none; 
+      border-radius: 8px; 
+      font-size: 0.95rem; 
+      font-weight: 700; 
+      cursor: pointer; 
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); 
+      font-family: inherit;
+      margin-top: 4px;
+      box-shadow: 0 4px 14px rgba(0, 144, 161, 0.3);
+      z-index: 1;
+    }
+    .btn-login:hover { 
+      background: linear-gradient(135deg, #009eb0 0%, #006e7c 100%);
+      box-shadow: 0 6px 20px rgba(0, 144, 161, 0.45);
+      transform: translateY(-1px);
+    }
+    .btn-login:active {
+      transform: translateY(0) scale(0.99);
+    }
+
+    /* Hiệu ứng flare ánh sáng quét qua button tạo cảm giác chuyển động */
+    .btn-login::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -160%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        120deg,
+        rgba(255, 255, 255, 0) 0%,
+        rgba(255, 255, 255, 0.12) 15%,
+        rgba(255, 255, 255, 0.35) 35%,
+        rgba(255, 255, 255, 0.6) 50%,
+        rgba(255, 255, 255, 0.35) 65%,
+        rgba(255, 255, 255, 0.12) 85%,
+        rgba(255, 255, 255, 0) 100%
+      );
+      transform: skewX(-25deg);
+      animation: btnFlareSweep 5.5s infinite ease-in-out;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    @keyframes btnFlareSweep {
+      0% {
+        left: -160%;
+      }
+      38%, 100% {
+        left: 260%;
+      }
+    }
+    .back-link { 
+      text-align: center; 
+      margin-top: 18px; 
+    }
+    .back-link a { 
+      color: #0090a1; 
+      text-decoration: none; 
+      font-size: 0.85rem; 
+      font-weight: 700;
+      transition: color 0.15s;
+    }
+    .back-link a:hover {
+      color: #006070;
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <!-- Watermark favicon nền mờ kích thước lớn -->
+  <div class="bg-watermark"></div>
+
+  <div class="login-card">
+    <div class="login-logo">
+      <% if (typeof clinicLogo !== 'undefined' && clinicLogo) { %>
+        <img src="<%= clinicLogo %>" alt="<%= clinicName %>">
+      <% } else { %>
+        <i class="fas fa-hospital-alt default-logo-icon"></i>
+      <% } %>
+      <h1><%= clinicName %></h1>
+      <p>Trang quản trị hệ thống</p>
+    </div>
+
+    <% if (typeof isTimeout !== 'undefined' && isTimeout && (!error || error.length === 0)) { %>
+      <div class="alert alert-error" style="background: #fffbeb; color: #b45309; border: 1px solid #fde68a;">
+        <i class="fas fa-clock"></i>
+        <span>Phiên làm việc đã hết hạn sau 30 phút không hoạt động. Vui lòng đăng nhập lại.</span>
+      </div>
+    <% } else if (error && error.length > 0) { %>
+      <div class="alert alert-error">
+        <i class="fas fa-exclamation-circle"></i>
+        <span><%= error[0] %></span>
+      </div>
+    <% } %>
+
+    <form action="/admin/login" method="POST">
+      <div class="form-group">
+        <label>Tên đăng nhập</label>
+        <div class="input-wrapper">
+          <i class="fas fa-user input-icon"></i>
+          <input type="text" name="username" required autofocus placeholder="Nhập tên đăng nhập">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Mật khẩu</label>
+        <div class="input-wrapper">
+          <i class="fas fa-lock input-icon"></i>
+          <input type="password" id="passwordInput" name="password" required placeholder="Nhập mật khẩu">
+          <button type="button" class="eye-toggle-btn" onclick="togglePasswordVisibility()" title="Ẩn/Hiện mật khẩu">
+            <i class="fas fa-eye" id="eyeIcon"></i>
+          </button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-login">
+        <i class="fas fa-sign-in-alt" style="margin-right: 6px;"></i> Đăng nhập
+      </button>
+    </form>
+
+    <div class="back-link">
+      <a href="/">← Quay về website</a>
+    </div>
+  </div>
+
+  <script>
+    function togglePasswordVisibility() {
+      const pwd = document.getElementById('passwordInput');
+      const icon = document.getElementById('eyeIcon');
+      if (pwd.type === 'password') {
+        pwd.type = 'text';
+        icon.className = 'fas fa-eye-slash';
+      } else {
+        pwd.type = 'password';
+        icon.className = 'fas fa-eye';
+      }
+    }
+
+    // Đánh dấu phiên làm việc active khi người dùng submit đăng nhập
+    document.querySelector('form').addEventListener('submit', function() {
+      try {
+        sessionStorage.setItem('cvip_admin_session_active', '1');
+      } catch (e) {}
+    });
+  </script>
+</body>
+</html>

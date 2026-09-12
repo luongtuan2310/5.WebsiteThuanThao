@@ -1,0 +1,718 @@
+<%- include('../layouts/admin-top') %>
+
+<style>
+  /* Detail Page Layout */
+  .detail-container {
+    width: 100%;
+  }
+  .detail-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .detail-header-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .detail-title-group h1 {
+    font-size: 1.45rem;
+    font-weight: 800;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0;
+  }
+  .detail-meta-text {
+    font-size: 0.84rem;
+    color: #64748b;
+    margin-top: 4px;
+  }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(340px, 0.9fr);
+    gap: 24px;
+    align-items: start;
+  }
+  @media (max-width: 992px) {
+    .detail-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Status Badges */
+  .status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 6px 14px;
+    border-radius: 30px;
+    font-size: 0.85rem;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+  }
+  .status-pill.pending {
+    background: #fef3c7;
+    color: #b45309;
+    border: 1px solid #fde68a;
+  }
+  .status-pill.confirmed {
+    background: #dcfce7;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+  }
+  .status-pill.cancelled {
+    background: #fee2e2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+  }
+  .status-pill-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+  .status-pill.pending .status-pill-dot { background: #f59e0b; }
+  .status-pill.confirmed .status-pill-dot { background: #16a34a; }
+  .status-pill.cancelled .status-pill-dot { background: #dc2626; }
+
+  /* Info Cards */
+  .info-card {
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .info-card-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f8fafc;
+  }
+  .info-card-title {
+    font-size: 0.98rem;
+    font-weight: 800;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .info-card-body {
+    padding: 20px;
+  }
+
+  /* Info Rows */
+  .info-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 16px;
+  }
+  .info-item {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .info-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .info-value {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  .info-value.highlight {
+    color: var(--primary);
+    font-size: 1.05rem;
+  }
+
+  /* Patient Avatar & Header */
+  .patient-summary {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .patient-avatar {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: #e0f2fe;
+    color: #0284c7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    font-weight: 800;
+    flex-shrink: 0;
+  }
+  .patient-name-big {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.2;
+  }
+  .patient-phone-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #0284c7;
+    text-decoration: none;
+    margin-top: 4px;
+    transition: color 0.15s ease;
+  }
+  .patient-phone-link:hover {
+    color: #0369a1;
+    text-decoration: underline;
+  }
+
+  /* Doctor & Service Box */
+  .doctor-profile-box {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 14px;
+    background: #f8fafc;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    margin-top: 10px;
+  }
+  .doctor-profile-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+  }
+  .doctor-profile-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #ccfbf1;
+    color: #0f766e;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+  }
+
+  /* Note Box */
+  .patient-note-box {
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-left: 4px solid #f59e0b;
+    border-radius: 8px;
+    padding: 14px 16px;
+    color: #92400e;
+    font-size: 0.92rem;
+    line-height: 1.6;
+    white-space: pre-line;
+  }
+
+  /* Action Buttons */
+  .action-btn-group {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .btn-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 18px;
+    border-radius: 10px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    width: 100%;
+  }
+  .btn-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+  }
+  .btn-confirm {
+    background: #16a34a;
+    color: #ffffff;
+  }
+  .btn-confirm:hover { background: #15803d; color: #fff; }
+  .btn-reset-pending {
+    background: #f59e0b;
+    color: #ffffff;
+  }
+  .btn-reset-pending:hover { background: #d97706; color: #fff; }
+  .btn-cancel {
+    background: #fee2e2;
+    color: #dc2626;
+    border: 1px solid #fca5a5;
+  }
+  .btn-cancel:hover { background: #ef4444; color: #ffffff; }
+
+  .btn-print {
+    background: #334155;
+    color: #ffffff;
+  }
+  .btn-print:hover { background: #1e293b; color: #fff; }
+  .btn-delete {
+    background: #ffffff;
+    color: #dc2626;
+    border: 1.5px solid #fca5a5;
+  }
+  .btn-delete:hover { background: #fef2f2; }
+
+  /* Admin notes textarea */
+  .notes-textarea {
+    width: 100%;
+    min-height: 110px;
+    padding: 12px;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    font-family: inherit;
+    font-size: 0.88rem;
+    line-height: 1.5;
+    outline: none;
+    transition: border-color 0.2s ease;
+    resize: vertical;
+  }
+  .notes-textarea:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(0, 144, 161, 0.15);
+  }
+
+  /* Print Styles */
+  @media print {
+    body {
+      background: #ffffff !important;
+    }
+    .admin-sidebar, .admin-topbar, .detail-header-left a, .right-column-actions, .no-print {
+      display: none !important;
+    }
+    .admin-main {
+      padding: 0 !important;
+      margin: 0 !important;
+    }
+    .admin-content {
+      padding: 0 !important;
+    }
+    .detail-grid {
+      grid-template-columns: 1fr !important;
+    }
+    .info-card {
+      border: 1px solid #cbd5e1 !important;
+      box-shadow: none !important;
+      break-inside: avoid;
+    }
+    .print-only-header {
+      display: block !important;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #0f172a;
+    }
+  }
+  .print-only-header {
+    display: none;
+  }
+</style>
+
+<div class="detail-container">
+  
+  <!-- Printable Slip Header (Shown only during window.print()) -->
+  <div class="print-only-header">
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+      <div>
+        <h2 style="font-size: 1.4rem; font-weight: 800; color: #0090a1; margin: 0;"><%= typeof clinicName !== 'undefined' ? clinicName : 'PHÒNG KHÁM QUỐC TẾ' %></h2>
+        <p style="font-size: 0.85rem; color: #64748b; margin: 2px 0 0;">PHIẾU TIẾP NHẬN & ĐĂNG KÝ LỊCH HẸN KHÁM BỆNH</p>
+      </div>
+      <div style="text-align: right;">
+        <div style="font-weight: 800; font-size: 1.1rem;">MÃ HẸN: #APPT-<%= appointment.id %></div>
+        <div style="font-size: 0.8rem; color: #64748b;">In lúc: <%= new Date().toLocaleString('vi-VN') %></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Top Header Navigation -->
+  <div class="detail-header no-print">
+    <div class="detail-header-left">
+      <a href="/admin/appointments" class="btn" style="padding: 8px 14px; background: #ffffff; border: 1.5px solid #cbd5e1; color: #475569; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
+        <i class="fas fa-arrow-left"></i> Quay lại danh sách
+      </a>
+      <div class="detail-title-group">
+        <h1>
+          Lịch hẹn #<%= appointment.id %>
+          <% if (appointment.status === 'confirmed') { %>
+            <span class="status-pill confirmed">
+              <span class="status-pill-dot"></span> Đã xác nhận
+            </span>
+          <% } else if (appointment.status === 'cancelled') { %>
+            <span class="status-pill cancelled">
+              <span class="status-pill-dot"></span> Đã hủy hẹn
+            </span>
+          <% } else { %>
+            <span class="status-pill pending">
+              <span class="status-pill-dot"></span> Chờ xác nhận
+            </span>
+          <% } %>
+        </h1>
+        <div class="detail-meta-text">
+          <i class="fas fa-calendar-plus" style="color: #94a3b8; margin-right: 4px;"></i> Đăng ký lúc: 
+          <strong>
+            <% if (appointment.created_at) { %>
+              <%= new Date(appointment.created_at).toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric' }) %>
+            <% } else { %>
+              --
+            <% } %>
+          </strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick action buttons on header -->
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <button type="button" class="btn" onclick="window.print()" style="padding: 8px 16px; background: #ffffff; border: 1.5px solid #cbd5e1; color: #334155; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+        <i class="fas fa-print"></i> In phiếu hẹn
+      </button>
+      <% if (appointment.phone) { %>
+        <a href="tel:<%= appointment.phone %>" class="btn" style="padding: 8px 16px; background: #0284c7; color: #ffffff; font-weight: 700; border-radius: 8px; display: inline-flex; align-items: center; gap: 6px; text-decoration: none;">
+          <i class="fas fa-phone"></i> Gọi bệnh nhân
+        </a>
+      <% } %>
+    </div>
+  </div>
+
+  <!-- Main Grid -->
+  <div class="detail-grid">
+    
+    <!-- LEFT COLUMN: Patient Info & Service Info -->
+    <div class="left-column">
+      
+      <!-- Card 1: Patient Details -->
+      <div class="info-card">
+        <div class="info-card-header">
+          <div class="info-card-title">
+            <i class="fas fa-user-circle" style="color: var(--primary);"></i> Thông Tin Bệnh Nhân
+          </div>
+          <span style="font-size: 0.78rem; font-weight: 700; color: #94a3b8;">HỒ SƠ ĐĂNG KÝ</span>
+        </div>
+        <div class="info-card-body">
+          <div class="patient-summary">
+            <div class="patient-avatar">
+              <%= appointment.patient_name ? appointment.patient_name.trim().charAt(0).toUpperCase() : 'P' %>
+            </div>
+            <div>
+              <div class="patient-name-big"><%= appointment.patient_name %></div>
+              <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 4px;">
+                <a href="tel:<%= appointment.phone %>" class="patient-phone-link">
+                  <i class="fas fa-phone-alt"></i> <%= appointment.phone %>
+                </a>
+                <a href="https://zalo.me/<%= appointment.phone.replace(/[^0-9]/g, '') %>" target="_blank" rel="noopener" style="display: inline-flex; align-items: center; gap: 4px; font-size: 0.8rem; font-weight: 700; color: #0284c7; background: #e0f2fe; padding: 2px 8px; border-radius: 4px; text-decoration: none;">
+                  <i class="fas fa-comment-dots"></i> Chat Zalo
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div class="info-list">
+            <div class="info-item">
+              <span class="info-label">Email liên hệ</span>
+              <span class="info-value">
+                <% if (appointment.email) { %>
+                  <a href="mailto:<%= appointment.email %>" style="color: #0284c7; text-decoration: none;"><%= appointment.email %></a>
+                <% } else { %>
+                  <span style="color: #94a3b8; font-weight: 500;">Chưa cập nhật</span>
+                <% } %>
+              </span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">Ngày sinh / Tuổi</span>
+              <span class="info-value">
+                <% if (appointment.birthday) { %>
+                  <%= new Date(appointment.birthday).toLocaleDateString('vi-VN') %>
+                <% } else { %>
+                  <span style="color: #94a3b8; font-weight: 500;">Chưa cập nhật</span>
+                <% } %>
+              </span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">Giới tính</span>
+              <span class="info-value">
+                <% if (appointment.gender === 'male' || appointment.gender === 'nam' || appointment.gender === 'Nam') { %>
+                  <i class="fas fa-mars" style="color: #0284c7;"></i> Nam
+                <% } else if (appointment.gender === 'female' || appointment.gender === 'nu' || appointment.gender === 'Nữ') { %>
+                  <i class="fas fa-venus" style="color: #ec4899;"></i> Nữ
+                <% } else if (appointment.gender) { %>
+                  <%= appointment.gender %>
+                <% } else { %>
+                  <span style="color: #94a3b8; font-weight: 500;">Chưa rõ</span>
+                <% } %>
+              </span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">Bảo hiểm y tế (BHYT)</span>
+              <span class="info-value">
+                <% if (appointment.insurance) { %>
+                  <span style="color: #16a34a; font-weight: 700;"><i class="fas fa-id-card"></i> <%= appointment.insurance %></span>
+                <% } else { %>
+                  <span style="color: #64748b; font-weight: 500;">Không sử dụng / Chưa có</span>
+                <% } %>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Appointment Service & Time -->
+      <div class="info-card">
+        <div class="info-card-header">
+          <div class="info-card-title">
+            <i class="fas fa-calendar-check" style="color: var(--primary);"></i> Lịch Hẹn & Dịch Vụ Khám
+          </div>
+          <span style="font-size: 0.78rem; font-weight: 700; color: #94a3b8;">CHI TIẾT KHÁM</span>
+        </div>
+        <div class="info-card-body">
+          <div class="info-list" style="margin-bottom: 16px;">
+            <div class="info-item">
+              <span class="info-label">Ngày khám dự kiến</span>
+              <span class="info-value highlight">
+                <i class="fas fa-calendar-day" style="margin-right: 4px;"></i>
+                <% if (appointment.appointment_date) { %>
+                  <%= new Date(appointment.appointment_date).toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %>
+                <% } else { %>
+                  Chưa chọn ngày
+                <% } %>
+              </span>
+            </div>
+
+            <div class="info-item">
+              <span class="info-label">Khung giờ hẹn</span>
+              <span class="info-value highlight">
+                <i class="fas fa-clock" style="margin-right: 4px;"></i>
+                <%= appointment.appointment_time || 'Chưa định giờ' %>
+              </span>
+            </div>
+          </div>
+
+          <!-- Doctor Info -->
+          <div style="margin-top: 14px; padding-top: 14px; border-top: 1px solid #f1f5f9;">
+            <span class="info-label">Bác sĩ phụ trách</span>
+            <% if (appointment.doctor_name) { %>
+              <div class="doctor-profile-box">
+                <% if (appointment.doctor_image) { %>
+                  <img src="<%= appointment.doctor_image %>" alt="<%= appointment.doctor_name %>" class="doctor-profile-avatar">
+                <% } else { %>
+                  <div class="doctor-profile-icon"><i class="fas fa-user-md"></i></div>
+                <% } %>
+                <div>
+                  <div style="font-size: 0.95rem; font-weight: 800; color: #0f172a;">
+                    <%= appointment.doctor_title ? appointment.doctor_title + ' ' : '' %><%= appointment.doctor_name %>
+                  </div>
+                  <div style="font-size: 0.8rem; color: #0090a1; font-weight: 600; margin-top: 2px;">
+                    <i class="fas fa-stethoscope"></i> <%= appointment.specialty_name || 'Chuyên khoa tổng hợp' %>
+                  </div>
+                </div>
+              </div>
+            <% } else { %>
+              <div class="doctor-profile-box">
+                <div class="doctor-profile-icon" style="background: #f1f5f9; color: #64748b;"><i class="fas fa-hospital-user"></i></div>
+                <div>
+                  <div style="font-size: 0.9rem; font-weight: 700; color: #334155;">Chưa chỉ định bác sĩ cụ thể</div>
+                  <div style="font-size: 0.78rem; color: #64748b;">Phòng khám sẽ sắp xếp bác sĩ phù hợp khi bệnh nhân đến tiếp đón.</div>
+                </div>
+              </div>
+            <% } %>
+          </div>
+
+          <!-- Package Info -->
+          <div style="margin-top: 14px; padding-top: 14px; border-top: 1px solid #f1f5f9;">
+            <span class="info-label">Gói khám / Dịch vụ đăng ký</span>
+            <% if (appointment.package_name) { %>
+              <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: #f8fafc; border-radius: 10px; border: 1px solid #e2e8f0; margin-top: 8px;">
+                <div>
+                  <div style="font-size: 0.95rem; font-weight: 800; color: #0f172a;"><%= appointment.package_name %></div>
+                  <div style="font-size: 0.78rem; color: #64748b; margin-top: 2px;">Gói khám chuyên khoa tiêu chuẩn</div>
+                </div>
+                <% if (appointment.package_price) { %>
+                  <div style="font-size: 1.05rem; font-weight: 800; color: #0090a1;">
+                    <%= new Intl.NumberFormat('vi-VN').format(appointment.package_price) %> đ
+                  </div>
+                <% } %>
+              </div>
+            <% } else { %>
+              <div style="padding: 10px 14px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 8px; font-size: 0.88rem; color: #475569; font-weight: 600;">
+                <i class="fas fa-notes-medical" style="color: var(--primary); margin-right: 6px;"></i> Khám chuyên khoa thông thường
+              </div>
+            <% } %>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Patient Symptom / Notes -->
+      <div class="info-card">
+        <div class="info-card-header">
+          <div class="info-card-title">
+            <i class="fas fa-comment-medical" style="color: #f59e0b;"></i> Triệu Chứng & Yêu Cầu Từ Bệnh Nhân
+          </div>
+          <span style="font-size: 0.78rem; font-weight: 700; color: #94a3b8;">GHI CHÚ BAN ĐẦU</span>
+        </div>
+        <div class="info-card-body">
+          <% if (appointment.notes && appointment.notes.trim()) { %>
+            <div class="patient-note-box">
+              <%= appointment.notes %>
+            </div>
+          <% } else { %>
+            <div style="padding: 16px; text-align: center; color: #94a3b8; font-size: 0.88rem; font-style: italic; background: #f8fafc; border-radius: 8px;">
+              Bệnh nhân không để lại ghi chú triệu chứng thêm khi đăng ký trực tuyến.
+            </div>
+          <% } %>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT COLUMN: Workflow, Status Updates & Internal Notes -->
+    <div class="right-column-actions">
+      
+      <!-- Card 1: Action Status -->
+      <div class="info-card">
+        <div class="info-card-header">
+          <div class="info-card-title">
+            <i class="fas fa-tasks" style="color: var(--primary);"></i> Xử Lý Trạng Thái Lịch
+          </div>
+        </div>
+        <div class="info-card-body">
+          
+          <div style="margin-bottom: 14px; text-align: center;">
+            <div style="font-size: 0.8rem; color: #64748b; font-weight: 700; text-transform: uppercase; margin-bottom: 6px;">Trạng thái hiện tại:</div>
+            <% if (appointment.status === 'confirmed') { %>
+              <div style="font-size: 1.1rem; font-weight: 800; color: #15803d; background: #dcfce7; padding: 8px 16px; border-radius: 8px; display: inline-block;">
+                <i class="fas fa-check-circle"></i> ĐÃ XÁC NHẬN HẸN
+              </div>
+            <% } else if (appointment.status === 'cancelled') { %>
+              <div style="font-size: 1.1rem; font-weight: 800; color: #b91c1c; background: #fee2e2; padding: 8px 16px; border-radius: 8px; display: inline-block;">
+                <i class="fas fa-times-circle"></i> ĐÃ HỦY LỊCH HẸN
+              </div>
+            <% } else { %>
+              <div style="font-size: 1.1rem; font-weight: 800; color: #b45309; background: #fef3c7; padding: 8px 16px; border-radius: 8px; display: inline-block;">
+                <i class="fas fa-hourglass-half"></i> ĐANG CHỜ XÁC NHẬN
+              </div>
+            <% } %>
+          </div>
+
+          <div class="action-btn-group">
+            <% if (appointment.status !== 'confirmed') { %>
+              <form method="POST" action="/admin/appointments/<%= appointment.id %>/status" style="margin: 0;">
+                <input type="hidden" name="status" value="confirmed">
+                <button type="submit" class="btn-action btn-confirm" onclick="return confirm('Bạn có chắc muốn XÁC NHẬN lịch hẹn này không?')">
+                  <i class="fas fa-check"></i> Xác nhận lịch hẹn này
+                </button>
+              </form>
+            <% } %>
+
+            <% if (appointment.status !== 'pending') { %>
+              <form method="POST" action="/admin/appointments/<%= appointment.id %>/status" style="margin: 0;">
+                <input type="hidden" name="status" value="pending">
+                <button type="submit" class="btn-action btn-reset-pending" onclick="return confirm('Đưa lịch hẹn trở lại trạng thái CHỜ XÁC NHẬN?')">
+                  <i class="fas fa-rotate-left"></i> Đặt lại về Chờ xác nhận
+                </button>
+              </form>
+            <% } %>
+
+            <% if (appointment.status !== 'cancelled') { %>
+              <form method="POST" action="/admin/appointments/<%= appointment.id %>/status" style="margin: 0;">
+                <input type="hidden" name="status" value="cancelled">
+                <button type="submit" class="btn-action btn-cancel" onclick="return confirm('Bạn có chắc muốn HỦY lịch hẹn này?')">
+                  <i class="fas fa-times"></i> Hủy lịch hẹn
+                </button>
+              </form>
+            <% } %>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Card 2: Internal Admin Notes Form -->
+      <div class="info-card">
+        <div class="info-card-header">
+          <div class="info-card-title">
+            <i class="fas fa-sticky-note" style="color: #6366f1;"></i> Ghi Chú Nội Bộ (Admin / Bác Sĩ)
+          </div>
+        </div>
+        <div class="info-card-body">
+          <form method="POST" action="/admin/appointments/<%= appointment.id %>/notes">
+            <div style="margin-bottom: 12px;">
+              <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 6px;">
+                Nội dung ghi chú & xử lý:
+              </label>
+              <textarea name="admin_notes" class="notes-textarea" placeholder="Ví dụ: Đã gọi xác nhận lúc 9h30; Khách yêu cầu chuẩn bị kết quả xét nghiệm cũ; Chuyển sang phòng 204..."><%= appointment.admin_notes || '' %></textarea>
+            </div>
+
+            <div style="margin-bottom: 14px;">
+              <label style="display: block; font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 6px;">
+                Cập nhật trạng thái cùng lúc:
+              </label>
+              <select name="status" style="width: 100%; padding: 8px 12px; border: 1.5px solid #cbd5e1; border-radius: 8px; font-family: inherit; font-size: 0.88rem; font-weight: 600; outline: none;">
+                <option value="pending" <%= appointment.status === 'pending' ? 'selected' : '' %>>⏳ Chờ xác nhận</option>
+                <option value="confirmed" <%= appointment.status === 'confirmed' ? 'selected' : '' %>>✅ Đã xác nhận</option>
+                <option value="cancelled" <%= appointment.status === 'cancelled' ? 'selected' : '' %>>❌ Đã hủy hẹn</option>
+              </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; padding: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; gap: 8px; border-radius: 8px; background: var(--primary); border: none; color: #fff; cursor: pointer;">
+              <i class="fas fa-save"></i> Lưu ghi chú & cập nhật
+            </button>
+            <div style="font-size: 0.75rem; color: #94a3b8; text-align: center; margin-top: 8px;">
+              <i class="fas fa-shield-alt"></i> Ghi chú này chỉ hiển thị trong nội bộ ban quản trị.
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Card 3: Danger Zone / Delete -->
+      <div class="info-card">
+        <div class="info-card-header">
+          <div class="info-card-title" style="color: #dc2626;">
+            <i class="fas fa-exclamation-triangle"></i> Xóa Lịch Hẹn
+          </div>
+        </div>
+        <div class="info-card-body">
+          <p style="font-size: 0.82rem; color: #64748b; margin-bottom: 12px; line-height: 1.4;">
+            Thao tác xóa vĩnh viễn dữ liệu lịch hẹn này khỏi hệ thống cơ sở dữ liệu.
+          </p>
+          <form method="POST" action="/admin/appointments/<%= appointment.id %>/delete" onsubmit="return confirm('CẢNH BÁO: Bạn có chắc chắn muốn XÓA VĨNH VIỄN lịch hẹn #<%= appointment.id %>? Thao tác này không thể hoàn tác!')">
+            <button type="submit" class="btn-action btn-delete">
+              <i class="fas fa-trash-alt"></i> Xóa lịch hẹn vĩnh viễn
+            </button>
+          </form>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+<%- include('../layouts/admin-bottom') %>

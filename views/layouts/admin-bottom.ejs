@@ -1,0 +1,397 @@
+  </div><!-- end admin-content -->
+</div><!-- end admin-main -->
+
+<!-- GLOBAL CUSTOM CONFIRM & ALERT MODAL -->
+<div id="cvipConfirmModal" class="cvip-modal-backdrop" style="display: none;">
+  <div class="cvip-modal-card">
+    <div class="cvip-modal-icon-wrapper" id="cvipModalIconWrap">
+      <i class="fas fa-exclamation-triangle" id="cvipModalIcon"></i>
+    </div>
+    <div class="cvip-modal-body">
+      <h3 class="cvip-modal-title" id="cvipModalTitle">Xác nhận thao tác</h3>
+      <p class="cvip-modal-desc" id="cvipModalMessage">Bạn có chắc chắn muốn thực hiện hành động này?</p>
+    </div>
+    <div class="cvip-modal-actions">
+      <button type="button" class="cvip-modal-btn cvip-btn-cancel" id="cvipModalCancelBtn">Hủy bỏ</button>
+      <button type="button" class="cvip-modal-btn cvip-btn-confirm" id="cvipModalConfirmBtn">Xác nhận</button>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Global Modal Styles */
+  .cvip-modal-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(15, 23, 42, 0.55);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999999;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.22s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.22s;
+    padding: 16px;
+  }
+  .cvip-modal-backdrop.show {
+    opacity: 1;
+    visibility: visible;
+  }
+  .cvip-modal-card {
+    background: #ffffff;
+    border-radius: 18px;
+    width: 100%;
+    max-width: 440px;
+    padding: 28px 24px 22px;
+    box-shadow: 0 20px 45px -10px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(226, 232, 240, 0.9);
+    text-align: center;
+    transform: scale(0.92) translateY(12px);
+    transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .cvip-modal-backdrop.show .cvip-modal-card {
+    transform: scale(1) translateY(0);
+  }
+  .cvip-modal-icon-wrapper {
+    width: 62px;
+    height: 62px;
+    border-radius: 50%;
+    margin: 0 auto 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.65rem;
+    transition: all 0.2s;
+  }
+  .cvip-modal-icon-wrapper.warning {
+    background: #fffbeb;
+    color: #d97706;
+    border: 3px solid #fef3c7;
+  }
+  .cvip-modal-icon-wrapper.danger {
+    background: #fef2f2;
+    color: #dc2626;
+    border: 3px solid #fee2e2;
+  }
+  .cvip-modal-icon-wrapper.primary {
+    background: rgba(0, 144, 161, 0.1);
+    color: var(--primary, #0090a1);
+    border: 3px solid rgba(0, 144, 161, 0.2);
+  }
+  .cvip-modal-icon-wrapper.success {
+    background: #f0fdf4;
+    color: #16a34a;
+    border: 3px solid #dcfce7;
+  }
+  .cvip-modal-title {
+    font-size: 1.22rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0 0 8px 0;
+    line-height: 1.35;
+  }
+  .cvip-modal-desc {
+    font-size: 0.92rem;
+    color: #475569;
+    line-height: 1.55;
+    margin: 0 0 22px 0;
+    word-break: break-word;
+  }
+  .cvip-modal-actions {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+  }
+  .cvip-modal-btn {
+    flex: 1;
+    padding: 11px 18px;
+    border-radius: 10px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    outline: none;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: inherit;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .cvip-btn-cancel {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+  }
+  .cvip-btn-cancel:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+  }
+  .cvip-btn-confirm {
+    background: var(--primary, #0090a1);
+    color: #ffffff;
+    box-shadow: 0 4px 12px rgba(0, 144, 161, 0.25);
+  }
+  .cvip-btn-confirm:hover {
+    filter: brightness(0.92);
+    box-shadow: 0 6px 16px rgba(0, 144, 161, 0.35);
+    transform: translateY(-1px);
+  }
+  .cvip-btn-confirm.danger {
+    background: #dc2626 !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25) !important;
+  }
+  .cvip-btn-confirm.danger:hover {
+    background: #b91c1c !important;
+    box-shadow: 0 6px 16px rgba(220, 38, 38, 0.35) !important;
+  }
+</style>
+
+<script>
+  // Global Custom Confirm Modal
+  window.customConfirm = function(optionsOrMessage) {
+    return new Promise(function(resolve) {
+      var opts = typeof optionsOrMessage === 'string' 
+        ? { message: optionsOrMessage } 
+        : (optionsOrMessage || {});
+
+      var modal = document.getElementById('cvipConfirmModal');
+      var titleEl = document.getElementById('cvipModalTitle');
+      var msgEl = document.getElementById('cvipModalMessage');
+      var iconWrap = document.getElementById('cvipModalIconWrap');
+      var iconEl = document.getElementById('cvipModalIcon');
+      var confirmBtn = document.getElementById('cvipModalConfirmBtn');
+      var cancelBtn = document.getElementById('cvipModalCancelBtn');
+
+      var msg = opts.message || 'Bạn có chắc chắn muốn thực hiện hành động này?';
+      var msgLower = msg.toLowerCase();
+
+      var type = opts.type || ((msgLower.includes('xóa') || msgLower.includes('hủy') || msgLower.includes('spam')) ? 'danger' : (msgLower.includes('kích hoạt') || msgLower.includes('xác nhận') ? 'primary' : 'warning'));
+
+      var title = opts.title || (type === 'danger' ? 'Xác nhận xóa' : (type === 'primary' ? 'Xác nhận kích hoạt' : 'Xác nhận thay đổi'));
+      var confirmText = opts.confirmText || (type === 'danger' ? 'Đồng ý xóa' : 'Xác nhận');
+      var cancelText = opts.cancelText || 'Hủy bỏ';
+
+      titleEl.textContent = title;
+      msgEl.textContent = msg;
+      confirmBtn.textContent = confirmText;
+      cancelBtn.textContent = cancelText;
+      cancelBtn.style.display = 'inline-flex';
+
+      iconWrap.className = 'cvip-modal-icon-wrapper ' + type;
+      confirmBtn.className = 'cvip-modal-btn cvip-btn-confirm ' + (type === 'danger' ? 'danger' : '');
+      
+      if (type === 'danger') {
+        iconEl.className = 'fas fa-trash-alt';
+      } else if (type === 'primary') {
+        iconEl.className = 'fas fa-check-circle';
+      } else {
+        iconEl.className = 'fas fa-exclamation-triangle';
+      }
+
+      modal.style.display = 'flex';
+      requestAnimationFrame(function() {
+        modal.classList.add('show');
+      });
+
+      function cleanup() {
+        modal.classList.remove('show');
+        setTimeout(function() {
+          modal.style.display = 'none';
+        }, 220);
+        confirmBtn.removeEventListener('click', onConfirm);
+        cancelBtn.removeEventListener('click', onCancel);
+        modal.removeEventListener('click', onBackdropClick);
+        document.removeEventListener('keydown', onKeyDown);
+      }
+
+      function onConfirm() {
+        cleanup();
+        resolve(true);
+      }
+
+      function onCancel() {
+        cleanup();
+        resolve(false);
+      }
+
+      function onBackdropClick(e) {
+        if (e.target === modal) onCancel();
+      }
+
+      function onKeyDown(e) {
+        if (e.key === 'Escape') onCancel();
+      }
+
+      confirmBtn.addEventListener('click', onConfirm);
+      cancelBtn.addEventListener('click', onCancel);
+      modal.addEventListener('click', onBackdropClick);
+      document.addEventListener('keydown', onKeyDown);
+    });
+  };
+
+  // Global Custom Alert Modal
+  window.customAlert = function(optionsOrMessage) {
+    return new Promise(function(resolve) {
+      var opts = typeof optionsOrMessage === 'string' 
+        ? { message: optionsOrMessage } 
+        : (optionsOrMessage || {});
+
+      var modal = document.getElementById('cvipConfirmModal');
+      var titleEl = document.getElementById('cvipModalTitle');
+      var msgEl = document.getElementById('cvipModalMessage');
+      var iconWrap = document.getElementById('cvipModalIconWrap');
+      var iconEl = document.getElementById('cvipModalIcon');
+      var confirmBtn = document.getElementById('cvipModalConfirmBtn');
+      var cancelBtn = document.getElementById('cvipModalCancelBtn');
+
+      var type = opts.type || 'primary';
+      var title = opts.title || 'Thông báo';
+      var okText = opts.okText || 'Đã hiểu';
+
+      titleEl.textContent = title;
+      msgEl.textContent = opts.message || '';
+      confirmBtn.textContent = okText;
+      confirmBtn.className = 'cvip-modal-btn cvip-btn-confirm';
+      cancelBtn.style.display = 'none';
+
+      iconWrap.className = 'cvip-modal-icon-wrapper ' + type;
+      if (type === 'danger' || type === 'error') {
+        iconEl.className = 'fas fa-exclamation-circle';
+        iconWrap.className = 'cvip-modal-icon-wrapper danger';
+      } else if (type === 'success') {
+        iconEl.className = 'fas fa-check-circle';
+        iconWrap.className = 'cvip-modal-icon-wrapper success';
+      } else {
+        iconEl.className = 'fas fa-info-circle';
+        iconWrap.className = 'cvip-modal-icon-wrapper primary';
+      }
+
+      modal.style.display = 'flex';
+      requestAnimationFrame(function() {
+        modal.classList.add('show');
+      });
+
+      function cleanup() {
+        modal.classList.remove('show');
+        setTimeout(function() {
+          modal.style.display = 'none';
+          cancelBtn.style.display = 'inline-flex';
+        }, 220);
+        confirmBtn.removeEventListener('click', onConfirm);
+        modal.removeEventListener('click', onBackdropClick);
+        document.removeEventListener('keydown', onKeyDown);
+      }
+
+      function onConfirm() {
+        cleanup();
+        resolve(true);
+      }
+
+      function onBackdropClick(e) {
+        if (e.target === modal) onConfirm();
+      }
+
+      function onKeyDown(e) {
+        if (e.key === 'Escape' || e.key === 'Enter') onConfirm();
+      }
+
+      confirmBtn.addEventListener('click', onConfirm);
+      modal.addEventListener('click', onBackdropClick);
+      document.addEventListener('keydown', onKeyDown);
+    });
+  };
+
+  // Automatically intercept all forms with onsubmit="return confirm(...)" or delete forms
+  document.addEventListener('submit', function(e) {
+    var form = e.target;
+    if (!form || form.getAttribute('data-cvip-confirmed') === 'true') return;
+
+    var onsubmitAttr = form.getAttribute('onsubmit') || '';
+    var isDelete = form.action && form.action.includes('/delete');
+    var isClear = form.action && form.action.includes('/clear');
+    var matchConfirm = onsubmitAttr.match(/confirm\((['"`])(.*)\1\)/);
+
+    if (matchConfirm || isDelete || isClear || form.classList.contains('confirm-action')) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      var msg = matchConfirm ? matchConfirm[2] : (isDelete ? 'Bạn có chắc chắn muốn xóa bản ghi này? Thao tác này không thể hoàn tác!' : 'Bạn có chắc chắn muốn thực hiện thao tác này?');
+
+      window.customConfirm(msg).then(function(confirmed) {
+        if (confirmed) {
+          form.setAttribute('data-cvip-confirmed', 'true');
+          form.submit();
+        }
+      });
+    }
+  }, true);
+
+  // Intercept button clicks with onclick="return confirm(...)"
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('button, a');
+    if (!btn || btn.getAttribute('data-cvip-confirmed') === 'true') return;
+
+    var onclickAttr = btn.getAttribute('onclick') || '';
+    var matchConfirm = onclickAttr.match(/confirm\((['"`])(.*)\1\)/);
+
+    if (matchConfirm) {
+      e.preventDefault();
+      e.stopPropagation();
+
+      var msg = matchConfirm[2];
+      window.customConfirm(msg).then(function(confirmed) {
+        if (confirmed) {
+          btn.setAttribute('data-cvip-confirmed', 'true');
+          if (btn.type === 'submit' && btn.form) {
+            btn.form.setAttribute('data-cvip-confirmed', 'true');
+            btn.form.submit();
+          } else if (btn.href) {
+            window.location.href = btn.href;
+          } else {
+            btn.click();
+          }
+        }
+      });
+    }
+  }, true);
+
+  // Image preview on file select
+  document.querySelectorAll('input[type=file]').forEach(function(input) {
+    input.addEventListener('change', function() {
+      var preview = document.getElementById('imgPreview');
+      if (preview && this.files[0]) {
+        var reader = new FileReader();
+        reader.onload = function(e) { preview.src = e.target.result; preview.style.display = 'block'; };
+        reader.readAsDataURL(this.files[0]);
+      }
+    });
+  });
+
+  // Tự động đăng xuất sau 30 phút không hoạt động (Inactivity Timeout)
+  (function() {
+    var INACTIVITY_TIME = 30 * 60 * 1000; // 30 phút = 1,800,000ms
+    var idleTimer;
+
+    function resetIdleTimer() {
+      clearTimeout(idleTimer);
+      idleTimer = setTimeout(function() {
+        window.location.href = '/admin/login?timeout=1';
+      }, INACTIVITY_TIME);
+    }
+
+    var userEvents = ['mousemove', 'mousedown', 'keydown', 'touchstart', 'scroll', 'click'];
+    userEvents.forEach(function(evt) {
+      window.addEventListener(evt, resetIdleTimer, { passive: true });
+    });
+
+    resetIdleTimer();
+  })();
+</script>
+</body>
+</html>

@@ -1,0 +1,350 @@
+<%- include('../layouts/admin-top') %>
+
+<style>
+  .profile-grid {
+    display: grid;
+    grid-template-columns: 380px 1fr;
+    gap: 22px;
+    align-items: start;
+  }
+  @media (max-width: 992px) {
+    .profile-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* User Info Card */
+  .profile-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    padding: 24px;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .profile-avatar-large {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin: 0 auto 14px;
+    border: 3px solid var(--primary);
+    box-shadow: 0 4px 12px rgba(0, 144, 161, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.4rem;
+    font-weight: 800;
+    color: var(--primary);
+    background: #e0f2fe;
+  }
+
+  .profile-stat-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px dashed #e2e8f0;
+    font-size: 0.85rem;
+  }
+  .profile-stat-row:last-child {
+    border-bottom: none;
+    padding-bottom: 0;
+  }
+  .profile-stat-label {
+    color: #64748b;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .profile-stat-val {
+    color: #0f172a;
+    font-weight: 700;
+  }
+
+  /* Role Badges */
+  .role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+  }
+  .role-badge.superadmin { background: #ede9fe; color: #6d28d9; border: 1px solid #ddd6fe; }
+  .role-badge.doctor { background: #e0f2fe; color: #0369a1; border: 1px solid #bae6fd; }
+  .role-badge.receptionist { background: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+  .role-badge.editor { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+  .role-badge.custom { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
+
+  /* Input fields */
+  .profile-form-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    margin-bottom: 22px;
+    overflow: hidden;
+  }
+  .profile-form-header {
+    padding: 16px 22px;
+    border-bottom: 1px solid #f1f5f9;
+    background: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .profile-form-header h3 {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #0f172a;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .profile-form-body {
+    padding: 22px;
+  }
+</style>
+
+<div class="profile-grid">
+  <!-- CỘT TRÁI: TỔNG QUAN TÀI KHOẢN & NHẬT KÝ HOẠT ĐỘNG -->
+  <div>
+    <div class="profile-card">
+      <% if (user.avatar) { %>
+        <img src="<%= user.avatar %>" alt="<%= user.username %>" class="profile-avatar-large">
+      <% } else { %>
+        <div class="profile-avatar-large">
+          <%= (user.full_name || user.username).trim().charAt(0).toUpperCase() %>
+        </div>
+      <% } %>
+
+      <h2 style="font-size: 1.18rem; font-weight: 800; color: #0f172a; margin: 0 0 4px 0;">
+        <%= user.full_name || user.username %>
+      </h2>
+      <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 12px;">
+        @<%= user.username %>
+      </div>
+
+      <% 
+        let badgeClass = 'custom';
+        if (user.role_code === 'superadmin' || user.id === 1) badgeClass = 'superadmin';
+        else if (user.role_code === 'doctor') badgeClass = 'doctor';
+        else if (user.role_code === 'receptionist') badgeClass = 'receptionist';
+        else if (user.role_code === 'editor') badgeClass = 'editor';
+      %>
+      <div style="margin-bottom: 20px;">
+        <span class="role-badge <%= badgeClass %>">
+          <i class="fas fa-shield-alt"></i> <%= user.role_name || (user.id === 1 ? 'Quản trị viên tối cao' : 'Chưa phân nhóm') %>
+        </span>
+      </div>
+
+      <div style="text-align: left; background: #f8fafc; border-radius: 10px; padding: 12px 16px; border: 1px solid #e2e8f0;">
+        <div class="profile-stat-row">
+          <span class="profile-stat-label"><i class="fas fa-hashtag"></i> Mã tài khoản:</span>
+          <span class="profile-stat-val">#<%= user.id %></span>
+        </div>
+        <div class="profile-stat-row">
+          <span class="profile-stat-label"><i class="fas fa-check-circle" style="color: #16a34a;"></i> Trạng thái:</span>
+          <span class="profile-stat-val" style="color: #16a34a; font-weight: 800;">
+            <i class="fas fa-dot-circle" style="font-size: 0.65rem;"></i> Hoạt động
+          </span>
+        </div>
+        <div class="profile-stat-row">
+          <span class="profile-stat-label"><i class="fas fa-calendar-alt"></i> Ngày tạo:</span>
+          <span class="profile-stat-val"><%= user.created_at ? new Date(user.created_at).toLocaleDateString('vi-VN') : 'Mặc định' %></span>
+        </div>
+        <div class="profile-stat-row">
+          <span class="profile-stat-label"><i class="fas fa-history"></i> Lần đăng nhập cuối:</span>
+          <span class="profile-stat-val">
+            <%= user.last_login ? new Date(user.last_login).toLocaleDateString('vi-VN') + ' ' + new Date(user.last_login).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : 'Vừa xong' %>
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5 HOẠT ĐỘNG GẦN NHẤT -->
+    <div class="profile-form-card">
+      <div class="profile-form-header">
+        <h3><i class="fas fa-history" style="color: #8b5cf6;"></i> Hoạt Động Gần Đây</h3>
+        <a href="/admin/logs" style="font-size: 0.78rem; color: var(--primary); font-weight: 700; text-decoration: none;">Xem tất cả</a>
+      </div>
+      <div style="padding: 12px 18px;">
+        <% if (recentLogs && recentLogs.length > 0) { %>
+          <div style="display: flex; flex-direction: column; gap: 10px;">
+            <% recentLogs.forEach(function(l) { %>
+              <div style="font-size: 0.8rem; border-left: 2.5px solid var(--primary); padding-left: 10px; margin-bottom: 4px;">
+                <div style="color: #1e293b; font-weight: 700;">
+                  <%= l.description || (l.action + ' ' + l.module) %>
+                </div>
+                <div style="color: #94a3b8; font-size: 0.72rem; margin-top: 2px;">
+                  <%= new Date(l.created_at).toLocaleDateString('vi-VN') %> <%= new Date(l.created_at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) %>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        <% } else { %>
+          <div style="font-size: 0.8rem; color: #94a3b8; text-align: center; padding: 12px 0;">
+            Chưa có ghi nhận hoạt động nào.
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+
+  <!-- CỘT PHẢI: FORM CẬP NHẬT THÔNG TIN & ĐỔI MẬT KHẨU -->
+  <div>
+    <!-- 1. CẬP NHẬT THÔNG TIN CÁ NHÂN -->
+    <div class="profile-form-card">
+      <div class="profile-form-header">
+        <h3><i class="fas fa-user-edit" style="color: var(--primary);"></i> Cập Nhật Thông Tin Cá Nhân</h3>
+        <span style="font-size: 0.78rem; color: #64748b;">Quản lý thông tin hồ sơ của bạn</span>
+      </div>
+      <div class="profile-form-body">
+        <form action="/admin/profile" method="POST" enctype="multipart/form-data">
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label>Tên đăng nhập (Username)</label>
+              <input type="text" value="<%= user.username %>" disabled style="background: #f1f5f9; cursor: not-allowed; color: #64748b; font-weight: 700;">
+            </div>
+            <div class="form-group">
+              <label>Nhóm quyền hạn</label>
+              <input type="text" value="<%= user.role_name || (user.id === 1 ? 'Quản trị viên tối cao' : 'Nhân viên') %>" disabled style="background: #f1f5f9; cursor: not-allowed; color: #64748b; font-weight: 700;">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Họ và tên hiển thị <span style="color: #ef4444;">*</span></label>
+            <input type="text" name="full_name" required value="<%= user.full_name || '' %>" placeholder="Nhập họ và tên hiển thị">
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label>Địa chỉ Email</label>
+              <input type="email" name="email" value="<%= user.email || '' %>" placeholder="Nhập địa chỉ email">
+            </div>
+            <div class="form-group">
+              <label>Số điện thoại</label>
+              <input type="text" name="phone" value="<%= user.phone || '' %>" placeholder="Nhập số điện thoại liên hệ">
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 22px;">
+            <label>Ảnh đại diện (Avatar)</label>
+            <div style="display: flex; align-items: center; gap: 14px;">
+              <input type="file" name="avatar" accept="image/*" id="avatarInput" style="padding: 6px 10px;">
+            </div>
+            <img id="avatarPreview" src="#" alt="Preview" style="display: none; width: 60px; height: 60px; border-radius: 50%; object-fit: cover; margin-top: 10px; border: 2px solid var(--primary);">
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #f1f5f9; padding-top: 16px;">
+            <button type="submit" class="btn btn-primary" style="padding: 9px 22px; font-weight: 700; border-radius: 8px;">
+              <i class="fas fa-save"></i> Lưu Thông Tin
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- 2. ĐỔI MẬT KHẨU CÁ NHÂN -->
+    <div class="profile-form-card">
+      <div class="profile-form-header">
+        <h3><i class="fas fa-shield-alt" style="color: #d97706;"></i> Đổi Mật Khẩu Đăng Nhập</h3>
+        <span style="font-size: 0.78rem; color: #64748b;">Nên đặt mật khẩu mạnh để bảo vệ tài khoản</span>
+      </div>
+      <div class="profile-form-body">
+        <form action="/admin/profile/password" method="POST" onsubmit="return validatePasswordForm(this)">
+          <div class="form-group">
+            <label>Mật khẩu hiện tại <span style="color: #ef4444;">*</span></label>
+            <div style="position: relative;">
+              <input type="password" name="current_password" required placeholder="Nhập mật khẩu bạn đang sử dụng"
+                     style="width: 100%; padding-right: 40px;" id="currPwd">
+              <button type="button" onclick="togglePwdVisibility('currPwd', this)" 
+                      style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer;">
+                <i class="fas fa-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-grid-2">
+            <div class="form-group">
+              <label>Mật khẩu mới <span style="color: #ef4444;">*</span></label>
+              <div style="position: relative;">
+                <input type="password" name="new_password" required minlength="6" placeholder="Tối thiểu 6 ký tự"
+                       style="width: 100%; padding-right: 40px;" id="newPwd">
+                <button type="button" onclick="togglePwdVisibility('newPwd', this)" 
+                        style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer;">
+                  <i class="fas fa-eye"></i>
+                </button>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Xác nhận mật khẩu mới <span style="color: #ef4444;">*</span></label>
+              <div style="position: relative;">
+                <input type="password" name="confirm_password" required minlength="6" placeholder="Nhập lại mật khẩu mới"
+                       style="width: 100%; padding-right: 40px;" id="confPwd">
+                <button type="button" onclick="togglePwdVisibility('confPwd', this)" 
+                        style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer;">
+                  <i class="fas fa-eye"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 10px; border-top: 1px solid #f1f5f9; padding-top: 16px;">
+            <button type="submit" class="btn btn-warning" style="padding: 9px 22px; font-weight: 700; border-radius: 8px;">
+              <i class="fas fa-key"></i> Đổi Mật Khẩu
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Preview avatar
+  document.getElementById('avatarInput')?.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const preview = document.getElementById('avatarPreview');
+        preview.src = evt.target.result;
+        preview.style.display = 'block';
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // Toggle eye visibility
+  function togglePwdVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon = btn.querySelector('i');
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.className = 'fas fa-eye-slash';
+    } else {
+      input.type = 'password';
+      icon.className = 'fas fa-eye';
+    }
+  }
+
+  // Validate form password
+  function validatePasswordForm(form) {
+    const newPwd = form.new_password.value;
+    const confPwd = form.confirm_password.value;
+    if (newPwd !== confPwd) {
+      alert('Xác nhận mật khẩu mới không khớp!');
+      return false;
+    }
+    return true;
+  }
+</script>
+
+<%- include('../layouts/admin-bottom') %>

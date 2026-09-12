@@ -1,0 +1,591 @@
+<%- include('./layouts/main-top') %>
+
+<style>
+  /* Modern & Delicate Pagination Styles */
+  .pagination-bar-wrapper {
+    margin-top: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    background: #ffffff;
+    padding: 14px 20px;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  }
+  .pagination-info-group {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .pagination-limit-select-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.88rem;
+    color: #475569;
+    font-weight: 600;
+  }
+  .pagination-limit-select-wrap select {
+    padding: 5px 12px;
+    border-radius: 20px;
+    border: 1.5px solid #cbd5e1;
+    background: #f8fafc;
+    font-weight: 700;
+    color: #0f172a;
+    cursor: pointer;
+    font-size: 0.86rem;
+    outline: none;
+    transition: all 0.2s;
+  }
+  .pagination-limit-select-wrap select:focus,
+  .pagination-limit-select-wrap select:hover {
+    border-color: var(--primary);
+    background: #ffffff;
+  }
+  .service-pagination {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+  .service-page-btn {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.85rem;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    outline: none;
+  }
+  .service-page-btn:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: var(--primary);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
+  }
+  .service-page-btn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #ffffff;
+    box-shadow: 0 4px 10px rgba(0, 144, 161, 0.3);
+    transform: translateY(-1px);
+  }
+  .service-nav-btn {
+    height: 34px;
+    padding: 0 14px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-weight: 600;
+    font-size: 0.84rem;
+    border: 1px solid #e2e8f0;
+    background: #ffffff;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.03);
+    outline: none;
+  }
+  .service-nav-btn:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: var(--primary);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
+  }
+  .service-page-dots {
+    width: 24px;
+    text-align: center;
+    color: #94a3b8;
+    font-weight: 700;
+    font-size: 0.85rem;
+    letter-spacing: 1px;
+    user-select: none;
+  }
+</style>
+
+<!-- Page Hero -->
+<section class="page-hero">
+  <div class="container">
+    <nav class="breadcrumb">
+      <a href="/">Trang chủ</a> <i class="fas fa-chevron-right"></i> <span>Bảng Giá Dịch Vụ</span>
+    </nav>
+    <h1 class="page-title">Bảng Giá Dịch Vụ Y Tế</h1>
+    <p class="page-desc">Cam kết công khai, minh bạch vì quyền lợi của khách hàng</p>
+  </div>
+</section>
+
+<!-- Main Services Section -->
+<section class="section" style="padding-top: 0; padding-bottom: 70px;">
+  <div class="container">
+    
+    <!-- SEARCH & FILTER CARD (AUTO-SEARCH AS YOU TYPE) -->
+    <div class="services-search-card" data-aos="fade-up">
+      <form id="serviceFilterForm" method="GET" action="/dich-vu" class="services-filter-grid" style="grid-template-columns: 2fr 1.2fr 1.2fr 1.2fr;" onsubmit="return false;">
+        
+        <!-- Keyword search with live typing -->
+        <div class="form-group" style="margin-bottom: 0;">
+          <label style="font-size: 0.85rem; font-weight: 700; color: #334155; margin-bottom: 6px; display: block;">
+            <i class="fas fa-search" style="color: var(--primary);"></i> Tìm tên dịch vụ, ghi chú
+          </label>
+          <div style="position: relative;">
+            <input type="text" 
+                   name="q" 
+                   id="serviceSearchInput"
+                   value="<%= searchQuery %>" 
+                   placeholder="Nhập tên dịch vụ... (tự động tìm khi gõ)" 
+                   autocomplete="off"
+                   style="width: 100%; padding: 11px 36px 11px 16px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 0.95rem; transition: border-color 0.2s, box-shadow 0.2s;">
+            <span id="searchSpinner" style="display: none; position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: var(--primary); font-size: 0.9rem;">
+              <i class="fas fa-spinner fa-spin"></i>
+            </span>
+            <button type="button" id="clearSearchBtn" onclick="clearSearch()" style="display: <%= searchQuery ? 'block' : 'none' %>; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; font-size: 1.1rem; cursor: pointer; padding: 4px;">
+              &times;
+            </button>
+          </div>
+        </div>
+
+        <!-- Specialty Filter -->
+        <div class="form-group" style="margin-bottom: 0;">
+          <label style="font-size: 0.85rem; font-weight: 700; color: #334155; margin-bottom: 6px; display: block;">
+            <i class="fas fa-stethoscope" style="color: var(--primary);"></i> Chuyên khoa/Loại dịch vụ
+          </label>
+          <select name="specialty" id="specialtySelect" style="width: 100%; padding: 11px 14px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 0.92rem; background: white; cursor: pointer;">
+            <option value="">-- Tất cả chuyên khoa / loại dịch vụ --</option>
+            <% specialties.forEach(function(sp) { %>
+              <option value="<%= sp %>" <%= currentSpecialty === sp ? 'selected' : '' %>><%= sp %></option>
+            <% }); %>
+          </select>
+        </div>
+
+        <!-- Group Filter -->
+        <div class="form-group" style="margin-bottom: 0;">
+          <label style="font-size: 0.85rem; font-weight: 700; color: #334155; margin-bottom: 6px; display: block;">
+            <i class="fas fa-layer-group" style="color: var(--primary);"></i> Nhóm dịch vụ
+          </label>
+          <select name="group" id="groupSelect" style="width: 100%; padding: 11px 14px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 0.92rem; background: white; cursor: pointer;">
+            <option value="">-- Tất cả nhóm dịch vụ --</option>
+            <% groups.forEach(function(grp) { %>
+              <option value="<%= grp %>" <%= currentGroup === grp ? 'selected' : '' %>><%= grp %></option>
+            <% }); %>
+          </select>
+        </div>
+
+        <!-- Patient Type Filter -->
+        <div class="form-group" style="margin-bottom: 0;">
+          <label style="font-size: 0.85rem; font-weight: 700; color: #334155; margin-bottom: 6px; display: block;">
+            <i class="fas fa-id-card" style="color: var(--primary);"></i> Đối tượng
+          </label>
+          <select name="type" id="typeSelect" style="width: 100%; padding: 11px 14px; border: 1.5px solid #cbd5e1; border-radius: 10px; font-size: 0.92rem; background: white; cursor: pointer;">
+            <option value="">-- Tất cả đối tượng --</option>
+            <option value="Dịch vụ" <%= currentType === 'Dịch vụ' ? 'selected' : '' %>>Khám Dịch Vụ</option>
+            <option value="BHYT" <%= currentType === 'BHYT' ? 'selected' : '' %>>Bảo Hiểm Y Tế (BHYT)</option>
+          </select>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- SUMMARY BAR & NOTICE -->
+    <div style="margin-top: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;" data-aos="fade-up">
+      <div id="serviceCountSummary" style="color: #475569; font-size: 0.95rem;">
+        Tìm thấy <strong style="color: var(--primary); font-size: 1.1rem;"><%= totalServices %></strong> dịch vụ y tế phù hợp.
+      </div>
+      <div style="display: flex; gap: 14px; align-items: center; font-size: 0.85rem;">
+        <span style="display: inline-flex; align-items: center; gap: 6px; color: #0284c7; font-weight: 600;">
+          <span style="width: 10px; height: 10px; background: #0284c7; border-radius: 50%; display: inline-block;"></span> Dịch vụ tự nguyện
+        </span>
+        <span style="display: inline-flex; align-items: center; gap: 6px; color: #dc2626; font-weight: 600;">
+          <span style="width: 10px; height: 10px; background: #dc2626; border-radius: 50%; display: inline-block;"></span> Bảo hiểm y tế (BHYT)
+        </span>
+      </div>
+    </div>
+
+    <!-- SERVICES PRICE TABLE CARD -->
+    <div class="services-price-table-card" data-aos="fade-up">
+      <div style="overflow-x: auto;">
+        <table class="price-table" style="min-width: 900px;">
+          <thead>
+            <tr>
+              <th style="width: 50px; text-align: center;">STT</th>
+              <th style="width: 170px; white-space: nowrap;">Chuyên khoa/Loại dịch vụ</th>
+              <th style="width: 150px; white-space: nowrap;">Nhóm dịch vụ</th>
+              <th style="min-width: 340px;">Tên dịch vụ kỹ thuật</th>
+              <th style="width: 100px; text-align: center; white-space: nowrap;">Đối tượng</th>
+              <th style="width: 140px; text-align: right; white-space: nowrap;">Đơn giá</th>
+              <th style="min-width: 200px;">Ghi chú</th>
+            </tr>
+          </thead>
+          <tbody id="servicesTableBody">
+            <% if (services && services.length > 0) { %>
+              <% const startIdx = (currentPage - 1) * limit; %>
+              <% services.forEach(function(s, index) { %>
+                <tr class="service-row">
+                  <td style="text-align: center; color: #64748b; font-weight: 600;"><%= startIdx + index + 1 %></td>
+                  <td style="white-space: nowrap;">
+                    <span style="color: #0369a1; font-weight: 700; font-size: 0.88rem;">
+                      <%= s.specialty_name || 'Đa Khoa' %>
+                    </span>
+                  </td>
+                  <td style="white-space: nowrap;">
+                    <span style="background: #f1f5f9; color: #334155; font-size: 0.8rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; display: inline-block;">
+                      <%= s.group_name %>
+                    </span>
+                  </td>
+                  <td style="line-height: 1.45;">
+                    <strong style="color: #0f172a; font-size: 0.96rem; display: inline-block;"><%= s.name %></strong>
+                  </td>
+                  <td style="text-align: center; white-space: nowrap;">
+                    <% if (s.patient_type === 'BHYT') { %>
+                      <span class="badge" style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; font-weight: 700; font-size: 0.78rem; padding: 3px 8px; border-radius: 4px;">BHYT</span>
+                    <% } else if (s.patient_type === 'Tất cả') { %>
+                      <span class="badge" style="background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; font-weight: 700; font-size: 0.78rem; padding: 3px 8px; border-radius: 4px;">Tất cả</span>
+                    <% } else { %>
+                      <span class="badge" style="background: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd; font-weight: 700; font-size: 0.78rem; padding: 3px 8px; border-radius: 4px;">Dịch vụ</span>
+                    <% } %>
+                  </td>
+                  <td style="text-align: right; white-space: nowrap;">
+                    <span style="font-size: 1.05rem; font-weight: 800; color: #ea580c;">
+                      <%= Number(s.price).toLocaleString('vi-VN') %> đ
+                    </span>
+                  </td>
+                  <td style="color: #64748b; font-size: 0.86rem; line-height: 1.4;">
+                    <%= s.notes || '-' %>
+                  </td>
+                </tr>
+              <% }); %>
+            <% } else { %>
+              <tr>
+                <td colspan="7" style="text-align: center; padding: 48px 20px; color: #94a3b8;">
+                  <i class="fas fa-search" style="font-size: 2.8rem; margin-bottom: 12px; display: block; opacity: 0.6;"></i>
+                  <h4 style="margin: 0 0 6px 0; color: #475569; font-size: 1.1rem;">Không tìm thấy dịch vụ nào</h4>
+                  <p style="margin: 0; font-size: 0.9rem;">Vui lòng thử tìm kiếm với từ khóa khác hoặc điều chỉnh lại bộ lọc chuyên khoa/nhóm.</p>
+                </td>
+              </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- PAGINATION CONTAINER -->
+    <div id="paginationContainer">
+      <% if (totalServices > 0) { %>
+      <div class="pagination-bar-wrapper" data-aos="fade-up">
+        <div class="pagination-info-group">
+          <div class="pagination-limit-select-wrap">
+            <span>Hiển thị:</span>
+            <select id="servicesLimitSelect" onchange="changeServiceLimit(this.value)">
+              <option value="10" <%= limit === 10 ? 'selected' : '' %>>10</option>
+              <option value="25" <%= limit === 25 ? 'selected' : '' %>>25</option>
+              <option value="50" <%= limit === 50 ? 'selected' : '' %>>50</option>
+              <option value="100" <%= limit === 100 ? 'selected' : '' %>>100</option>
+            </select>
+            <span>dòng / trang</span>
+          </div>
+          <div style="color: #64748b; font-size: 0.88rem;">
+            (Hiển thị <strong><%= (currentPage - 1) * limit + 1 %></strong> - <strong><%= Math.min(currentPage * limit, totalServices) %></strong> trong <strong><%= totalServices %></strong> dịch vụ)
+          </div>
+        </div>
+
+        <% if (totalPages > 1) { %>
+        <div class="service-pagination">
+          <% if (currentPage > 1) { %>
+            <button type="button" onclick="fetchServices(<%= currentPage - 1 %>)" class="service-nav-btn" title="Trang trước">
+              <i class="fas fa-chevron-left" style="font-size: 0.75rem;"></i> <span>Trước</span>
+            </button>
+          <% } %>
+
+          <% for (let p = 1; p <= totalPages; p++) { %>
+            <% if (p === 1 || p === totalPages || (p >= currentPage - 2 && p <= currentPage + 2)) { %>
+              <button type="button" onclick="fetchServices(<%= p %>)" 
+                 class="service-page-btn <%= p === currentPage ? 'active' : '' %>">
+                <%= p %>
+              </button>
+            <% } else if (p === currentPage - 3 || p === currentPage + 3) { %>
+              <span class="service-page-dots">•••</span>
+            <% } %>
+          <% } %>
+
+          <% if (currentPage < totalPages) { %>
+            <button type="button" onclick="fetchServices(<%= currentPage + 1 %>)" class="service-nav-btn" title="Trang sau">
+              <span>Sau</span> <i class="fas fa-chevron-right" style="font-size: 0.75rem;"></i>
+            </button>
+          <% } %>
+        </div>
+        <% } %>
+      </div>
+      <% } %>
+    </div>
+
+    <!-- PACKAGES CTA BANNER -->
+    <div style="margin-top: 36px;" data-aos="fade-up">
+      <div style="background: linear-gradient(135deg, #0090a1 0%, #006875 100%); border-radius: 16px; padding: 28px 36px; color: white; display: flex; justify-content: space-between; align-items: center; gap: 24px; flex-wrap: wrap; box-shadow: 0 8px 24px rgba(0, 144, 161, 0.18);">
+        <div style="max-width: 700px;">
+          <span style="background: rgba(255,255,255,0.2); font-size: 0.78rem; font-weight: 700; padding: 4px 12px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px;">Gói Khám Toàn Diện</span>
+          <h3 style="margin: 10px 0 6px 0; font-size: 1.45rem; font-weight: 800; color: white;">Bạn Cần Khám Tổng Quát Tiết Kiệm?</h3>
+          <p style="margin: 0; font-size: 0.95rem; opacity: 0.92; line-height: 1.5;">Khám phá các Gói khám sức khỏe định kỳ, tầm soát ung thư toàn diện được thiết kế tối ưu chi phí từ 15% - 30% so với khám lẻ.</p>
+        </div>
+        <div>
+          <a href="/goi-kham" class="btn btn-white-outline" style="background: white; color: var(--primary); font-weight: 700; border: none; padding: 12px 26px; border-radius: 8px; text-decoration: none; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(0,0,0,0.15); white-space: nowrap;">
+            <span>Xem Các Gói Khám Ưu Đãi</span> <i class="fas fa-arrow-right"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- LIVE SEARCH SCRIPT -->
+<script>
+let searchTimeout = null;
+let currentActivePage = <%= currentPage %>;
+let currentServiceLimit = <%= limit || 10 %>;
+
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.getElementById('serviceSearchInput');
+  const specialtySelect = document.getElementById('specialtySelect');
+  const groupSelect = document.getElementById('groupSelect');
+  const typeSelect = document.getElementById('typeSelect');
+  const clearBtn = document.getElementById('clearSearchBtn');
+
+  // Live search when typing with debounce (250ms)
+  searchInput.addEventListener('input', function() {
+    clearBtn.style.display = this.value ? 'block' : 'none';
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+      fetchServices(1);
+    }, 250);
+  });
+
+  // Filter instantly when dropdown changed
+  specialtySelect.addEventListener('change', () => fetchServices(1));
+  groupSelect.addEventListener('change', () => fetchServices(1));
+  typeSelect.addEventListener('change', () => fetchServices(1));
+});
+
+function changeServiceLimit(newLimit) {
+  currentServiceLimit = parseInt(newLimit) || 10;
+  fetchServices(1);
+}
+
+function clearSearch() {
+  const searchInput = document.getElementById('serviceSearchInput');
+  const clearBtn = document.getElementById('clearSearchBtn');
+  searchInput.value = '';
+  clearBtn.style.display = 'none';
+  fetchServices(1);
+  searchInput.focus();
+}
+
+async function fetchServices(page = 1) {
+  currentActivePage = page;
+  const q = document.getElementById('serviceSearchInput').value.trim();
+  const specialty = document.getElementById('specialtySelect').value;
+  const group = document.getElementById('groupSelect').value;
+  const type = document.getElementById('typeSelect').value;
+  const spinner = document.getElementById('searchSpinner');
+  const clearBtn = document.getElementById('clearSearchBtn');
+
+  if (spinner) spinner.style.display = 'block';
+  if (clearBtn && q) clearBtn.style.display = 'none';
+
+  const params = new URLSearchParams();
+  if (q) params.append('q', q);
+  if (specialty) params.append('specialty', specialty);
+  if (group) params.append('group', group);
+  if (type) params.append('type', type);
+  params.append('page', page);
+  params.append('limit', currentServiceLimit);
+  params.append('format', 'json');
+
+  try {
+    const res = await fetch('/dich-vu?' + params.toString(), {
+      headers: { 'Accept': 'application/json' }
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      currentServiceLimit = data.limit || currentServiceLimit;
+      renderTableRows(data.services, data.page, data.limit);
+      renderPagination(data.page, data.totalPages, data.count, data.limit);
+      
+      // Update count summary
+      const countEl = document.getElementById('serviceCountSummary');
+      if (countEl) {
+        countEl.innerHTML = 'Tìm thấy <strong style="color: var(--primary); font-size: 1.1rem;">' + data.count + '</strong> dịch vụ y tế phù hợp.';
+      }
+
+      // Update URL without page reload
+      const newUrlParams = new URLSearchParams();
+      if (q) newUrlParams.append('q', q);
+      if (specialty) newUrlParams.append('specialty', specialty);
+      if (group) newUrlParams.append('group', group);
+      if (type) newUrlParams.append('type', type);
+      if (page > 1) newUrlParams.append('page', page);
+      if (currentServiceLimit !== 10) newUrlParams.append('limit', currentServiceLimit);
+      
+      const newUrl = '/dich-vu' + (newUrlParams.toString() ? '?' + newUrlParams.toString() : '');
+      window.history.replaceState({}, '', newUrl);
+    }
+  } catch (err) {
+    console.error('Fetch services error:', err);
+  } finally {
+    if (spinner) spinner.style.display = 'none';
+    if (clearBtn && q) clearBtn.style.display = 'block';
+  }
+}
+
+function renderTableRows(services, page, limit) {
+  const tbody = document.getElementById('servicesTableBody');
+  if (!tbody) return;
+
+  if (!services || services.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="text-align: center; padding: 48px 20px; color: #94a3b8;">
+          <i class="fas fa-search" style="font-size: 2.8rem; margin-bottom: 12px; display: block; opacity: 0.6;"></i>
+          <h4 style="margin: 0 0 6px 0; color: #475569; font-size: 1.1rem;">Không tìm thấy dịch vụ nào</h4>
+          <p style="margin: 0; font-size: 0.9rem;">Vui lòng thử tìm kiếm với từ khóa khác hoặc điều chỉnh lại bộ lọc chuyên khoa/nhóm.</p>
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  const startIdx = (page - 1) * limit;
+  let html = '';
+  services.forEach((s, idx) => {
+    let typeBadge = '';
+    if (s.patient_type === 'BHYT') {
+      typeBadge = '<span class="badge" style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; font-weight: 700; font-size: 0.78rem; padding: 3px 8px; border-radius: 4px;">BHYT</span>';
+    } else if (s.patient_type === 'Tất cả') {
+      typeBadge = '<span class="badge" style="background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; font-weight: 700; font-size: 0.78rem; padding: 3px 8px; border-radius: 4px;">Tất cả</span>';
+    } else {
+      typeBadge = '<span class="badge" style="background: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd; font-weight: 700; font-size: 0.78rem; padding: 3px 8px; border-radius: 4px;">Dịch vụ</span>';
+    }
+
+    const priceFormatted = Number(s.price).toLocaleString('vi-VN') + ' đ';
+
+    html += `
+      <tr class="service-row">
+        <td style="text-align: center; color: #64748b; font-weight: 600;">${startIdx + idx + 1}</td>
+        <td style="white-space: nowrap;">
+          <span style="color: #0369a1; font-weight: 700; font-size: 0.88rem;">
+            ${s.specialty_name || 'Đa Khoa'}
+          </span>
+        </td>
+        <td style="white-space: nowrap;">
+          <span style="background: #f1f5f9; color: #334155; font-size: 0.8rem; font-weight: 700; padding: 4px 10px; border-radius: 6px; display: inline-block;">
+            ${s.group_name}
+          </span>
+        </td>
+        <td style="line-height: 1.45;">
+          <strong style="color: #0f172a; font-size: 0.96rem; display: inline-block;">${s.name}</strong>
+        </td>
+        <td style="text-align: center; white-space: nowrap;">
+          ${typeBadge}
+        </td>
+        <td style="text-align: right; white-space: nowrap;">
+          <span style="font-size: 1.05rem; font-weight: 800; color: #ea580c;">
+            ${priceFormatted}
+          </span>
+        </td>
+        <td style="color: #64748b; font-size: 0.86rem; line-height: 1.4;">
+          ${s.notes || '-'}
+        </td>
+      </tr>
+    `;
+  });
+
+  tbody.innerHTML = html;
+}
+
+function renderPagination(page, totalPages, totalCount, limit) {
+  const container = document.getElementById('paginationContainer');
+  if (!container) return;
+
+  if (totalCount === 0) {
+    container.innerHTML = '';
+    return;
+  }
+
+  const start = Math.min((page - 1) * limit + 1, totalCount);
+  const end = Math.min(page * limit, totalCount);
+
+  let html = `
+    <div class="pagination-bar-wrapper" data-aos="fade-up">
+      <div class="pagination-info-group">
+        <div class="pagination-limit-select-wrap">
+          <span>Hiển thị:</span>
+          <select id="servicesLimitSelect" onchange="changeServiceLimit(this.value)">
+            <option value="10" ${limit == 10 ? 'selected' : ''}>10</option>
+            <option value="25" ${limit == 25 ? 'selected' : ''}>25</option>
+            <option value="50" ${limit == 50 ? 'selected' : ''}>50</option>
+            <option value="100" ${limit == 100 ? 'selected' : ''}>100</option>
+          </select>
+          <span>dòng / trang</span>
+        </div>
+        <div style="color: #64748b; font-size: 0.88rem;">
+          (Hiển thị <strong>${start}</strong> - <strong>${end}</strong> trong <strong>${totalCount}</strong> dịch vụ)
+        </div>
+      </div>
+  `;
+
+  if (totalPages > 1) {
+    html += `<div class="service-pagination">`;
+
+    if (page > 1) {
+      html += `
+        <button type="button" onclick="fetchServices(${page - 1})" class="service-nav-btn" title="Trang trước">
+          <i class="fas fa-chevron-left" style="font-size: 0.75rem;"></i> <span>Trước</span>
+        </button>
+      `;
+    }
+
+    for (let p = 1; p <= totalPages; p++) {
+      if (p === 1 || p === totalPages || (p >= page - 2 && p <= page + 2)) {
+        const isActive = p === page ? 'active' : '';
+        html += `
+          <button type="button" onclick="fetchServices(${p})" class="service-page-btn ${isActive}">
+            ${p}
+          </button>
+        `;
+      } else if (p === page - 3 || p === page + 3) {
+        html += '<span class="service-page-dots">•••</span>';
+      }
+    }
+
+    if (page < totalPages) {
+      html += `
+        <button type="button" onclick="fetchServices(${page + 1})" class="service-nav-btn" title="Trang sau">
+          <span>Sau</span> <i class="fas fa-chevron-right" style="font-size: 0.75rem;"></i>
+        </button>
+      `;
+    }
+
+    html += `</div>`;
+  }
+
+  html += `</div>`;
+  container.innerHTML = html;
+}
+</script>
+
+<%- include('./layouts/main-bottom') %>

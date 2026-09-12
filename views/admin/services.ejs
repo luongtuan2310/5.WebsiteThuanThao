@@ -1,0 +1,714 @@
+<%- include('../layouts/admin-top') %>
+
+<style>
+  /* Switch Toggle CSS for Master Switch */
+  .switch-master {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 24px;
+    vertical-align: middle;
+  }
+  .switch-master input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .slider-master {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #cbd5e1;
+    transition: .3s;
+    border-radius: 24px;
+  }
+  .slider-master:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .switch-master input:checked + .slider-master {
+    background-color: var(--primary, #0090a1);
+  }
+  .switch-master input:checked + .slider-master:before {
+    transform: translateX(22px);
+  }
+  .master-toggle-box {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: #f8fafc;
+    border: 1.5px solid #cbd5e1;
+    padding: 6px 14px;
+    border-radius: 8px;
+    user-select: none;
+    cursor: pointer;
+  }
+
+  /* Switch Toggle CSS for Table Rows */
+  .switch-tbl {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    vertical-align: middle;
+  }
+  .switch-tbl input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .slider-tbl {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #cbd5e1;
+    transition: .3s;
+    border-radius: 24px;
+  }
+  .slider-tbl:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .switch-tbl input:checked + .slider-tbl {
+    background-color: var(--primary, #0090a1);
+  }
+  .switch-tbl input:checked + .slider-tbl:before {
+    transform: translateX(20px);
+  }
+</style>
+
+<div style="width: 100%;">
+  <!-- HEADER & HÀNH ĐỘNG CHÍNH -->
+  <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; background: #ffffff; padding: 14px 20px; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 2px 6px rgba(0,0,0,0.02); flex-wrap: wrap; gap: 12px;">
+    <div>
+      <h2 style="margin: 0; font-size: 1.25rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+        <i class="fas fa-list-alt" style="color: var(--primary);"></i> Quản Lý Bảng Giá Dịch Vụ
+      </h2>
+      <p style="margin: 4px 0 0 0; color: #64748b; font-size: 0.85rem;">
+        Tổng cộng <strong id="adminTotalCount" style="color: var(--primary);"><%= totalServices %></strong> dịch vụ y tế đang quản lý
+      </p>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+      <!-- Master Toggle Switch: Kích hoạt tất cả / Ẩn tất cả -->
+      <div class="master-toggle-box" title="Gạt để Kích hoạt hoặc Ẩn tất cả dịch vụ (theo bộ lọc hiện tại)">
+        <span id="masterToggleLabel" style="font-size: 0.83rem; font-weight: 700; color: #334155;">Kích hoạt tất cả</span>
+        <label class="switch-master">
+          <input type="checkbox" id="masterToggleInput" onchange="toggleAllServices(this)">
+          <span class="slider-master"></span>
+        </label>
+      </div>
+
+      <a href="/dich-vu" target="_blank" class="btn btn-sm" style="background: #e0f2fe; color: #0369a1; font-weight: 700; border: 1px solid #bae6fd; padding: 7px 14px; border-radius: 6px; text-decoration: none;">
+        <i class="fas fa-external-link-alt"></i> Xem trang Bảng giá
+      </a>
+      <a href="/admin/services/template" class="btn btn-secondary btn-sm" style="font-weight: 700;">
+        <i class="fas fa-download"></i> Tải file mẫu Excel
+      </a>
+      <button type="button" onclick="document.getElementById('importModal').style.display='flex'" class="btn btn-sm" style="background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0; font-weight: 700; padding: 7px 14px; border-radius: 6px;">
+        <i class="fas fa-file-excel"></i> Nhập từ Excel/CSV
+      </button>
+      <a href="/admin/services/export" class="btn btn-sm" style="background: #fefce8; color: #854d0e; border: 1px solid #fef08a; font-weight: 700; padding: 7px 14px; border-radius: 6px; text-decoration: none;">
+        <i class="fas fa-file-export"></i> Xuất Excel
+      </a>
+      <a href="/admin/services/create" class="btn btn-primary btn-sm" style="font-weight: 700; padding: 7px 16px;">
+        <i class="fas fa-plus-circle"></i> Thêm dịch vụ
+      </a>
+    </div>
+  </div>
+
+  <!-- BỘ LỌC TỰ ĐỘNG & TÌM KIẾM NHANH -->
+  <div class="card" style="padding: 16px; margin-bottom: 20px;">
+    <div style="display: grid; grid-template-columns: 2fr 1.2fr 1.2fr 1.2fr; gap: 12px; align-items: end;">
+      
+      <!-- Tìm kiếm -->
+      <div class="form-group" style="margin-bottom: 0;">
+        <label style="font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 4px; display: flex; justify-content: space-between; align-items: center;">
+          <span>Tìm kiếm tự động</span>
+          <span style="font-size: 0.72rem; color: #94a3b8; font-weight: 500;">(Tự lọc khi gõ)</span>
+        </label>
+        <div style="position: relative;">
+          <i class="fas fa-search" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: #94a3b8; font-size: 0.9rem;"></i>
+          <input type="text" id="adminSearchInput" value="<%= searchQuery %>" placeholder="Nhập tên dịch vụ, ghi chú, nhóm..." style="padding-left: 36px; padding-right: 36px; width: 100%; border-radius: 8px; border: 1.5px solid #cbd5e1;">
+          <button type="button" id="adminClearSearchBtn" onclick="clearAdminSearch()" style="display: <%= searchQuery ? 'block' : 'none' %>; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 1.1rem; line-height: 1;">&times;</button>
+          <div id="adminSearchSpinner" style="display: none; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: var(--primary);">
+            <i class="fas fa-circle-notch fa-spin"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Chuyên khoa -->
+      <div class="form-group" style="margin-bottom: 0;">
+        <label style="font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Chuyên khoa/Loại dịch vụ</label>
+        <select id="adminSpecialtySelect" style="width: 100%; border-radius: 8px; border: 1.5px solid #cbd5e1;">
+          <option value="">-- Tất cả chuyên khoa / loại dịch vụ --</option>
+          <% specialties.forEach(function(sp) { %>
+            <option value="<%= sp %>" <%= currentSpecialty === sp ? 'selected' : '' %>><%= sp %></option>
+          <% }); %>
+        </select>
+      </div>
+
+      <!-- Nhóm dịch vụ -->
+      <div class="form-group" style="margin-bottom: 0;">
+        <label style="font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Nhóm dịch vụ</label>
+        <select id="adminGroupSelect" style="width: 100%; border-radius: 8px; border: 1.5px solid #cbd5e1;">
+          <option value="">-- Tất cả nhóm --</option>
+          <% groups.forEach(function(grp) { %>
+            <option value="<%= grp %>" <%= currentGroup === grp ? 'selected' : '' %>><%= grp %></option>
+          <% }); %>
+        </select>
+      </div>
+
+      <!-- Đối tượng -->
+      <div class="form-group" style="margin-bottom: 0;">
+        <label style="font-size: 0.8rem; font-weight: 700; color: #475569; margin-bottom: 4px;">Đối tượng áp dụng</label>
+        <select id="adminTypeSelect" style="width: 100%; border-radius: 8px; border: 1.5px solid #cbd5e1;">
+          <option value="">-- Tất cả đối tượng --</option>
+          <option value="Dịch vụ" <%= currentType === 'Dịch vụ' ? 'selected' : '' %>>Dịch vụ</option>
+          <option value="BHYT" <%= currentType === 'BHYT' ? 'selected' : '' %>>BHYT</option>
+          <option value="Tất cả" <%= currentType === 'Tất cả' ? 'selected' : '' %>>Tất cả</option>
+        </select>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BẢNG DANH SÁCH DỊCH VỤ -->
+  <div class="card" style="padding: 0; overflow: hidden; border: 1px solid #e2e8f0; box-shadow: 0 2px 8px rgba(0,0,0,0.03);">
+    <div style="overflow-x: auto;">
+      <table class="data-table" style="width: 100%; border-collapse: collapse; text-align: left;">
+        <thead>
+          <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0;">
+            <th style="padding: 12px 14px; font-weight: 800; color: #334155; width: 45px; text-align: center;">STT</th>
+            <th style="padding: 12px 14px; font-weight: 800; color: #334155; width: 160px;">Chuyên khoa/Loại dịch vụ</th>
+            <th style="padding: 12px 14px; font-weight: 800; color: #334155; width: 135px;">Nhóm dịch vụ</th>
+            <th style="padding: 12px 14px; font-weight: 800; color: #334155; min-width: 200px;">Tên dịch vụ</th>
+            <th style="padding: 12px 14px; font-weight: 800; color: #334155; width: 95px; text-align: center;">Đối tượng</th>
+            <th style="padding: 12px 14px; font-weight: 800; color: #334155; width: 115px; text-align: right; white-space: nowrap;">Đơn giá</th>
+            <th style="padding: 12px 14px; font-weight: 800; color: #334155; width: 140px;">Ghi chú</th>
+            <th style="padding: 12px 14px; font-weight: 800; color: #334155; width: 135px; text-align: center; white-space: nowrap;">Thời gian cập nhật</th>
+            <th style="padding: 12px 14px; font-weight: 800; color: #334155; width: 125px; text-align: center; white-space: nowrap;">Trạng thái</th>
+            <th style="padding: 12px 14px; font-weight: 800; color: #334155; width: 85px; text-align: center; white-space: nowrap;">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody id="adminServicesTableBody">
+          <% if (services && services.length > 0) { %>
+            <% services.forEach(function(s, idx) { %>
+            <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+              <td style="padding: 12px 14px; color: #64748b; font-weight: 600; text-align: center;"><%= (currentPage - 1) * limit + idx + 1 %></td>
+              <td style="padding: 12px 14px;">
+                <span style="font-weight: 700; color: #0284c7; font-size: 0.85rem;"><%= s.specialty_name || 'Chung' %></span>
+              </td>
+              <td style="padding: 12px 14px;">
+                <span style="background: #f1f5f9; color: #475569; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 700;"><%= s.group_name %></span>
+              </td>
+              <td style="padding: 12px 14px;">
+                <strong style="color: #0f172a; font-size: 0.92rem; line-height: 1.4;"><%= s.name %></strong>
+              </td>
+              <td style="padding: 12px 14px; text-align: center; white-space: nowrap;">
+                <% if (s.patient_type === 'BHYT') { %>
+                  <span class="badge" style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; font-weight: 700; font-size: 0.78rem; padding: 3px 8px; border-radius: 4px;">BHYT</span>
+                <% } else if (s.patient_type === 'Tất cả') { %>
+                  <span class="badge" style="background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; font-weight: 700; font-size: 0.78rem; padding: 3px 8px; border-radius: 4px;">Tất cả</span>
+                <% } else { %>
+                  <span class="badge" style="background: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd; font-weight: 700; font-size: 0.78rem; padding: 3px 8px; border-radius: 4px;">Dịch vụ</span>
+                <% } %>
+              </td>
+              <td style="padding: 12px 14px; text-align: right; white-space: nowrap;">
+                <strong style="color: #ea580c; font-size: 0.95rem;"><%= Number(s.price).toLocaleString('vi-VN') %> đ</strong>
+              </td>
+              <td style="padding: 12px 14px; color: #64748b; font-size: 0.82rem; line-height: 1.35; max-width: 160px;">
+                <%= s.notes || '-' %>
+              </td>
+              <td style="padding: 12px 14px; text-align: center; color: #64748b; font-size: 0.82rem; white-space: nowrap;">
+                <% 
+                  const dt = s.updated_at ? new Date(s.updated_at) : (s.created_at ? new Date(s.created_at) : new Date());
+                  const pad = (n) => (n < 10 ? '0' + n : n);
+                  const formattedTime = `${pad(dt.getHours())}:${pad(dt.getMinutes())} - ${pad(dt.getDate())}/${pad(dt.getMonth()+1)}/${dt.getFullYear()}`;
+                %>
+                <div style="font-weight: 600; color: #475569; display: inline-flex; align-items: center; gap: 5px;">
+                  <i class="far fa-clock" style="color: #94a3b8; font-size: 0.85rem;"></i> <%= formattedTime %>
+                </div>
+              </td>
+              <td style="text-align: center;">
+                <div style="display: inline-flex; align-items: center; gap: 8px;">
+                  <label class="switch-tbl" title="Gạt để Hiển thị / Tạm ẩn dịch vụ">
+                    <input type="checkbox" onchange="toggleServiceStatus(<%= s.id %>, this)" <%= s.is_active ? 'checked' : '' %>>
+                    <span class="slider-tbl"></span>
+                  </label>
+                  <span class="status-label-<%= s.id %>" style="font-size: 0.78rem; font-weight: 700; color: <%= s.is_active ? '#15803d' : '#94a3b8' %>;">
+                    <%= s.is_active ? 'Hiển thị' : 'Tạm ẩn' %>
+                  </span>
+                </div>
+              </td>
+              <td style="padding: 12px 14px; text-align: center; white-space: nowrap;">
+                <div style="display: flex; justify-content: center; gap: 6px;">
+                  <a href="/admin/services/<%= s.id %>/edit" class="btn btn-sm btn-secondary" title="Sửa dịch vụ" style="padding: 5px 9px; border-radius: 6px;">
+                    <i class="fas fa-edit"></i>
+                  </a>
+                  <form action="/admin/services/<%= s.id %>/delete" method="POST" style="margin: 0;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa dịch vụ: <%= s.name %>?');">
+                    <button type="submit" class="btn btn-sm btn-danger" title="Xóa" style="padding: 5px 9px; border-radius: 6px;">
+                      <i class="fas fa-trash-alt"></i>
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            <% }); %>
+          <% } else { %>
+            <tr>
+              <td colspan="10" style="padding: 36px; text-align: center; color: #94a3b8;">
+                <i class="fas fa-box-open" style="font-size: 2.5rem; margin-bottom: 10px; display: block;"></i>
+                Không tìm thấy dịch vụ nào phù hợp với bộ lọc.
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- PHÂN TRANG (PAGINATION CONTAINER) -->
+  <div id="adminPaginationContainer" style="margin-top: 18px;">
+    <% if (totalPages > 1) { %>
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; background: #ffffff; padding: 12px 18px; border-radius: 8px; border: 1px solid #e2e8f0;">
+      <div style="color: #64748b; font-size: 0.88rem;">
+        Hiển thị dịch vụ <strong><%= (currentPage - 1) * limit + 1 %></strong> - <strong><%= Math.min(currentPage * limit, totalServices) %></strong> trong tổng số <strong><%= totalServices %></strong> dịch vụ
+      </div>
+      
+      <div class="pagination" style="display: flex; gap: 6px; align-items: center;">
+        <% if (currentPage > 1) { %>
+          <button type="button" onclick="fetchAdminServices(<%= currentPage - 1 %>)" class="btn btn-sm btn-secondary" style="padding: 6px 12px; font-weight: 700; border-radius: 6px; cursor: pointer;">
+            <i class="fas fa-chevron-left"></i> Trước
+          </button>
+        <% } %>
+
+        <% for (let p = 1; p <= totalPages; p++) { %>
+          <% if (p === 1 || p === totalPages || (p >= currentPage - 2 && p <= currentPage + 2)) { %>
+            <button type="button" onclick="fetchAdminServices(<%= p %>)" 
+               class="btn btn-sm <%= p === currentPage ? 'btn-primary' : 'btn-secondary' %>" 
+               style="min-width: 34px; height: 34px; padding: 0 8px; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; border-radius: 6px; cursor: pointer;">
+              <%= p %>
+            </button>
+          <% } else if (p === currentPage - 3 || p === currentPage + 3) { %>
+            <span style="padding: 0 4px; color: #94a3b8; font-weight: 700;">...</span>
+          <% } %>
+        <% } %>
+
+        <% if (currentPage < totalPages) { %>
+          <button type="button" onclick="fetchAdminServices(<%= currentPage + 1 %>)" class="btn btn-sm btn-secondary" style="padding: 6px 12px; font-weight: 700; border-radius: 6px; cursor: pointer;">
+            Sau <i class="fas fa-chevron-right"></i>
+          </button>
+        <% } %>
+      </div>
+    </div>
+    <% } %>
+  </div>
+
+</div>
+
+<!-- MODAL IMPORT EXCEL -->
+<div id="importModal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; justify-content: center; align-items: center; padding: 20px;">
+  <div style="background: white; border-radius: 12px; width: 100%; max-width: 540px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden; animation: modalFade 0.25s ease;">
+    <div style="padding: 16px 20px; background: #f8fafc; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;">
+      <h3 style="margin: 0; font-size: 1.1rem; font-weight: 800; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+        <i class="fas fa-file-excel" style="color: #16a34a;"></i> Nhập Bảng Giá Từ File Excel / CSV
+      </h3>
+      <button type="button" onclick="document.getElementById('importModal').style.display='none'" style="background: none; border: none; font-size: 1.25rem; color: #94a3b8; cursor: pointer;">&times;</button>
+    </div>
+
+    <form action="/admin/services/import" method="POST" enctype="multipart/form-data" style="padding: 20px;">
+      <div style="margin-bottom: 16px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 8px; padding: 12px 16px;">
+        <h4 style="margin: 0 0 6px 0; color: #166534; font-size: 0.9rem; font-weight: 800;">
+          <i class="fas fa-info-circle"></i> Hướng dẫn nhập dữ liệu:
+        </h4>
+        <ul style="margin: 0; padding-left: 18px; color: #15803d; font-size: 0.83rem; line-height: 1.5;">
+          <li>Các cột chuẩn trong file: <strong>Chuyên khoa/Loại dịch vụ</strong> (hoặc <strong>Chuyên khoa</strong>), <strong>Nhóm dịch vụ</strong>, <strong>Tên dịch vụ</strong>, <strong>Đối tượng</strong>, <strong>Đơn giá</strong>, <strong>Ghi chú</strong>.</li>
+          <li>Bạn có thể tải <a href="/admin/services/template" style="color: #0284c7; font-weight: 700; text-decoration: underline;">file Excel mẫu chuẩn tại đây</a> trước khi điền.</li>
+        </ul>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 20px;">
+        <label style="font-weight: 700; color: #334155; margin-bottom: 6px;">Chọn file Excel (.xlsx, .xls) hoặc .csv</label>
+        <input type="file" name="file" accept=".xlsx, .xls, .csv" required style="padding: 10px; border: 1.5px dashed #cbd5e1; border-radius: 8px; width: 100%; background: #f8fafc;">
+      </div>
+
+      <div style="display: flex; justify-content: flex-end; gap: 10px;">
+        <button type="button" onclick="document.getElementById('importModal').style.display='none'" class="btn btn-secondary" style="font-weight: 600;">
+          Hủy bỏ
+        </button>
+        <button type="submit" class="btn btn-primary" style="font-weight: 700; padding: 10px 24px;">
+          <i class="fas fa-upload"></i> Bắt đầu Nhập Dữ Liệu
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- AUTO LIVE SEARCH & PAGINATION JAVASCRIPT -->
+<script>
+let adminSearchTimeout = null;
+let currentAdminPage = <%= currentPage %>;
+
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.getElementById('adminSearchInput');
+  const specialtySelect = document.getElementById('adminSpecialtySelect');
+  const groupSelect = document.getElementById('adminGroupSelect');
+  const typeSelect = document.getElementById('adminTypeSelect');
+  const clearBtn = document.getElementById('adminClearSearchBtn');
+
+  // Auto search on typing with debounce (250ms)
+  if (searchInput) {
+    searchInput.addEventListener('input', function() {
+      if (clearBtn) clearBtn.style.display = this.value ? 'block' : 'none';
+      clearTimeout(adminSearchTimeout);
+      adminSearchTimeout = setTimeout(() => {
+        fetchAdminServices(1);
+      }, 250);
+    });
+  }
+
+  // Filter instantly when dropdown selection changes
+  if (specialtySelect) specialtySelect.addEventListener('change', () => fetchAdminServices(1));
+  if (groupSelect) groupSelect.addEventListener('change', () => fetchAdminServices(1));
+  if (typeSelect) typeSelect.addEventListener('change', () => fetchAdminServices(1));
+});
+
+function clearAdminSearch() {
+  const searchInput = document.getElementById('adminSearchInput');
+  const clearBtn = document.getElementById('adminClearSearchBtn');
+  if (searchInput) {
+    searchInput.value = '';
+    if (clearBtn) clearBtn.style.display = 'none';
+    fetchAdminServices(1);
+    searchInput.focus();
+  }
+}
+
+async function fetchAdminServices(page = 1) {
+  currentAdminPage = page;
+  const q = document.getElementById('adminSearchInput') ? document.getElementById('adminSearchInput').value.trim() : '';
+  const specialty = document.getElementById('adminSpecialtySelect') ? document.getElementById('adminSpecialtySelect').value : '';
+  const group = document.getElementById('adminGroupSelect') ? document.getElementById('adminGroupSelect').value : '';
+  const type = document.getElementById('adminTypeSelect') ? document.getElementById('adminTypeSelect').value : '';
+  const spinner = document.getElementById('adminSearchSpinner');
+  const clearBtn = document.getElementById('adminClearSearchBtn');
+
+  if (spinner) spinner.style.display = 'block';
+  if (clearBtn && q) clearBtn.style.display = 'none';
+
+  const params = new URLSearchParams();
+  if (q) params.append('q', q);
+  if (specialty) params.append('specialty', specialty);
+  if (group) params.append('group', group);
+  if (type) params.append('type', type);
+  params.append('page', page);
+  params.append('format', 'json');
+
+  try {
+    const res = await fetch('/admin/services?' + params.toString(), {
+      headers: { 'Accept': 'application/json' }
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      renderAdminTableRows(data.services, data.page, data.limit);
+      renderAdminPagination(data.page, data.totalPages, data.count, data.limit);
+      
+      // Update header total count
+      const totalCountEl = document.getElementById('adminTotalCount');
+      if (totalCountEl) totalCountEl.textContent = data.count;
+
+      // Update URL query parameters seamlessly
+      const newUrlParams = new URLSearchParams();
+      if (q) newUrlParams.append('q', q);
+      if (specialty) newUrlParams.append('specialty', specialty);
+      if (group) newUrlParams.append('group', group);
+      if (type) newUrlParams.append('type', type);
+      if (page > 1) newUrlParams.append('page', page);
+      
+      const newUrl = '/admin/services' + (newUrlParams.toString() ? '?' + newUrlParams.toString() : '');
+      window.history.replaceState({}, '', newUrl);
+    }
+  } catch (err) {
+    console.error('Fetch admin services error:', err);
+  } finally {
+    if (spinner) spinner.style.display = 'none';
+    if (clearBtn && q) clearBtn.style.display = 'block';
+  }
+}
+
+function renderAdminTableRows(services, page, limit) {
+  const tbody = document.getElementById('adminServicesTableBody');
+  if (!tbody) return;
+
+  if (!services || services.length === 0) {
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="10" style="padding: 36px; text-align: center; color: #94a3b8;">
+          <i class="fas fa-box-open" style="font-size: 2.5rem; margin-bottom: 10px; display: block;"></i>
+          Không tìm thấy dịch vụ nào phù hợp với bộ lọc.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  const startIdx = (page - 1) * limit;
+  let html = '';
+  services.forEach((s, idx) => {
+    let typeBadge = '';
+    if (s.patient_type === 'BHYT') {
+      typeBadge = '<span class="badge" style="background: #fef2f2; color: #dc2626; border: 1px solid #fecaca; font-weight: 700; font-size: 0.78rem; padding: 3px 8px; border-radius: 4px;">BHYT</span>';
+    } else if (s.patient_type === 'Tất cả') {
+      typeBadge = '<span class="badge" style="background: #f0fdf4; color: #16a34a; border: 1px solid #bbf7d0; font-weight: 700; font-size: 0.78rem; padding: 3px 8px; border-radius: 4px;">Tất cả</span>';
+    } else {
+      typeBadge = '<span class="badge" style="background: #f0f9ff; color: #0284c7; border: 1px solid #bae6fd; font-weight: 700; font-size: 0.78rem; padding: 3px 8px; border-radius: 4px;">Dịch vụ</span>';
+    }
+
+    const priceFormatted = Number(s.price).toLocaleString('vi-VN') + ' đ';
+    const notesText = s.notes ? escapeHtml(s.notes) : '-';
+    const serviceName = escapeHtml(s.name);
+    const specialtyName = escapeHtml(s.specialty_name || 'Chung');
+    const groupName = escapeHtml(s.group_name || '');
+    const formattedUpdatedTime = formatDateTime(s.updated_at || s.created_at);
+
+    html += `
+      <tr style="border-bottom: 1px solid #f1f5f9; transition: background 0.15s;" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background='white'">
+        <td style="padding: 12px 14px; color: #64748b; font-weight: 600; text-align: center;">${startIdx + idx + 1}</td>
+        <td style="padding: 12px 14px;">
+          <span style="font-weight: 700; color: #0284c7; font-size: 0.85rem;">${specialtyName}</span>
+        </td>
+        <td style="padding: 12px 14px;">
+          <span style="background: #f1f5f9; color: #475569; padding: 3px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: 700;">${groupName}</span>
+        </td>
+        <td style="padding: 12px 14px;">
+          <strong style="color: #0f172a; font-size: 0.92rem; line-height: 1.4;">${serviceName}</strong>
+        </td>
+        <td style="padding: 12px 14px; text-align: center; white-space: nowrap;">
+          ${typeBadge}
+        </td>
+        <td style="padding: 12px 14px; text-align: right; white-space: nowrap;">
+          <strong style="color: #ea580c; font-size: 0.95rem;">${priceFormatted}</strong>
+        </td>
+        <td style="padding: 12px 14px; color: #64748b; font-size: 0.82rem; line-height: 1.35; max-width: 160px;">
+          ${notesText}
+        </td>
+        <td style="padding: 12px 14px; text-align: center; color: #64748b; font-size: 0.82rem; white-space: nowrap;">
+          <div style="font-weight: 600; color: #475569; display: inline-flex; align-items: center; gap: 5px;">
+            <i class="far fa-clock" style="color: #94a3b8; font-size: 0.85rem;"></i> ${formattedUpdatedTime}
+          </div>
+        </td>
+        <td style="text-align: center;">
+          <div style="display: inline-flex; align-items: center; gap: 8px;">
+            <label class="switch-tbl" title="Gạt để Hiển thị / Tạm ẩn dịch vụ">
+              <input type="checkbox" onchange="toggleServiceStatus(${s.id}, this)" ${s.is_active ? 'checked' : ''}>
+              <span class="slider-tbl"></span>
+            </label>
+            <span class="status-label-${s.id}" style="font-size: 0.78rem; font-weight: 700; color: ${s.is_active ? '#15803d' : '#94a3b8'};">
+              ${s.is_active ? 'Hiển thị' : 'Tạm ẩn'}
+            </span>
+          </div>
+        </td>
+        <td style="padding: 12px 14px; text-align: center; white-space: nowrap;">
+          <div style="display: flex; justify-content: center; gap: 6px;">
+            <a href="/admin/services/${s.id}/edit" class="btn btn-sm btn-secondary" title="Sửa dịch vụ" style="padding: 5px 9px; border-radius: 6px;">
+              <i class="fas fa-edit"></i>
+            </a>
+            <form action="/admin/services/${s.id}/delete" method="POST" style="margin: 0;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa dịch vụ: ${serviceName}?');">
+              <button type="submit" class="btn btn-sm btn-danger" title="Xóa" style="padding: 5px 9px; border-radius: 6px;">
+                <i class="fas fa-trash-alt"></i>
+              </button>
+            </form>
+          </div>
+        </td>
+      </tr>
+    `;
+  });
+
+  tbody.innerHTML = html;
+}
+
+function renderAdminPagination(page, totalPages, totalCount, limit) {
+  const container = document.getElementById('adminPaginationContainer');
+  if (!container) return;
+
+  if (totalPages <= 1) {
+    container.innerHTML = '';
+    return;
+  }
+
+  const startItem = (page - 1) * limit + 1;
+  const endItem = Math.min(page * limit, totalCount);
+
+  let pagesHtml = '';
+  for (let p = 1; p <= totalPages; p++) {
+    if (p === 1 || p === totalPages || (p >= page - 2 && p <= page + 2)) {
+      const activeClass = p === page ? 'btn-primary' : 'btn-secondary';
+      pagesHtml += `
+        <button type="button" onclick="fetchAdminServices(${p})" 
+                class="btn btn-sm ${activeClass}" 
+                style="min-width: 34px; height: 34px; padding: 0 8px; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; border-radius: 6px; cursor: pointer;">
+          ${p}
+        </button>
+      `;
+    } else if (p === page - 3 || p === page + 3) {
+      pagesHtml += '<span style="padding: 0 4px; color: #94a3b8; font-weight: 700;">...</span>';
+    }
+  }
+
+  let prevBtn = '';
+  if (page > 1) {
+    prevBtn = `
+      <button type="button" onclick="fetchAdminServices(${page - 1})" class="btn btn-sm btn-secondary" style="padding: 6px 12px; font-weight: 700; border-radius: 6px; cursor: pointer;">
+        <i class="fas fa-chevron-left"></i> Trước
+      </button>
+    `;
+  }
+
+  let nextBtn = '';
+  if (page < totalPages) {
+    nextBtn = `
+      <button type="button" onclick="fetchAdminServices(${page + 1})" class="btn btn-sm btn-secondary" style="padding: 6px 12px; font-weight: 700; border-radius: 6px; cursor: pointer;">
+        Sau <i class="fas fa-chevron-right"></i>
+      </button>
+    `;
+  }
+
+  container.innerHTML = `
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; background: #ffffff; padding: 12px 18px; border-radius: 8px; border: 1px solid #e2e8f0;">
+      <div style="color: #64748b; font-size: 0.88rem;">
+        Hiển thị dịch vụ <strong>${startItem}</strong> - <strong>${endItem}</strong> trong tổng số <strong>${totalCount}</strong> dịch vụ
+      </div>
+      <div class="pagination" style="display: flex; gap: 6px; align-items: center;">
+        ${prevBtn}
+        ${pagesHtml}
+        ${nextBtn}
+      </div>
+    </div>
+  `;
+}
+
+function formatDateTime(dateStr) {
+  if (!dateStr) return '-';
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return '-';
+  const pad = (n) => (n < 10 ? '0' + n : n);
+  return `${pad(d.getHours())}:${pad(d.getMinutes())} - ${pad(d.getDate())}/${pad(d.getMonth() + 1)}/${d.getFullYear()}`;
+}
+
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+}
+
+async function toggleServiceStatus(id, inputElem) {
+  const isChecked = inputElem.checked;
+  const labelElem = document.querySelector(`.status-label-${id}`);
+  inputElem.disabled = true;
+  try {
+    const res = await fetch('/admin/services/' + id + '/toggle', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    });
+    const data = await res.json();
+    if (data.success) {
+      if (labelElem) {
+        labelElem.textContent = data.is_active ? 'Hiển thị' : 'Tạm ẩn';
+        labelElem.style.color = data.is_active ? '#15803d' : '#94a3b8';
+      }
+    } else {
+      window.customAlert({ title: 'Thông báo', message: data.message || 'Không thể cập nhật trạng thái.', type: 'danger' });
+      inputElem.checked = !isChecked; // Revert
+    }
+  } catch(e) {
+    console.error(e);
+    window.customAlert({ title: 'Lỗi', message: 'Có lỗi xảy ra: ' + e.message, type: 'danger' });
+    inputElem.checked = !isChecked; // Revert
+  } finally {
+    inputElem.disabled = false;
+  }
+}
+
+async function toggleAllServices(inputElem) {
+  const isChecked = inputElem.checked;
+  const labelElem = document.getElementById('masterToggleLabel');
+  
+  const q = document.getElementById('adminSearchInput') ? document.getElementById('adminSearchInput').value.trim() : '';
+  const specialty = document.getElementById('adminSpecialtySelect') ? document.getElementById('adminSpecialtySelect').value : '';
+  const group = document.getElementById('adminGroupSelect') ? document.getElementById('adminGroupSelect').value : '';
+  const type = document.getElementById('adminTypeSelect') ? document.getElementById('adminTypeSelect').value : '';
+
+  const confirmMsg = isChecked 
+    ? 'Bạn có chắc muốn KÍCH HOẠT TẤT CẢ các dịch vụ trong danh sách lọc hiện tại?' 
+    : 'Bạn có chắc muốn ẨN TẤT CẢ các dịch vụ trong danh sách lọc hiện tại?';
+  
+  const confirmed = await window.customConfirm({
+    title: isChecked ? 'Kích hoạt hàng loạt' : 'Ẩn hàng loạt dịch vụ',
+    message: confirmMsg,
+    type: isChecked ? 'primary' : 'warning',
+    confirmText: isChecked ? 'Kích hoạt tất cả' : 'Ẩn tất cả',
+    cancelText: 'Hủy bỏ'
+  });
+
+  if (!confirmed) {
+    inputElem.checked = !isChecked; // Revert
+    return;
+  }
+
+  inputElem.disabled = true;
+  try {
+    const res = await fetch('/admin/services/toggle-all', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        is_active: isChecked,
+        q,
+        specialty,
+        group,
+        type
+      })
+    });
+    const data = await res.json();
+    if (data.success) {
+      if (labelElem) {
+        labelElem.textContent = isChecked ? 'Kích hoạt tất cả' : 'Ẩn tất cả';
+      }
+      // Refresh current page table data
+      await fetchAdminServices(currentAdminPage);
+    } else {
+      window.customAlert({ title: 'Thông báo', message: data.message || 'Không thể cập nhật trạng thái đồng loạt.', type: 'danger' });
+      inputElem.checked = !isChecked;
+    }
+  } catch (err) {
+    console.error(err);
+    window.customAlert({ title: 'Lỗi kết nối', message: 'Lỗi kết nối máy chủ: ' + err.message, type: 'danger' });
+    inputElem.checked = !isChecked;
+  } finally {
+    inputElem.disabled = false;
+  }
+}
+</script>
+
+<%- include('../layouts/admin-bottom') %>

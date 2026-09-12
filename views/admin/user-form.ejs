@@ -1,0 +1,459 @@
+<%- include('../layouts/admin-top') %>
+
+<style>
+  .user-editor-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.9fr);
+    gap: 24px;
+    align-items: start;
+  }
+  @media (max-width: 992px) {
+    .user-editor-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .required-star {
+    color: #ef4444;
+    font-weight: 800;
+    margin-left: 2px;
+  }
+
+  /* Form groups */
+  .form-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 600px) {
+    .form-grid-2 {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .form-group {
+    margin-bottom: 18px;
+  }
+  .form-group label {
+    display: block;
+    font-size: 0.86rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 7px;
+  }
+  .form-group input[type="text"],
+  .form-group input[type="email"],
+  .form-group input[type="password"],
+  .form-group select {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    outline: none;
+    font-family: inherit;
+    transition: all 0.2s ease;
+    background: #ffffff;
+    box-sizing: border-box;
+  }
+  .form-group input:focus,
+  .form-group select:focus {
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(0, 144, 161, 0.12);
+  }
+
+  /* Status Toggle Box (Matching ClinicVIP standard) */
+  .status-toggle-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 14px 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    user-select: none;
+  }
+  .status-toggle-box:hover {
+    border-color: var(--primary);
+    background: #f0fdfa;
+  }
+  .status-toggle-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .status-toggle-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: #dcfce7;
+    color: #15803d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+  .status-toggle-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 2px;
+  }
+  .status-toggle-desc {
+    font-size: 0.78rem;
+    color: #64748b;
+  }
+
+  /* Switch Toggle CSS */
+  .switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    flex-shrink: 0;
+  }
+  .switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #cbd5e1;
+    transition: .25s;
+    border-radius: 24px;
+  }
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .25s;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .switch input:checked + .slider {
+    background-color: #16a34a;
+  }
+  .switch input:checked + .slider:before {
+    transform: translateX(20px);
+  }
+
+  /* Avatar Upload Area */
+  .avatar-upload-area {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    background: #f8fafc;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .avatar-upload-area:hover {
+    border-color: var(--primary);
+    background: #f0fdfa;
+  }
+  .avatar-preview-circle {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #ffffff;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+    margin-bottom: 12px;
+    background: #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: #94a3b8;
+  }
+
+  /* Top Action Buttons */
+  .btn-top-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 0.88rem;
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    border: 1.5px solid transparent;
+    line-height: 1.4;
+  }
+  .btn-top-secondary {
+    background: #ffffff;
+    border-color: #cbd5e1;
+    color: #334155;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  }
+  .btn-top-secondary:hover {
+    background: #f8fafc;
+    border-color: var(--primary);
+    color: var(--primary);
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.08);
+  }
+  .btn-top-primary {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #ffffff;
+    box-shadow: 0 2px 6px rgba(0, 144, 161, 0.25);
+  }
+  .btn-top-primary:hover {
+    background: var(--primary-dark);
+    border-color: var(--primary-dark);
+    color: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 144, 161, 0.35);
+  }
+</style>
+
+<form method="POST" action="<%= user ? '/admin/users/' + user.id + '/edit' : '/admin/users/create' %>" enctype="multipart/form-data">
+  <!-- TOP ACTION BAR -->
+  <div style="margin-bottom: 22px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;">
+    <div>
+      <a href="/admin/users" class="btn-top-btn btn-top-secondary">
+        <i class="fas fa-arrow-left"></i> Quay lại
+      </a>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <a href="/admin/users" class="btn-top-btn btn-top-secondary">
+        <i class="fas fa-times"></i> Hủy
+      </a>
+      <button type="submit" class="btn-top-btn btn-top-primary">
+        <i class="fas fa-save"></i> Lưu
+      </button>
+    </div>
+  </div>
+
+  <div class="user-editor-layout">
+    
+    <!-- CỘT TRÁI: THÔNG TIN TÀI KHOẢN -->
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">
+          <i class="fas fa-id-card" style="color: var(--primary); margin-right: 6px;"></i> Thông Tin Tài Khoản & Cá Nhân
+        </div>
+      </div>
+
+      <div class="form-grid-2">
+        <!-- Tên đăng nhập -->
+        <div class="form-group">
+          <label for="usernameInput">Tên đăng nhập <span class="required-star">*</span></label>
+          <% if (user) { %>
+            <input type="text" id="usernameInput" value="<%= user.username %>" disabled style="background: #f8fafc; color: #64748b; cursor: not-allowed;">
+            <div style="color: #94a3b8; font-size: 0.76rem; margin-top: 4px;">Tên đăng nhập cố định không thể thay đổi.</div>
+          <% } else { %>
+            <input type="text" id="usernameInput" name="username" placeholder="Nhập tên đăng nhập" required autofocus pattern="[a-zA-Z0-9_\-\.]{3,30}" title="Từ 3-30 ký tự không dấu">
+            <div style="color: #64748b; font-size: 0.76rem; margin-top: 4px;">Từ 3-30 ký tự (chữ cái, số, không khoảng trắng).</div>
+          <% } %>
+        </div>
+
+        <!-- Họ và tên -->
+        <div class="form-group">
+          <label for="fullNameInput">Họ và tên <span class="required-star">*</span></label>
+          <input type="text" id="fullNameInput" name="full_name" placeholder="Nhập họ và tên" value="<%= user ? (user.full_name || '') : '' %>" required>
+        </div>
+      </div>
+
+      <div class="form-grid-2">
+        <!-- Email -->
+        <div class="form-group">
+          <label for="emailInput">Địa chỉ Email</label>
+          <input type="email" id="emailInput" name="email" placeholder="Nhập địa chỉ email" value="<%= user ? (user.email || '') : '' %>">
+        </div>
+
+        <!-- Số điện thoại -->
+        <div class="form-group">
+          <label for="phoneInput">Số điện thoại</label>
+          <input type="text" id="phoneInput" name="phone" placeholder="Nhập số điện thoại" value="<%= user ? (user.phone || '') : '' %>">
+        </div>
+      </div>
+
+      <!-- Mật khẩu -->
+      <div class="form-group" style="margin-top: 6px; padding-top: 14px; border-top: 1px solid #f1f5f9;">
+        <label for="passwordInput">
+          <%= user ? 'Mật khẩu mới' : 'Mật khẩu đăng nhập' %>
+          <% if (!user) { %><span class="required-star">*</span><% } %>
+          <% if (user) { %><span style="font-size: 0.8rem; color: #64748b; font-weight: normal; margin-left: 6px;">(Để trống nếu không đổi mật khẩu)</span><% } %>
+        </label>
+        <div style="position: relative;">
+          <input type="password" id="passwordInput" name="password" placeholder="<%= user ? 'Nhập mật khẩu mới nếu muốn thay đổi' : 'Nhập mật khẩu (tối thiểu 6 ký tự)' %>" <%= !user ? 'required minlength="6"' : '' %>>
+          <button type="button" onclick="togglePasswordVisibility()" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #94a3b8; font-size: 0.95rem;">
+            <i class="fas fa-eye" id="togglePasswordIcon"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CỘT PHẢI: PHÂN QUYỀN, TRẠNG THÁI & ẢNH ĐẠI DIỆN -->
+    <div>
+      
+      <!-- CARD NHÓM QUYỀN & TRẠNG THÁI -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <i class="fas fa-shield-alt" style="color: var(--primary); margin-right: 6px;"></i> Phân Quyền & Trạng Thái
+          </div>
+        </div>
+
+        <!-- Nhóm quyền -->
+        <div class="form-group">
+          <label for="roleSelect">Nhóm quyền hạn <span class="required-star">*</span></label>
+          <select id="roleSelect" name="role_id" required>
+            <option value="">— Chọn nhóm quyền —</option>
+            <% if (roles && roles.length > 0) { %>
+              <% roles.forEach(function(r) { %>
+                <option value="<%= r.id %>" <%= (user && user.role_id === r.id) ? 'selected' : (!user && r.code === 'receptionist' ? 'selected' : '') %>>
+                  <%= r.name %> (<%= r.code %>)
+                </option>
+              <% }) %>
+            <% } %>
+          </select>
+          <div style="font-size: 0.76rem; color: #64748b; margin-top: 5px;">
+            Người dùng sẽ thừa hưởng quyền theo cấu hình của nhóm trong <a href="/admin/roles" target="_blank" style="color: var(--primary); font-weight: 700;">Ma trận phân quyền</a>.
+          </div>
+        </div>
+
+        <!-- Trạng thái switch -->
+        <div class="form-group" style="margin-bottom: 0;">
+          <label>Trạng thái hoạt động</label>
+          <input type="hidden" name="is_active" id="isActiveHidden" value="<%= (!user || user.is_active === 1) ? '1' : '0' %>">
+          
+          <div class="status-toggle-box" onclick="toggleActiveSwitch()">
+            <div class="status-toggle-info">
+              <div class="status-toggle-icon" id="statusIcon">
+                <i class="fas fa-user-check"></i>
+              </div>
+              <div>
+                <div class="status-toggle-title" id="statusTitle">
+                  <%= (!user || user.is_active === 1) ? 'Đang hoạt động' : 'Đang tạm khóa' %>
+                </div>
+                <div class="status-toggle-desc" id="statusDesc">
+                  <%= (!user || user.is_active === 1) ? 'Tài khoản được phép đăng nhập vào hệ thống' : 'Tài khoản bị vô hiệu hóa quyền truy cập' %>
+                </div>
+              </div>
+            </div>
+
+            <label class="switch" onclick="event.stopPropagation();">
+              <input type="checkbox" id="isActiveSwitch" <%= (!user || user.is_active === 1) ? 'checked' : '' %> <%= (user && user.id === 1) ? 'disabled' : '' %> onchange="onSwitchChange(this)">
+              <span class="slider"></span>
+            </label>
+          </div>
+          <% if (user && user.id === 1) { %>
+            <div style="color: #0284c7; font-size: 0.76rem; margin-top: 4px;">Tài khoản Quản trị viên gốc luôn được kích hoạt.</div>
+          <% } %>
+        </div>
+      </div>
+
+      <!-- CARD ẢNH ĐẠI DIỆN -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-title">
+            <i class="fas fa-image" style="color: var(--primary); margin-right: 6px;"></i> Ảnh Đại Diện
+          </div>
+        </div>
+
+        <div class="avatar-upload-area" onclick="document.getElementById('avatarFileInput').click()">
+          <% if (user && user.avatar) { %>
+            <img src="<%= user.avatar %>" id="avatarPreviewImg" class="avatar-preview-circle" alt="Avatar">
+          <% } else { %>
+            <div id="avatarPlaceholder" class="avatar-preview-circle">
+              <i class="fas fa-user"></i>
+            </div>
+            <img src="" id="avatarPreviewImg" class="avatar-preview-circle" style="display: none;" alt="Avatar">
+          <% } %>
+
+          <div style="font-weight: 700; color: var(--primary); font-size: 0.88rem; margin-bottom: 2px;">
+            <i class="fas fa-cloud-upload-alt"></i> Chọn ảnh đại diện
+          </div>
+          <div style="font-size: 0.76rem; color: #64748b;">
+            Định dạng JPG, PNG, WebP (Tối đa 5MB)
+          </div>
+
+          <input type="file" id="avatarFileInput" name="avatar" accept="image/*" style="display: none;" onchange="previewAvatar(this)">
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</form>
+
+<script>
+  function togglePasswordVisibility() {
+    const input = document.getElementById('passwordInput');
+    const icon = document.getElementById('togglePasswordIcon');
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+      input.type = 'password';
+      icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+  }
+
+  function previewAvatar(input) {
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const preview = document.getElementById('avatarPreviewImg');
+        const placeholder = document.getElementById('avatarPlaceholder');
+        preview.src = e.target.result;
+        preview.style.display = 'block';
+        if (placeholder) placeholder.style.display = 'none';
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  function onSwitchChange(checkbox) {
+    const hidden = document.getElementById('isActiveHidden');
+    const title = document.getElementById('statusTitle');
+    const desc = document.getElementById('statusDesc');
+    const icon = document.getElementById('statusIcon');
+
+    if (checkbox.checked) {
+      hidden.value = '1';
+      title.textContent = 'Đang hoạt động';
+      desc.textContent = 'Tài khoản được phép đăng nhập vào hệ thống';
+      icon.style.background = '#dcfce7';
+      icon.style.color = '#15803d';
+      icon.innerHTML = '<i class="fas fa-user-check"></i>';
+    } else {
+      hidden.value = '0';
+      title.textContent = 'Đang tạm khóa';
+      desc.textContent = 'Tài khoản bị vô hiệu hóa quyền truy cập';
+      icon.style.background = '#fee2e2';
+      icon.style.color = '#dc2626';
+      icon.innerHTML = '<i class="fas fa-user-lock"></i>';
+    }
+  }
+
+  function toggleActiveSwitch() {
+    const checkbox = document.getElementById('isActiveSwitch');
+    if (checkbox && !checkbox.disabled) {
+      checkbox.checked = !checkbox.checked;
+      onSwitchChange(checkbox);
+    }
+  }
+</script>
+
+<%- include('../layouts/admin-bottom') %>

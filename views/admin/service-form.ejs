@@ -1,0 +1,152 @@
+<%- include('../layouts/admin-top') %>
+
+<div style="width: 100%; max-width: 900px; margin: 0 auto;">
+  <form action="<%= service ? '/admin/services/' + service.id + '/edit' : '/admin/services/create' %>" method="POST">
+    
+    <!-- THANH ĐIỀU HƯỚNG TRÊN CÙNG -->
+    <div style="margin-bottom: 22px; display: flex; justify-content: space-between; align-items: center; background: #ffffff; padding: 14px 20px; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 2px 6px rgba(0,0,0,0.02);">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <a href="/admin/services" class="btn btn-secondary" style="font-weight: 600;">
+          <i class="fas fa-arrow-left"></i> Quay lại danh sách
+        </a>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-lg" style="padding: 10px 38px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(0, 144, 161, 0.35);">
+        <i class="fas fa-save"></i> <%= service ? 'Cập Nhật Dịch Vụ' : 'Lưu Dịch Vụ Mới' %>
+      </button>
+    </div>
+
+    <!-- CARD FORM CHÍNH -->
+    <div class="card" style="padding: 26px; border-top: 4px solid var(--primary);">
+      <div class="card-header" style="margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1px solid #f1f5f9;">
+        <div class="card-title" style="font-size: 1.15rem; font-weight: 800; color: #0f172a;">
+          <i class="fas fa-hand-holding-medical" style="color: var(--primary);"></i>
+          <%= service ? 'Chỉnh Sửa Thông Tin Dịch Vụ' : 'Thêm Dịch Vụ Mới Vào Bảng Giá' %>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        
+        <!-- Chuyên khoa/Loại dịch vụ -->
+        <div class="form-group">
+          <label style="font-weight: 700; color: #334155;">Chuyên khoa/Loại dịch vụ</label>
+          <input type="text" 
+                 name="specialty_name" 
+                 list="specialtiesList"
+                 value="<%= service ? (service.specialty_name || '') : '' %>" 
+                 placeholder="Ví dụ: Nội Tổng Hợp, Tim Mạch, Phục hồi chức năng..." 
+                 required>
+          <datalist id="specialtiesList">
+            <% if (specialties && specialties.length > 0) { %>
+              <% specialties.forEach(function(sp) { %>
+                <option value="<%= sp.name %>">
+              <% }); %>
+            <% } %>
+            <option value="Nội Tổng Hợp">
+            <option value="Ngoại Tổng Hợp">
+            <option value="Nhi Khoa">
+            <option value="Sản Phụ Khoa">
+            <option value="Tim Mạch">
+            <option value="Ung Bướu">
+            <option value="Tai Mũi Họng">
+            <option value="Răng Hàm Mặt">
+            <option value="Mắt">
+            <option value="Da Liễu">
+          </datalist>
+          <small style="color: #64748b; font-size: 0.8rem; margin-top: 4px; display: block;">Chọn gợi ý có sẵn hoặc tự nhập tên chuyên khoa / loại dịch vụ mới.</small>
+        </div>
+
+        <!-- Nhóm dịch vụ -->
+        <div class="form-group">
+          <label style="font-weight: 700; color: #334155;">Nhóm dịch vụ <span style="color: #ef4444;">*</span></label>
+          <input type="text" 
+                 name="group_name" 
+                 list="groupsList"
+                 value="<%= service ? service.group_name : '' %>" 
+                 placeholder="Ví dụ: Khám Bệnh, Xét Nghiệm, Chẩn Đoán Hình Ảnh..." 
+                 required>
+          <datalist id="groupsList">
+            <% if (groups && groups.length > 0) { %>
+              <% groups.forEach(function(g) { %>
+                <option value="<%= g %>">
+              <% }); %>
+            <% } %>
+            <option value="Khám Bệnh">
+            <option value="Chẩn Đoán Hình Ảnh">
+            <option value="Xét Nghiệm">
+            <option value="Thăm Dò Chức Năng">
+            <option value="Thủ Thuật & Phẫu Thuật">
+            <option value="Nội Soi">
+          </datalist>
+          <small style="color: #64748b; font-size: 0.8rem; margin-top: 4px; display: block;">Phân loại nhóm hiển thị trên bảng giá.</small>
+        </div>
+
+      </div>
+
+      <!-- Tên dịch vụ -->
+      <div class="form-group" style="margin-top: 4px;">
+        <label style="font-weight: 700; color: #334155;">Tên dịch vụ y tế <span style="color: #ef4444;">*</span></label>
+        <input type="text" 
+               name="name" 
+               value="<%= service ? service.name : '' %>" 
+               placeholder="Ví dụ: Siêu Âm Tim Doppler Màu 4D, Khám Nội Tổng Quát..." 
+               required
+               style="font-size: 1rem; font-weight: 600;">
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1.5fr 1fr; gap: 20px; margin-top: 4px;">
+        
+        <!-- Đối tượng -->
+        <div class="form-group">
+          <label style="font-weight: 700; color: #334155;">Đối tượng áp dụng</label>
+          <select name="patient_type">
+            <option value="Dịch vụ" <%= (service && service.patient_type === 'Dịch vụ') ? 'selected' : '' %>>Dịch vụ</option>
+            <option value="BHYT" <%= (service && service.patient_type === 'BHYT') ? 'selected' : '' %>>BHYT</option>
+            <option value="Tất cả" <%= (service && service.patient_type === 'Tất cả') ? 'selected' : '' %>>Tất cả</option>
+          </select>
+        </div>
+
+        <!-- Đơn giá -->
+        <div class="form-group">
+          <label style="font-weight: 700; color: #334155;">Đơn giá (VNĐ) <span style="color: #ef4444;">*</span></label>
+          <input type="number" 
+                 name="price" 
+                 value="<%= service ? service.price : '0' %>" 
+                 min="0" 
+                 step="1000" 
+                 placeholder="0" 
+                 required
+                 style="font-size: 1.05rem; font-weight: 700; color: #ea580c;">
+        </div>
+
+        <!-- Thứ tự -->
+        <div class="form-group">
+          <label style="font-weight: 700; color: #334155;">Thứ tự hiển thị</label>
+          <input type="number" 
+                 name="sort_order" 
+                 value="<%= service ? (service.sort_order || 0) : 0 %>" 
+                 min="0" 
+                 placeholder="0">
+        </div>
+
+      </div>
+
+      <!-- Ghi chú -->
+      <div class="form-group" style="margin-top: 4px;">
+        <label style="font-weight: 700; color: #334155;">Ghi chú / Hướng dẫn thêm</label>
+        <textarea name="notes" rows="3" placeholder="Ví dụ: Bác sĩ CKII thực hiện, Nhịn ăn trước khi xét nghiệm 6-8 tiếng..."><%= service ? (service.notes || '') : '' %></textarea>
+      </div>
+
+      <!-- Trạng thái -->
+      <div class="form-group" style="margin-bottom: 0; padding-top: 10px; border-top: 1px solid #f1f5f9; display: flex; align-items: center; gap: 10px;">
+        <label style="margin: 0; font-weight: 700; color: #334155; cursor: pointer; display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" name="is_active" value="1" <%= (!service || service.is_active) ? 'checked' : '' %> style="width: 18px; height: 18px; cursor: pointer;">
+          <span>Hiển thị công khai trên Bảng giá Website</span>
+        </label>
+      </div>
+
+    </div>
+  </form>
+</div>
+
+<%- include('../layouts/admin-bottom') %>

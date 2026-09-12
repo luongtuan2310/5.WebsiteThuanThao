@@ -1,0 +1,114 @@
+<%- include('./layouts/main-top') %>
+
+<!-- Page Hero -->
+<section class="page-hero">
+  <div class="container">
+    <nav class="breadcrumb">
+      <a href="/">Trang chủ</a> <i class="fas fa-chevron-right"></i> <span>Liên Hệ</span>
+    </nav>
+    <h1 class="page-title">Liên Hệ Với Chúng Tôi</h1>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <div class="contact-layout">
+      <!-- Contact Info -->
+      <div class="contact-info-panel">
+        <h2>Thông Tin Liên Hệ</h2>
+        <ul class="contact-list-full">
+          <li>
+            <div class="contact-icon"><i class="fas fa-map-marker-alt"></i></div>
+            <div>
+              <strong>Địa chỉ</strong>
+              <span><%= clinicAddress %></span>
+            </div>
+          </li>
+          <li>
+            <div class="contact-icon"><i class="fas fa-phone-alt"></i></div>
+            <div>
+              <strong>Hotline / Số điện thoại</strong>
+              <% const contactPhones = (typeof clinicPhone !== 'undefined' && clinicPhone ? clinicPhone : '').split(/[,;\n\/]+/).map(p => p.trim()).filter(Boolean); %>
+              <div>
+                <% contactPhones.forEach((p, idx) => { %>
+                  <a href="tel:<%= p.replace(/\s/g,'') %>" style="display:inline-block;"><%= p %></a><%= idx < contactPhones.length - 1 ? ' — ' : '' %>
+                <% }); %>
+              </div>
+            </div>
+          </li>
+          <li>
+            <div class="contact-icon"><i class="fas fa-envelope"></i></div>
+            <div>
+              <strong>Email</strong>
+              <a href="mailto:<%= clinicEmail %>"><%= clinicEmail %></a>
+            </div>
+          </li>
+          <% if (typeof clinicTaxCode !== 'undefined' && clinicTaxCode) { %>
+          <li>
+            <div class="contact-icon"><i class="fas fa-file-invoice"></i></div>
+            <div>
+              <strong>Mã số thuế</strong>
+              <span><%= clinicTaxCode %></span>
+            </div>
+          </li>
+          <% } %>
+          <li>
+            <div class="contact-icon"><i class="fas fa-clock"></i></div>
+            <div>
+              <strong>Giờ làm việc</strong>
+              <span><%= typeof clinicWorkingHours !== 'undefined' && clinicWorkingHours ? clinicWorkingHours : 'Thứ 2 — Thứ 7: 7:00 — 17:00' %></span>
+            </div>
+          </li>
+        </ul>
+
+        <!-- Map -->
+        <div class="map-container">
+          <iframe
+            src="<%= (typeof clinicMapUrl !== 'undefined' && clinicMapUrl && clinicMapUrl.trim()) ? clinicMapUrl : 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3919.446683498226!2d106.69563661462256!3d10.779680961634557!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMTDCsDQ2JzQ2LjkiTiAxMDbCsDQxJzQzLjQiRQ!5e0!3m2!1sen!2svn!4v1620000000000!5m2!1sen!2svn' %>"
+            width="100%" height="280" style="border:0;border-radius:12px" allowfullscreen=""
+            loading="lazy" referrerpolicy="no-referrer-when-downgrade">
+          </iframe>
+        </div>
+      </div>
+
+      <!-- Contact Form -->
+      <div class="contact-form-panel">
+        <h2>Gửi Tin Nhắn</h2>
+        <% if (success && success.length > 0) { %>
+        <div class="alert alert-success">
+          <i class="fas fa-check-circle"></i> <%= success[0] %>
+        </div>
+        <% } %>
+        <% if (error && error.length > 0) { %>
+        <div class="alert alert-error">
+          <i class="fas fa-exclamation-circle"></i> <%= error[0] %>
+        </div>
+        <% } %>
+        <form action="/lien-he" method="POST" class="contact-form">
+          <div class="form-group">
+            <label for="full_name">Họ và tên <span class="required">*</span></label>
+            <input type="text" id="full_name" name="full_name" required placeholder="Nhập họ và tên">
+          </div>
+          <div class="form-group">
+            <label for="phone">Số điện thoại</label>
+            <input type="tel" id="phone" name="phone" placeholder="Nhập số điện thoại">
+          </div>
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email" placeholder="Nhập địa chỉ email">
+          </div>
+          <div class="form-group">
+            <label for="message">Nội dung</label>
+            <textarea id="message" name="message" rows="5"
+                      placeholder="Nhập nội dung tin nhắn..."></textarea>
+          </div>
+          <button type="submit" class="btn-primary btn-lg" style="padding: 14px 40px; display: inline-flex; align-items: center; gap: 8px;">
+            <span>Gửi tin nhắn</span> <i class="fas fa-paper-plane"></i>
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+</section>
+
+<%- include('./layouts/main-bottom') %>

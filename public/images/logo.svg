@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 60" width="280" height="60">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0090a1" />
+      <stop offset="100%" stop-color="#006b77" />
+    </linearGradient>
+  </defs>
+  <!-- Icon Background -->
+  <rect x="2" y="5" width="50" height="50" rx="12" fill="url(#grad)" />
+  <!-- Medical Cross & Hospital Lines -->
+  <rect x="22" y="17" width="10" height="26" rx="3" fill="#ffffff" />
+  <rect x="14" y="25" width="26" height="10" rx="3" fill="#ffffff" />
+  <!-- Heartbeat Accent -->
+  <circle cx="27" cy="30" r="2.5" fill="#0090a1" />
+  <!-- Typography -->
+  <text x="64" y="32" font-family="'Mulish', 'Segoe UI', sans-serif" font-weight="900" font-size="22" fill="#0090a1" letter-spacing="-0.5">PHÒNG KHÁM VIP</text>
+  <text x="64" y="48" font-family="'Mulish', 'Segoe UI', sans-serif" font-weight="600" font-size="11" fill="#718096" letter-spacing="1.5">CHĂM SÓC TẬN TÂM</text>
+</svg>

@@ -1,0 +1,372 @@
+<%- include('../layouts/admin-top') %>
+
+<style>
+  /* Appointments Stat Cards */
+  .appt-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+  .appt-stat-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 18px 20px;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+  }
+  .appt-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  }
+  .appt-stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    flex-shrink: 0;
+  }
+  .appt-stat-icon.total { background: #e0f2fe; color: #0284c7; }
+  .appt-stat-icon.pending { background: #fef3c7; color: #d97706; }
+  .appt-stat-icon.confirmed { background: #dcfce7; color: #15803d; }
+  .appt-stat-icon.cancelled { background: #fee2e2; color: #dc2626; }
+  .appt-stat-icon.today { background: #ede9fe; color: #7c3aed; }
+  
+  .appt-stat-val {
+    font-size: 1.65rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: #0f172a;
+  }
+  .appt-stat-lbl {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-top: 3px;
+  }
+
+  /* Filter Tabs */
+  .appt-filter-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .filter-tabs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .filter-tab-btn {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    border: 1.5px solid #cbd5e1;
+    background: #ffffff;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.18s ease;
+  }
+  .filter-tab-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: #f0fdfa;
+  }
+  .filter-tab-btn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 144, 161, 0.25);
+  }
+
+  /* Table styling */
+  .clickable-row {
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .clickable-row:hover td {
+    background: #f8fafc !important;
+  }
+  .patient-cell strong {
+    font-size: 0.92rem;
+    color: #0f172a;
+  }
+  .patient-meta {
+    font-size: 0.78rem;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 3px;
+  }
+  .appt-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+  }
+  .appt-badge-pending {
+    background: #fffbeb;
+    color: #b45309;
+    border: 1px solid #fde68a;
+  }
+  .appt-badge-confirmed {
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+  }
+  .appt-badge-cancelled {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+  }
+  .appt-badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .appt-badge-pending .appt-badge-dot { background: #f59e0b; }
+  .appt-badge-confirmed .appt-badge-dot { background: #22c55e; }
+  .appt-badge-cancelled .appt-badge-dot { background: #ef4444; }
+</style>
+
+<!-- 1. STATS CARDS -->
+<div class="appt-stats-grid">
+  <div class="appt-stat-card" onclick="filterAppointments('all')">
+    <div class="appt-stat-icon total"><i class="fas fa-calendar-alt"></i></div>
+    <div>
+      <div class="appt-stat-val"><%= stats.total %></div>
+      <div class="appt-stat-lbl">Tổng số lịch hẹn</div>
+    </div>
+  </div>
+
+  <div class="appt-stat-card" onclick="filterAppointments('pending')">
+    <div class="appt-stat-icon pending"><i class="fas fa-hourglass-half"></i></div>
+    <div>
+      <div class="appt-stat-val"><%= stats.pending %></div>
+      <div class="appt-stat-lbl">Chờ xác nhận</div>
+    </div>
+  </div>
+
+  <div class="appt-stat-card" onclick="filterAppointments('confirmed')">
+    <div class="appt-stat-icon confirmed"><i class="fas fa-check-circle"></i></div>
+    <div>
+      <div class="appt-stat-val"><%= stats.confirmed %></div>
+      <div class="appt-stat-lbl">Đã xác nhận</div>
+    </div>
+  </div>
+
+  <div class="appt-stat-card" onclick="filterAppointments('cancelled')">
+    <div class="appt-stat-icon cancelled"><i class="fas fa-times-circle"></i></div>
+    <div>
+      <div class="appt-stat-val"><%= stats.cancelled %></div>
+      <div class="appt-stat-lbl">Đã hủy hẹn</div>
+    </div>
+  </div>
+
+  <div class="appt-stat-card" onclick="filterAppointments('all')">
+    <div class="appt-stat-icon today"><i class="fas fa-clock"></i></div>
+    <div>
+      <div class="appt-stat-val"><%= stats.today %></div>
+      <div class="appt-stat-lbl">Lịch hẹn hôm nay</div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. APPOINTMENTS TABLE CARD -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-title" style="font-size: 1.05rem; font-weight: 800;">
+      <i class="fas fa-list-check" style="color: var(--primary); margin-right: 6px;"></i> Danh Sách Lịch Hẹn (<span id="countDisplay"><%= appointments.length %></span>)
+    </div>
+    <span style="font-size: 0.8rem; color: #64748b; font-weight: 600;">
+      <i class="fas fa-info-circle"></i> Nhấp vào bất kỳ dòng nào để xem chi tiết & xác nhận
+    </span>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="appt-filter-bar">
+    <div class="filter-tabs">
+      <button type="button" class="filter-tab-btn active" data-filter="all" onclick="filterAppointments('all')">
+        Tất cả (<%= stats.total %>)
+      </button>
+      <button type="button" class="filter-tab-btn" data-filter="pending" onclick="filterAppointments('pending')">
+        <i class="fas fa-hourglass-half" style="color: #f59e0b; font-size: 0.75rem;"></i> Chờ xác nhận (<%= stats.pending %>)
+      </button>
+      <button type="button" class="filter-tab-btn" data-filter="confirmed" onclick="filterAppointments('confirmed')">
+        <i class="fas fa-check-circle" style="color: #10b981; font-size: 0.75rem;"></i> Đã xác nhận (<%= stats.confirmed %>)
+      </button>
+      <button type="button" class="filter-tab-btn" data-filter="cancelled" onclick="filterAppointments('cancelled')">
+        <i class="fas fa-times-circle" style="color: #ef4444; font-size: 0.75rem;"></i> Đã hủy (<%= stats.cancelled %>)
+      </button>
+    </div>
+
+    <!-- Quick Search -->
+    <div style="position: relative; min-width: 220px;">
+      <input type="text" id="searchInput" placeholder="Tìm tên bệnh nhân, SĐT..." 
+             style="width: 100%; padding: 6px 12px 6px 32px; font-size: 0.82rem; border: 1.5px solid var(--border); border-radius: 20px; outline: none;">
+      <i class="fas fa-search" style="position: absolute; left: 11px; top: 50%; transform: translateY(-50%); font-size: 0.8rem; color: #94a3b8;"></i>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 50px;">Mã</th>
+          <th>Bệnh nhân</th>
+          <th>Số điện thoại</th>
+          <th>Bác sĩ phụ trách</th>
+          <th>Dịch vụ / Gói khám</th>
+          <th>Ngày & Giờ hẹn</th>
+          <th>Trạng thái</th>
+          <th style="text-align: right;">Thao tác</th>
+        </tr>
+      </thead>
+      <tbody id="appointmentTableBody">
+        <% if (appointments && appointments.length > 0) { %>
+          <% appointments.forEach(function(a) { %>
+          <tr class="clickable-row appt-row" data-status="<%= a.status %>" data-search="<%= (a.patient_name + ' ' + a.phone + ' ' + (a.email || '')).toLowerCase() %>" onclick="window.location.href='/admin/appointments/<%= a.id %>'">
+            <td>
+              <span style="font-weight: 800; color: var(--primary); font-size: 0.88rem;">#<%= a.id %></span>
+            </td>
+            <td class="patient-cell">
+              <strong><%= a.patient_name %></strong>
+              <div class="patient-meta">
+                <% if (a.gender) { %><span><i class="fas <%= (a.gender === 'Nam' || a.gender === 'male') ? 'fa-mars' : 'fa-venus' %>"></i> <%= a.gender %></span><% } %>
+                <% if (a.birthday) { %><span><i class="fas fa-birthday-cake"></i> <%= new Date(a.birthday).toLocaleDateString('vi-VN') %></span><% } %>
+              </div>
+            </td>
+            <td>
+              <a href="tel:<%= a.phone %>" onclick="event.stopPropagation();" style="font-weight: 700; color: #0284c7; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+                <i class="fas fa-phone" style="font-size: 0.75rem;"></i> <%= a.phone %>
+              </a>
+              <% if (a.email) { %>
+                <div style="font-size: 0.75rem; color: #64748b; margin-top: 2px;"><%= a.email %></div>
+              <% } %>
+            </td>
+            <td>
+              <% if (a.doctor_name) { %>
+                <span style="font-weight: 700; color: #0f172a;"><i class="fas fa-user-md" style="color: var(--primary); margin-right: 4px;"></i> <%= a.doctor_name %></span>
+              <% } else { %>
+                <span style="color: #94a3b8;">Chưa chỉ định</span>
+              <% } %>
+            </td>
+            <td>
+              <% if (a.package_name) { %>
+                <span style="font-size: 0.82rem; font-weight: 700; background: #f0fdfa; color: #006875; padding: 3px 8px; border-radius: 6px; border: 1px solid #ccfbf1;">
+                  <i class="fas fa-box-open" style="font-size: 0.75rem;"></i> <%= a.package_name %>
+                </span>
+              <% } else { %>
+                <span style="color: #94a3b8;">Khám chung</span>
+              <% } %>
+            </td>
+            <td>
+              <div style="font-weight: 800; color: #1e293b;">
+                <i class="fas fa-calendar-day" style="color: var(--primary); margin-right: 4px;"></i>
+                <%= a.appointment_date ? new Date(a.appointment_date).toLocaleDateString('vi-VN') : 'Chưa đặt ngày' %>
+              </div>
+              <% if (a.appointment_time) { %>
+                <div style="font-size: 0.78rem; font-weight: 700; color: #0284c7; margin-top: 2px;">
+                  <i class="fas fa-clock"></i> <%= a.appointment_time %>
+                </div>
+              <% } %>
+            </td>
+            <td>
+              <% if (a.status === 'confirmed') { %>
+                <span class="appt-badge appt-badge-confirmed"><span class="appt-badge-dot"></span> Đã xác nhận</span>
+              <% } else if (a.status === 'cancelled') { %>
+                <span class="appt-badge appt-badge-cancelled"><span class="appt-badge-dot"></span> Đã hủy hẹn</span>
+              <% } else { %>
+                <span class="appt-badge appt-badge-pending"><span class="appt-badge-dot"></span> Chờ xác nhận</span>
+              <% } %>
+            </td>
+            <td style="text-align: right;" onclick="event.stopPropagation();">
+              <div style="display: inline-flex; align-items: center; gap: 6px;">
+                <a href="/admin/appointments/<%= a.id %>" class="btn btn-primary btn-sm" style="padding: 5px 10px;" title="Xem chi tiết & xử lý">
+                  <i class="fas fa-eye"></i> Chi tiết
+                </a>
+                <form action="/admin/appointments/<%= a.id %>/delete" method="POST" style="display:inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa lịch hẹn #<%= a.id %> của <%= a.patient_name %>?');">
+                  <button type="submit" class="btn btn-danger btn-sm" style="padding: 5px 8px;" title="Xóa lịch hẹn">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          <% }) %>
+        <% } else { %>
+          <tr id="emptyRow">
+            <td colspan="8" style="text-align: center; padding: 36px 20px; color: #64748b;">
+              <i class="fas fa-calendar-times" style="font-size: 2.2rem; color: #cbd5e1; margin-bottom: 8px; display: block;"></i>
+              Chưa có lịch hẹn nào được ghi nhận.
+            </td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  let currentFilter = 'all';
+
+  function filterAppointments(status) {
+    currentFilter = status;
+    document.querySelectorAll('.filter-tab-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-filter') === status);
+    });
+
+    applyFilters();
+  }
+
+  function applyFilters() {
+    const searchTerm = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+    const rows = document.querySelectorAll('.appt-row');
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+      const rowStatus = row.getAttribute('data-status');
+      const rowSearch = row.getAttribute('data-search');
+
+      const matchesStatus = (currentFilter === 'all') || (rowStatus === currentFilter);
+      const matchesSearch = !searchTerm || rowSearch.includes(searchTerm);
+
+      if (matchesStatus && matchesSearch) {
+        row.style.display = '';
+        visibleCount++;
+      } else {
+        row.style.display = 'none';
+      }
+    });
+
+    const countDisplay = document.getElementById('countDisplay');
+    if (countDisplay) countDisplay.textContent = visibleCount;
+  }
+
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) {
+    searchInput.addEventListener('input', applyFilters);
+  }
+</script>
+
+<%- include('../layouts/admin-bottom') %>

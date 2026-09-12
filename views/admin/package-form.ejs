@@ -1,0 +1,999 @@
+<%- include('../layouts/admin-top') %>
+
+<% 
+  let currentFeatures = [];
+  if (pkg && pkg.features) {
+    try {
+      currentFeatures = typeof pkg.features === 'string' ? JSON.parse(pkg.features) : pkg.features;
+      if (!Array.isArray(currentFeatures)) currentFeatures = [];
+    } catch(e) {
+      currentFeatures = [];
+    }
+  }
+
+  let currentDetailImages = [];
+  if (pkg && pkg.detail_images) {
+    try {
+      currentDetailImages = typeof pkg.detail_images === 'string' ? JSON.parse(pkg.detail_images) : pkg.detail_images;
+      if (!Array.isArray(currentDetailImages)) currentDetailImages = [];
+    } catch(e) {
+      currentDetailImages = [];
+    }
+  }
+
+  const allServices = (typeof services !== 'undefined' && Array.isArray(services)) ? services : [];
+%>
+
+<style>
+  .package-editor-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(340px, 0.95fr);
+    gap: 24px;
+    align-items: start;
+  }
+  @media (max-width: 1024px) {
+    .package-editor-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+  
+  .required-star {
+    color: #ef4444;
+    font-weight: 800;
+    margin-left: 2px;
+  }
+
+  /* Price Input Group */
+  .price-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .price-input-wrap input {
+    padding-right: 60px;
+    font-weight: 700;
+    font-size: 1rem;
+    color: #0f766e;
+  }
+  .price-input-unit {
+    position: absolute;
+    right: 12px;
+    font-weight: 800;
+    color: #64748b;
+    font-size: 0.85rem;
+    pointer-events: none;
+  }
+  .price-hint {
+    font-size: 0.8rem;
+    color: #0d9488;
+    margin-top: 4px;
+    font-weight: 600;
+  }
+
+  .current-img {
+    max-width: 140px;
+    max-height: 90px;
+    border-radius: 8px;
+    object-fit: cover;
+    display: block;
+    margin-bottom: 8px;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  }
+
+  /* Featured Toggle Box */
+  .form-group label.featured-toggle-box,
+  .featured-toggle-box {
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 14px 18px !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 16px !important;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    width: 100% !important;
+    box-sizing: border-box !important;
+    margin: 0 !important;
+  }
+  .form-group label.featured-toggle-box:hover,
+  .featured-toggle-box:hover {
+    border-color: var(--primary);
+    background: #f0fdfa;
+  }
+  .featured-toggle-info {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 14px !important;
+    flex: 1 1 auto !important;
+  }
+  .featured-toggle-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: #fef3c7;
+    color: #d97706;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+  .featured-toggle-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 2px;
+  }
+  .featured-toggle-desc {
+    font-size: 0.78rem;
+    color: #64748b;
+  }
+
+  /* Switch Toggle CSS */
+  .switch {
+    position: relative;
+    display: inline-block !important;
+    width: 48px !important;
+    min-width: 48px !important;
+    max-width: 48px !important;
+    height: 26px !important;
+    flex-shrink: 0 !important;
+    margin-left: auto !important;
+  }
+  .switch input {
+    opacity: 0;
+    width: 0 !important;
+    height: 0 !important;
+  }
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #cbd5e1;
+    transition: .3s;
+    border-radius: 26px;
+  }
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+  input:checked + .slider {
+    background-color: var(--primary, #0090a1);
+  }
+  input:checked + .slider:before {
+    transform: translateX(22px);
+  }
+
+  /* Service Selector Widget */
+  .services-picker-card {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: #ffffff;
+    overflow: hidden;
+  }
+  .services-picker-header {
+    padding: 12px 16px;
+    background: #f8fafc;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .services-search-input {
+    flex: 1;
+    min-width: 180px;
+    padding: 7px 12px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    background: #fff;
+  }
+  .services-badge-counter {
+    font-size: 0.78rem;
+    font-weight: 700;
+    background: #e0f2fe;
+    color: #0369a1;
+    padding: 3px 9px;
+    border-radius: 20px;
+  }
+  .services-list-container {
+    max-height: 280px;
+    overflow-y: auto;
+    padding: 6px 10px;
+  }
+  .form-group label.service-item-checkbox,
+  .service-item-checkbox {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 8px 12px !important;
+    margin: 0 0 2px 0 !important;
+    border-radius: 6px;
+    transition: background 0.15s ease;
+    cursor: pointer;
+    user-select: none;
+    border-bottom: 1px solid #f1f5f9;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .form-group label.service-item-checkbox:hover,
+  .service-item-checkbox:hover {
+    background: #f1f5f9;
+  }
+  .form-group label.service-item-checkbox input[type="checkbox"],
+  .form-group .services-list-container input[type="checkbox"],
+  .service-item-checkbox input[type="checkbox"] {
+    width: 18px !important;
+    height: 18px !important;
+    min-width: 18px !important;
+    max-width: 18px !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    cursor: pointer;
+    accent-color: var(--primary);
+    flex-shrink: 0 !important;
+    display: inline-block !important;
+    vertical-align: middle !important;
+  }
+  .service-item-label {
+    flex: 1;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #1e293b;
+    display: inline-flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 6px !important;
+    line-height: 1.4;
+    white-space: normal;
+  }
+  .service-item-price-tag {
+    color: #0d9488;
+    font-weight: 700;
+  }
+
+  /* Custom Service Adder */
+  .custom-service-adder {
+    padding: 10px 14px;
+    background: #fafafa;
+    border-top: 1px solid var(--border);
+    display: flex;
+    gap: 8px;
+  }
+  .custom-service-input {
+    flex: 1;
+    padding: 6px 10px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    font-size: 0.82rem;
+  }
+
+  /* Live Preview Card (Website Replica) */
+  .live-preview-wrapper {
+    position: sticky;
+    top: 80px;
+  }
+  .preview-badge-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .preview-badge {
+    background: #f0fdf4;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .preview-pulse-dot {
+    width: 8px;
+    height: 8px;
+    background: #22c55e;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.3);
+  }
+
+  .package-card-preview {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    transition: transform 0.2s ease;
+  }
+  .preview-thumb-wrap {
+    position: relative;
+    width: 100%;
+    height: 190px;
+    background: #e2e8f0;
+    overflow: hidden;
+  }
+  .preview-thumb-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .preview-featured-ribbon {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 20px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .preview-content {
+    padding: 20px;
+  }
+  .preview-price {
+    font-size: 1.35rem;
+    font-weight: 900;
+    color: var(--primary, #0090a1);
+    margin-bottom: 6px;
+    display: block;
+  }
+  .preview-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #1e293b;
+    line-height: 1.35;
+    margin-bottom: 8px;
+  }
+  .preview-desc {
+    font-size: 0.85rem;
+    color: #64748b;
+    line-height: 1.5;
+    margin-bottom: 16px;
+  }
+  .preview-features-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 20px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 180px;
+    overflow-y: auto;
+  }
+  .preview-features-list li {
+    font-size: 0.83rem;
+    color: #334155;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    line-height: 1.4;
+  }
+  .preview-features-list li i {
+    color: #10b981;
+    font-size: 0.9rem;
+    margin-top: 2px;
+    flex-shrink: 0;
+  }
+  .preview-btn-mock {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: var(--primary, #0090a1);
+    color: #fff;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-align: center;
+    text-decoration: none;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(0, 144, 161, 0.25);
+  }
+</style>
+
+<div class="package-editor-layout">
+  
+  <!-- LEFT COLUMN: FORM -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><%= pkg ? 'Sửa Gói Khám' : 'Thêm Gói Khám Mới' %></div>
+    </div>
+
+    <form id="packageForm" action="/admin/packages/<%= pkg ? pkg.id + '/edit' : 'create' %>" method="POST" enctype="multipart/form-data">
+      
+      <!-- 1. Tên gói & Giá -->
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label for="pkgName">Tên gói khám <span class="required-star">*</span></label>
+          <input type="text" id="pkgName" name="name" value="<%= pkg ? pkg.name : '' %>" placeholder="Nhập tên gói khám..." required autocomplete="off">
+        </div>
+
+        <div class="form-group">
+          <label for="pkgPriceFormatted">Giá gói khám <span class="required-star">*</span></label>
+          <div class="price-input-wrap">
+            <input type="text" id="pkgPriceFormatted" placeholder="0" autocomplete="off" required>
+            <span class="price-input-unit">VND</span>
+          </div>
+          <!-- Hidden raw numeric input for submission -->
+          <input type="hidden" id="pkgPriceRaw" name="price" value="<%= pkg ? (pkg.price || 0) : 0 %>">
+          
+          <!-- Box hiển thị tổng giá dịch vụ đã chọn -->
+          <div class="services-total-price-box" style="margin-top: 6px; font-size: 0.82rem; color: #475569; display: flex; align-items: center; justify-content: space-between; background: #f0fdf4; padding: 6px 10px; border-radius: 6px; border: 1px dashed #86efac;">
+            <span>Tổng giá dịch vụ: <strong id="totalServicesPriceText" style="color: #166534; font-size: 0.88rem;">0 đ</strong></span>
+            <button type="button" id="btnApplyTotalServicesPrice" class="btn btn-secondary btn-sm" style="font-size: 0.72rem; padding: 2px 8px; background: #0090a1; color: #fff; border: none; cursor: pointer; border-radius: 4px;" title="Sử dụng tổng này làm giá gói">
+              Áp dụng
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2. Mô tả & Đối tượng nên thực hiện -->
+      <div class="form-group">
+        <label for="pkgDescription">Mô tả tóm tắt</label>
+        <textarea id="pkgDescription" name="description" rows="3" placeholder="Nhập mô tả tóm tắt về gói khám..."><%= pkg ? pkg.description : '' %></textarea>
+      </div>
+
+      <div class="form-group">
+        <label for="pkgTargetAudience">
+          <span>Đối Tượng Nên Thực Hiện Gói Khám</span>
+          <span style="font-size: 0.8rem; color: #64748b; font-weight: normal; margin-left: 6px;">(Nhập mỗi đối tượng trên 1 dòng)</span>
+        </label>
+        <textarea id="pkgTargetAudience" name="target_audience" rows="4" placeholder="Người muốn kiểm tra sức khỏe tổng quát và tầm soát sớm bệnh lý...&#10;Người có tiền sử gia đình mắc bệnh hoặc lối sống bận rộn, căng thẳng...&#10;Người có dấu hiệu mệt mỏi hoặc cần kiểm tra định kỳ 6 - 12 tháng/lần..."><%= pkg ? (pkg.target_audience || '') : '' %></textarea>
+      </div>
+
+      <!-- 3. Dịch vụ thuộc gói (Loads from services table) -->
+      <div class="form-group">
+        <label style="display:flex; justify-content:space-between; align-items:center;">
+          <span>Dịch vụ thuộc gói (Tính năng gói khám)</span>
+          <span class="services-badge-counter" id="selectedCountBadge">Đã chọn 0 dịch vụ</span>
+        </label>
+        
+        <div class="services-picker-card">
+          <div class="services-picker-header">
+            <input type="text" id="serviceSearchInput" class="services-search-input" placeholder="Tìm kiếm dịch vụ theo tên hoặc nhóm...">
+            <div style="display:flex; gap:6px;">
+              <button type="button" id="btnSelectAllVisible" class="btn btn-secondary btn-sm" style="font-size:0.75rem; padding:4px 8px;">Chọn tất cả</button>
+              <button type="button" id="btnDeselectAll" class="btn btn-secondary btn-sm" style="font-size:0.75rem; padding:4px 8px;">Bỏ chọn</button>
+            </div>
+          </div>
+
+          <div class="services-list-container" id="servicesList">
+            <% if (allServices.length > 0) { %>
+              <% allServices.forEach(function(s, idx) { 
+                   const isChecked = currentFeatures.includes(s.name);
+              %>
+              <label class="service-item-checkbox" data-name="<%= s.name.toLowerCase() %>" data-group="<%= (s.group_name || '').toLowerCase() %>">
+                <input type="checkbox" class="service-checkbox-input" value="<%= s.name %>" data-price="<%= s.price || 0 %>" <%= isChecked ? 'checked' : '' %>>
+                <span class="service-item-label">
+                  <span><%= s.name %></span>
+                  <% if (s.price && s.price > 0) { %>
+                    <span style="color: #94a3b8; font-weight: normal;">-</span>
+                    <span class="service-item-price-tag"><%= parseInt(s.price).toLocaleString('vi-VN') %> đ</span>
+                  <% } %>
+                </span>
+              </label>
+              <% }) %>
+            <% } %>
+
+            <div style="<%= allServices.length > 0 ? 'display:none;' : '' %> padding: 16px; text-align: center; color: #64748b; font-size: 0.85rem;" id="noServicesNotice">
+              <i class="fas fa-spinner fa-spin"></i> Đang nạp danh sách dịch vụ...
+            </div>
+
+            <!-- Checked items that might not be in the services table (custom features) -->
+            <% 
+              const serviceNames = allServices.map(s => s.name);
+              const customFeatures = currentFeatures.filter(f => !serviceNames.includes(f));
+              customFeatures.forEach(function(cf) { 
+            %>
+              <label class="service-item-checkbox custom-feature-item" data-name="<%= cf.toLowerCase() %>">
+                <input type="checkbox" class="service-checkbox-input" value="<%= cf %>" checked>
+                <span class="service-item-label">
+                  <span><%= cf %></span>
+                </span>
+              </label>
+            <% }) %>
+          </div>
+
+          <!-- Add custom feature row -->
+          <div class="custom-service-adder">
+            <input type="text" id="customFeatureInput" class="custom-service-input" placeholder="+ Nhập tên dịch vụ/tính năng tùy chỉnh...">
+            <button type="button" id="btnAddCustomFeature" class="btn btn-secondary btn-sm" style="white-space:nowrap;">
+              <i class="fas fa-plus"></i> Thêm
+            </button>
+          </div>
+        </div>
+
+        <!-- Hidden input to hold JSON string of features -->
+        <input type="hidden" name="features" id="featuresJsonInput" value="<%= JSON.stringify(currentFeatures) %>">
+      </div>
+
+      <!-- 4. Ảnh đại diện & Ảnh đính kèm gói khám -->
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label for="pkgImage">
+            <span>Ảnh đại diện gói khám</span>
+            <span style="font-size: 0.78rem; color: #0284c7; font-weight: 700; margin-left: 4px; background: #e0f2fe; padding: 2px 6px; border-radius: 4px;">Kích thước chuẩn: 800 x 500 px (Tỉ lệ 16:10)</span>
+          </label>
+          <% if (pkg && pkg.image_url) { %>
+            <img src="<%= pkg.image_url %>" class="current-img" alt="<%= pkg.name %>">
+          <% } %>
+          <input type="file" id="pkgImage" name="image" accept="image/*">
+          <div style="font-size: 0.76rem; color: #64748b; margin-top: 4px;">Ảnh này dùng làm ảnh đại diện hiển thị trên Card gói khám tại Trang Chủ & Danh sách gói khám.</div>
+        </div>
+
+        <div class="form-group">
+          <label>Thứ tự sắp xếp</label>
+          <input type="number" id="pkgSortOrder" name="sort_order" value="<%= pkg ? pkg.sort_order : 0 %>" min="0">
+        </div>
+      </div>
+
+      <!-- Ảnh đính kèm chi tiết gói khám (Nhiều ảnh) -->
+      <div class="form-group" style="margin-top: 4px;">
+        <label for="pkgDetailImages">
+          <span>Ảnh đính kèm gói khám (Nhiều ảnh)</span>
+          <span style="font-size: 0.78rem; color: #64748b; font-weight: normal; margin-left: 4px;">(Hiển thị trên trang chi tiết gói khám, có thể chọn nhiều file)</span>
+        </label>
+        
+        <!-- Gallery ảnh hiện có và ảnh mới chọn -->
+        <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 12px;" id="detailImagesPreviewContainer">
+          <% if (currentDetailImages && currentDetailImages.length > 0) { %>
+            <% currentDetailImages.forEach(function(imgUrl, idx) { %>
+              <div style="position: relative; width: 100px; height: 75px; border-radius: 8px; overflow: hidden; border: 1.5px solid #cbd5e1; box-shadow: 0 2px 6px rgba(0,0,0,0.06); background: #fff;" class="detail-img-card">
+                <img src="<%= imgUrl %>" alt="Detail Image" style="width: 100%; height: 100%; object-fit: cover;">
+                <input type="hidden" name="existing_detail_images" value="<%= imgUrl %>">
+                <button type="button" onclick="this.closest('.detail-img-card').remove()" style="position: absolute; top: 4px; right: 4px; background: rgba(239, 68, 68, 0.9); color: #fff; border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; justify-content: center; line-height: 1; box-shadow: 0 2px 4px rgba(0,0,0,0.2);" title="Xóa ảnh này">
+                  &times;
+                </button>
+              </div>
+            <% }) %>
+          <% } %>
+        </div>
+        
+        <input type="file" id="pkgDetailImages" name="detail_images" accept="image/*" multiple style="background: #fff; padding: 8px;">
+        <div style="font-size: 0.76rem; color: #94a3b8; margin-top: 4px;">Giữ phím Ctrl (hoặc Cmd trên Mac) để chọn nhiều ảnh cùng lúc. Khi chọn, ảnh sẽ hiển thị ngay bên trên.</div>
+      </div>
+
+      <!-- 5. Switch box: Hiển thị trên trang chủ (Nổi bật) -->
+      <div class="form-group" style="margin: 8px 0 20px;">
+        <label class="featured-toggle-box" for="isFeaturedToggle">
+          <div class="featured-toggle-info">
+            <div class="featured-toggle-icon">
+              <i class="fas fa-star"></i>
+            </div>
+            <div>
+              <div class="featured-toggle-title">Hiển thị nổi bật trên Trang Chủ</div>
+              <div class="featured-toggle-desc">Gói khám sẽ được ghim vào mục các gói khám tiêu biểu tại trang chủ</div>
+            </div>
+          </div>
+          <div class="switch">
+            <input type="checkbox" id="isFeaturedToggle" name="is_featured" value="1" <%= pkg && pkg.is_featured ? 'checked' : '' %>>
+            <span class="slider"></span>
+          </div>
+        </label>
+      </div>
+
+      <!-- Submit buttons (Aligned to Right) -->
+      <div style="display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border);">
+        <a href="/admin/packages" class="btn btn-secondary" style="padding: 10px 20px;">Hủy bỏ</a>
+        <button type="submit" class="btn btn-primary" style="padding: 10px 24px; font-size: 0.95rem;">
+          <i class="fas fa-save"></i> Lưu gói khám
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- RIGHT COLUMN: LIVE PREVIEW CARD -->
+  <div class="live-preview-wrapper">
+    <div class="preview-badge-header">
+      <div class="preview-badge">
+        <span class="preview-pulse-dot"></span> Live Preview
+      </div>
+      <span style="font-size: 0.8rem; color: #64748b; font-weight: 600;">Giao diện hiển thị thực tế</span>
+    </div>
+
+    <!-- Package Card Replica -->
+    <div class="package-card-preview" id="livePreviewCard">
+      <div class="preview-thumb-wrap">
+        <img id="previewImage" 
+             src="<%= (pkg && pkg.image_url) ? pkg.image_url : 'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=800&h=600&fit=crop' %>" 
+             alt="Preview">
+        <div class="preview-featured-ribbon" id="previewFeaturedRibbon" style="<%= (pkg && pkg.is_featured) ? 'display: flex;' : 'display: none;' %>">
+          <i class="fas fa-star"></i> Nổi bật
+        </div>
+      </div>
+
+      <div class="preview-content">
+        <div class="preview-price" id="previewPriceText">
+          <%= pkg ? parseInt(pkg.price || 0).toLocaleString('vi-VN') + ' VNĐ' : '0 VNĐ' %>
+        </div>
+        <h3 class="preview-title" id="previewNameText">
+          <%= (pkg && pkg.name) ? pkg.name : 'Tên gói khám sức khỏe' %>
+        </h3>
+        <p class="preview-desc" id="previewDescText">
+          <%= (pkg && pkg.description) ? pkg.description : 'Mô tả ngắn gọn về đối tượng và mục đích của gói khám.' %>
+        </p>
+
+        <ul class="preview-features-list" id="previewFeaturesList">
+          <% if (currentFeatures.length > 0) { %>
+            <% currentFeatures.forEach(function(f) { %>
+              <li><i class="fas fa-check-circle"></i> <span><%= f %></span></li>
+            <% }) %>
+          <% } else { %>
+            <li style="color:#94a3b8; font-style:italic;"><i class="far fa-circle" style="color:#cbd5e1;"></i> <span>Chưa chọn dịch vụ nào</span></li>
+          <% } %>
+        </ul>
+
+        <div class="preview-btn-mock">
+          <span>Xem chi tiết gói khám</span> <i class="fas fa-arrow-right"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  // Elements
+  const pkgName = document.getElementById('pkgName');
+  const pkgPriceFormatted = document.getElementById('pkgPriceFormatted');
+  const pkgPriceRaw = document.getElementById('pkgPriceRaw');
+  const pkgDescription = document.getElementById('pkgDescription');
+  const pkgImage = document.getElementById('pkgImage');
+  const isFeaturedToggle = document.getElementById('isFeaturedToggle');
+  const serviceSearchInput = document.getElementById('serviceSearchInput');
+  const servicesList = document.getElementById('servicesList');
+  const customFeatureInput = document.getElementById('customFeatureInput');
+  const btnAddCustomFeature = document.getElementById('btnAddCustomFeature');
+  const btnSelectAllVisible = document.getElementById('btnSelectAllVisible');
+  const btnDeselectAll = document.getElementById('btnDeselectAll');
+  const selectedCountBadge = document.getElementById('selectedCountBadge');
+  const featuresJsonInput = document.getElementById('featuresJsonInput');
+  const packageForm = document.getElementById('packageForm');
+
+  // Preview Elements
+  const previewNameText = document.getElementById('previewNameText');
+  const previewPriceText = document.getElementById('previewPriceText');
+  const previewDescText = document.getElementById('previewDescText');
+  const previewImage = document.getElementById('previewImage');
+  const previewFeaturedRibbon = document.getElementById('previewFeaturedRibbon');
+  const previewFeaturesList = document.getElementById('previewFeaturesList');
+
+  // 1. Format Price Input with Thousand Separators (dot or comma)
+  function formatNumber(n) {
+    if (!n || isNaN(n)) return '0';
+    return parseInt(n, 10).toLocaleString('vi-VN');
+  }
+
+  function updatePriceDisplay(val) {
+    const rawNum = parseInt(String(val).replace(/[^0-9]/g, ''), 10) || 0;
+    if (pkgPriceRaw) pkgPriceRaw.value = rawNum;
+    if (pkgPriceFormatted) pkgPriceFormatted.value = rawNum > 0 ? formatNumber(rawNum) : '0';
+    const formattedStr = formatNumber(rawNum) + ' VNĐ';
+    if (previewPriceText) previewPriceText.textContent = formattedStr;
+  }
+
+  // Initialize Price
+  if (pkgPriceRaw) {
+    const initialPrice = pkgPriceRaw.value || 0;
+    updatePriceDisplay(initialPrice);
+  }
+
+  if (pkgPriceFormatted) {
+    pkgPriceFormatted.addEventListener('input', function() {
+      const cleanDigits = this.value.replace(/[^0-9]/g, '');
+      const num = parseInt(cleanDigits, 10) || 0;
+      if (pkgPriceRaw) pkgPriceRaw.value = num;
+      this.value = num > 0 ? formatNumber(num) : '';
+      const formattedStr = formatNumber(num) + ' VNĐ';
+      if (previewPriceText) previewPriceText.textContent = formattedStr;
+    });
+
+    pkgPriceFormatted.addEventListener('blur', function() {
+      if (!this.value.trim()) {
+        updatePriceDisplay(0);
+      }
+    });
+  }
+
+  // 2. Name & Description Real-Time Live Preview
+  pkgName.addEventListener('input', function() {
+    previewNameText.textContent = this.value.trim() || 'Tên gói khám sức khỏe';
+  });
+
+  pkgDescription.addEventListener('input', function() {
+    previewDescText.textContent = this.value.trim() || 'Mô tả ngắn gọn về đối tượng và mục đích của gói khám.';
+  });
+
+  // 3. Featured Toggle Real-Time Live Preview
+  isFeaturedToggle.addEventListener('change', function() {
+    previewFeaturedRibbon.style.display = this.checked ? 'flex' : 'none';
+  });
+
+  // 4. Image Real-Time Live Preview
+  pkgImage.addEventListener('change', function() {
+    if (this.files && this.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        previewImage.src = e.target.result;
+      };
+      reader.readAsDataURL(this.files[0]);
+    }
+  });
+
+  // Detail Images Real-Time Preview
+  const pkgDetailImages = document.getElementById('pkgDetailImages');
+  const detailImagesPreviewContainer = document.getElementById('detailImagesPreviewContainer');
+  
+  if (pkgDetailImages && detailImagesPreviewContainer) {
+    pkgDetailImages.addEventListener('change', function() {
+      // Remove any previously added new-file previews
+      detailImagesPreviewContainer.querySelectorAll('.new-file-preview').forEach(el => el.remove());
+      
+      if (this.files && this.files.length > 0) {
+        Array.from(this.files).forEach(file => {
+          if (!file.type.startsWith('image/')) return;
+          const reader = new FileReader();
+          reader.onload = function(e) {
+            const card = document.createElement('div');
+            card.className = 'detail-img-card new-file-preview';
+            card.style.cssText = 'position: relative; width: 100px; height: 75px; border-radius: 8px; overflow: hidden; border: 2px solid var(--primary); box-shadow: 0 2px 8px rgba(0, 144, 161, 0.15); background: #fff;';
+            card.innerHTML = `
+              <img src="${e.target.result}" alt="New Preview" style="width: 100%; height: 100%; object-fit: cover;">
+              <span style="position: absolute; bottom: 0; left: 0; right: 0; background: rgba(0, 144, 161, 0.85); color: #fff; font-size: 9px; font-weight: 700; text-align: center; padding: 1px 0;">Mới chọn</span>
+            `;
+            detailImagesPreviewContainer.appendChild(card);
+          };
+          reader.readAsDataURL(file);
+        });
+      }
+    });
+  }
+
+  // 5. Services Picker & Features JSON Sync
+  function syncSelectedServices() {
+    const checkedInputs = servicesList.querySelectorAll('.service-checkbox-input:checked');
+    const selectedValues = [];
+    let totalServicesSum = 0;
+
+    checkedInputs.forEach(input => {
+      if (input.value && input.value.trim()) {
+        selectedValues.push(input.value.trim());
+        const pr = parseFloat(input.dataset.price || 0) || 0;
+        totalServicesSum += pr;
+      }
+    });
+
+    // Update total price text under price input
+    const totalServicesPriceText = document.getElementById('totalServicesPriceText');
+    if (totalServicesPriceText) {
+      totalServicesPriceText.textContent = formatNumber(totalServicesSum) + ' đ';
+    }
+
+    // Update Counter Badge
+    selectedCountBadge.textContent = `Đã chọn ${selectedValues.length} dịch vụ`;
+
+    // Update Hidden Input
+    featuresJsonInput.value = JSON.stringify(selectedValues);
+
+    // Update Live Preview List
+    if (selectedValues.length === 0) {
+      previewFeaturesList.innerHTML = '<li style="color:#94a3b8; font-style:italic;"><i class="far fa-circle" style="color:#cbd5e1;"></i> <span>Chưa chọn dịch vụ nào</span></li>';
+    } else {
+      previewFeaturesList.innerHTML = selectedValues.map(v => `
+        <li><i class="fas fa-check-circle"></i> <span>${escapeHtml(v)}</span></li>
+      `).join('');
+    }
+  }
+
+  // Button to apply total services price to package price input
+  const btnApplyTotalServicesPrice = document.getElementById('btnApplyTotalServicesPrice');
+  if (btnApplyTotalServicesPrice) {
+    btnApplyTotalServicesPrice.addEventListener('click', function() {
+      let sum = 0;
+      servicesList.querySelectorAll('.service-checkbox-input:checked').forEach(chk => {
+        sum += parseFloat(chk.dataset.price || 0) || 0;
+      });
+      updatePriceDisplay(sum);
+    });
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  // Bind change on all checkboxes
+  servicesList.addEventListener('change', function(e) {
+    if (e.target && e.target.classList.contains('service-checkbox-input')) {
+      syncSelectedServices();
+    }
+  });
+
+  // Search filter in services list
+  serviceSearchInput.addEventListener('input', function() {
+    const q = this.value.toLowerCase().trim();
+    const items = servicesList.querySelectorAll('.service-item-checkbox');
+    items.forEach(item => {
+      const name = item.dataset.name || '';
+      const group = item.dataset.group || '';
+      if (!q || name.includes(q) || group.includes(q)) {
+        item.style.display = 'flex';
+      } else {
+        item.style.display = 'none';
+      }
+    });
+  });
+
+  // Select all visible services
+  btnSelectAllVisible.addEventListener('click', function() {
+    const items = servicesList.querySelectorAll('.service-item-checkbox');
+    items.forEach(item => {
+      if (item.style.display !== 'none') {
+        const chk = item.querySelector('.service-checkbox-input');
+        if (chk) chk.checked = true;
+      }
+    });
+    syncSelectedServices();
+  });
+
+  // Deselect all services
+  btnDeselectAll.addEventListener('click', function() {
+    const chks = servicesList.querySelectorAll('.service-checkbox-input');
+    chks.forEach(chk => chk.checked = false);
+    syncSelectedServices();
+  });
+
+  // Add custom feature
+  function addCustomFeature() {
+    const val = customFeatureInput.value.trim();
+    if (!val) return;
+
+    // Check if already exists
+    const existing = Array.from(servicesList.querySelectorAll('.service-checkbox-input')).find(c => c.value.toLowerCase() === val.toLowerCase());
+    if (existing) {
+      existing.checked = true;
+      existing.closest('.service-item-checkbox').style.display = 'flex';
+      customFeatureInput.value = '';
+      syncSelectedServices();
+      return;
+    }
+
+    const newLabel = document.createElement('label');
+    newLabel.className = 'service-item-checkbox custom-feature-item';
+    newLabel.dataset.name = val.toLowerCase();
+    newLabel.innerHTML = `
+      <input type="checkbox" class="service-checkbox-input" value="${escapeHtml(val)}" data-price="0" checked>
+      <span class="service-item-label">
+        <span>${escapeHtml(val)}</span>
+      </span>
+    `;
+    servicesList.appendChild(newLabel);
+    customFeatureInput.value = '';
+    syncSelectedServices();
+  }
+
+  btnAddCustomFeature.addEventListener('click', addCustomFeature);
+  customFeatureInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      addCustomFeature();
+    }
+  });
+
+  // Form submit safeguard: ensure featuresJsonInput has current values
+  packageForm.addEventListener('submit', function() {
+    syncSelectedServices();
+  });
+
+  // Function to render services fetched from API
+  function renderServicesItems(servicesData) {
+    if (!servicesData || !Array.isArray(servicesData) || servicesData.length === 0) return;
+    const noNotice = document.getElementById('noServicesNotice');
+    if (noNotice) noNotice.style.display = 'none';
+
+    let currentSavedFeatures = [];
+    try {
+      currentSavedFeatures = JSON.parse(featuresJsonInput.value || '[]');
+      if (!Array.isArray(currentSavedFeatures)) currentSavedFeatures = [];
+    } catch(e) {
+      currentSavedFeatures = [];
+    }
+
+    servicesData.forEach(s => {
+      if (!s || !s.name) return;
+      const sName = s.name.trim();
+      const existing = Array.from(servicesList.querySelectorAll('.service-checkbox-input')).some(c => c.value.toLowerCase() === sName.toLowerCase());
+      if (!existing) {
+        const isChecked = currentSavedFeatures.includes(sName);
+        const label = document.createElement('label');
+        label.className = 'service-item-checkbox';
+        label.dataset.name = sName.toLowerCase();
+        label.dataset.group = (s.group_name || '').toLowerCase();
+        label.innerHTML = `
+          <input type="checkbox" class="service-checkbox-input" value="${escapeHtml(sName)}" data-price="${s.price || 0}" ${isChecked ? 'checked' : ''}>
+          <span class="service-item-label">
+            <span>${escapeHtml(sName)}</span>
+            ${s.price && s.price > 0 ? `<span style="color: #94a3b8; font-weight: normal;">-</span> <span class="service-item-price-tag">${parseInt(s.price).toLocaleString('vi-VN')} đ</span>` : ''}
+          </span>
+        `;
+        servicesList.appendChild(label);
+      }
+    });
+
+    syncSelectedServices();
+  }
+
+  // Fetch all services from /api/services-all or fallback to /dich-vu?format=json
+  fetch('/api/services-all')
+    .then(r => r.json())
+    .then(data => {
+      if (data && data.services && data.services.length > 0) {
+        renderServicesItems(data.services);
+      } else {
+        fetch('/dich-vu?format=json&limit=1000')
+          .then(r => r.json())
+          .then(d2 => {
+            if (d2 && d2.services) renderServicesItems(d2.services);
+          })
+          .catch(() => {});
+      }
+    })
+    .catch(() => {
+      fetch('/dich-vu?format=json&limit=1000')
+        .then(r => r.json())
+        .then(data => {
+          if (data && data.services && data.services.length > 0) {
+            renderServicesItems(data.services);
+          }
+        })
+        .catch(() => {});
+    });
+
+  // Initial sync values for Live Preview
+  if (pkgName && previewNameText && pkgName.value.trim()) {
+    previewNameText.textContent = pkgName.value.trim();
+  }
+  if (pkgDescription && previewDescText && pkgDescription.value.trim()) {
+    previewDescText.textContent = pkgDescription.value.trim();
+  }
+  if (isFeaturedToggle && previewFeaturedRibbon) {
+    previewFeaturedRibbon.style.display = isFeaturedToggle.checked ? 'flex' : 'none';
+  }
+
+  // Initial sync
+  syncSelectedServices();
+})();
+</script>
+
+<%- include('../layouts/admin-bottom') %>

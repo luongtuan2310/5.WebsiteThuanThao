@@ -1,0 +1,89 @@
+<%- include('./layouts/main-top') %>
+
+<%
+  const info = typeof aboutData !== 'undefined' ? aboutData : {};
+  const greetingBadge = info.greeting_badge || 'Lời chào từ ' + (clinicName || 'Phòng Khám VIP');
+  const mainTitle = info.main_title || 'Đồng Hành Cùng Sức Khỏe Gia Đình Bạn';
+  const leadText = info.lead_text || 'Chào mừng Quý khách đến với ' + (clinicName || 'Phòng Khám VIP') + '. Chúng tôi vinh hạnh được là người bạn đồng hành tin cậy trên hành trình chăm sóc và bảo vệ sức khỏe cho bạn cùng những người thân yêu.';
+  const missionTitle = info.mission_title || 'Sứ Mệnh Của Chúng Tôi';
+  const missionDesc = info.mission_desc || 'Mang đến dịch vụ y tế toàn diện, chuẩn mực và nhân văn. Chúng tôi đặt y đức, sự an toàn và trải nghiệm thoải mái của bệnh nhân làm kim chỉ nam trong mọi hoạt động khám và điều trị.';
+  const imageUrl = info.image_url || 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800';
+  const valuesStr = info.values || 'Tận Tâm, Chuyên Nghiệp, Hiện Đại, Trách Nhiệm';
+  const valuesList = valuesStr.split(/,|\n/).map(v => v.trim()).filter(v => v.length > 0);
+%>
+
+<!-- Page Hero -->
+<section class="page-hero">
+  <div class="container">
+    <nav class="breadcrumb">
+      <a href="/">Trang chủ</a> <i class="fas fa-chevron-right"></i> <span>Về Chúng Tôi</span>
+    </nav>
+    <h1 class="page-title">Về Chúng Tôi</h1>
+    <p class="page-desc">Chăm sóc sức khỏe toàn diện bằng sự tận tâm, chuẩn mực y khoa và công nghệ hiện đại</p>
+  </div>
+</section>
+
+<!-- ===================== SIMPLIFIED ABOUT SECTION ===================== -->
+<section class="section about-simple-section">
+  <div class="container">
+    <div class="about-simple-card" data-aos="fade-up">
+      <div class="about-simple-grid">
+        <!-- Left Image -->
+        <div class="about-simple-img-wrap">
+          <img src="<%= imageUrl %>" 
+               alt="Về Chúng Tôi" class="about-simple-img">
+        </div>
+
+        <!-- Right Content: Greeting & Mission -->
+        <div class="about-simple-content">
+          <% if (greetingBadge) { %>
+          <div class="greeting-badge">
+            <i class="fas fa-heart-pulse"></i> <%= greetingBadge %>
+          </div>
+          <% } %>
+
+          <% if (mainTitle) { %>
+          <h2 class="about-simple-title"><%= mainTitle %></h2>
+          <% } %>
+
+          <div class="about-simple-text">
+            <% if (leadText) { %>
+              <% leadText.split(/\r?\n/).forEach(function(p) { %>
+                <% if (p.trim()) { %>
+                  <p class="lead-text" style="margin-bottom: 12px;"><%- p.trim() %></p>
+                <% } %>
+              <% }) %>
+            <% } %>
+            
+            <% if (missionTitle || missionDesc) { %>
+            <div class="mission-box">
+              <div class="mission-icon">
+                <i class="fas fa-bullseye"></i>
+              </div>
+              <div class="mission-desc">
+                <% if (missionTitle) { %><h3><%= missionTitle %></h3><% } %>
+                <% if (missionDesc) { %><p><%= missionDesc %></p><% } %>
+              </div>
+            </div>
+            <% } %>
+
+            <% if (valuesList.length > 0) { %>
+            <div class="values-pill-group">
+              <% valuesList.forEach(function(val) { %>
+                <span class="val-pill"><i class="fas fa-check-circle"></i> <%= val %></span>
+              <% }) %>
+            </div>
+            <% } %>
+          </div>
+
+          <div class="cta-group" style="margin-top: 28px;">
+            <a href="/dat-lich" class="btn-primary"><span>Đặt lịch hẹn khám</span> <i class="fas fa-arrow-right"></i></a>
+            <a href="/lien-he" class="btn-outlined"><span>Liên hệ với chúng tôi</span> <i class="fas fa-arrow-right"></i></a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<%- include('./layouts/main-bottom') %>

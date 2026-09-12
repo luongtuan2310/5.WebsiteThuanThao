@@ -1,0 +1,49 @@
+<%- include('./layouts/main-top') %>
+
+<!-- Page Hero -->
+<section class="page-hero">
+  <div class="container">
+    <nav class="breadcrumb">
+      <a href="/">Trang chủ</a> <i class="fas fa-chevron-right"></i> <span>Chuyên Khoa</span>
+    </nav>
+    <h1 class="page-title">Chuyên Khoa</h1>
+    <p class="page-desc">Các chuyên khoa đa dạng phục vụ nhu cầu khám chữa bệnh</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <% if (specialties && specialties.length > 0) { %>
+    <div class="specialties-grid">
+      <% specialties.forEach(function(sp, i) { %>
+      <div class="specialty-card-full" data-aos="fade-up" data-aos-delay="<%= (i % 3) * 80 %>">
+        <figure class="specialty-thumb">
+          <img src="<%= sp.image_url || 'https://images.unsplash.com/photo-1584515933487-779824d29309?w=600&h=400&fit=crop' %>"
+               alt="<%= sp.name %>" loading="lazy">
+          <div class="specialty-overlay-full"></div>
+          <div class="specialty-icon-badge">
+            <i class="fas <%= sp.icon || 'fa-stethoscope' %>"></i>
+          </div>
+        </figure>
+        <div class="specialty-info-full">
+          <h2 class="specialty-name">
+            <a href="/chuyen-khoa/<%= sp.id %>" style="color: inherit; text-decoration: none;"><%= sp.name %></a>
+          </h2>
+          <p><%= sp.description %></p>
+          <a href="/chuyen-khoa/<%= sp.id %>" class="btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+            <span>Xem thêm</span> <i class="fas fa-arrow-right" style="font-size: 0.82rem;"></i>
+          </a>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+    <% } else { %>
+    <div class="empty-state">
+      <i class="fas fa-stethoscope"></i>
+      <p>Chưa có chuyên khoa nào.</p>
+    </div>
+    <% } %>
+  </div>
+</section>
+
+<%- include('./layouts/main-bottom') %>

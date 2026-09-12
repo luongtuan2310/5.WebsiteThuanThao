@@ -1,0 +1,1084 @@
+<%- include('../layouts/admin-top') %>
+
+<!-- Summernote WYSIWYG CSS -->
+<link href="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.css" rel="stylesheet">
+
+<style>
+  .news-editor-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.9fr);
+    gap: 24px;
+    align-items: start;
+  }
+  @media (max-width: 1024px) {
+    .news-editor-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .required-star {
+    color: #ef4444;
+    font-weight: 800;
+    margin-left: 2px;
+  }
+
+  /* Summernote custom styling */
+  .note-editor.note-frame {
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 10px !important;
+    overflow: hidden;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  }
+  .note-toolbar {
+    background: #f8fafc !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    padding: 8px !important;
+  }
+  .note-toolbar .note-btn-group > .note-btn,
+  .note-btn.dropdown-toggle {
+    border-radius: 6px !important;
+    border: 1px solid #cbd5e1 !important;
+    background: #ffffff;
+    color: #334155 !important;
+  }
+  .note-toolbar .note-btn-group > .note-btn:hover,
+  .note-btn.dropdown-toggle:hover {
+    background: #f1f5f9 !important;
+    color: var(--primary) !important;
+  }
+  /* MS Word Style Color Picker */
+  .note-color-word-group {
+    position: relative;
+    display: inline-flex !important;
+    vertical-align: middle;
+  }
+  .note-color-word-group .note-btn {
+    padding: 5px 8px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  .word-color-icon-wrap {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+  }
+  .word-color-letter {
+    font-size: 1.05rem;
+    font-weight: 800;
+    font-family: 'Times New Roman', Times, serif;
+    line-height: 1;
+    color: #1e293b;
+  }
+  .word-color-bar {
+    display: block;
+    width: 17px;
+    height: 3.5px;
+    border-radius: 1px;
+    margin-top: 2px;
+  }
+  .word-text-color-bar {
+    background-color: #c00000;
+  }
+  .word-bg-color-bar {
+    background-color: #ffff00;
+  }
+  .word-color-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    width: 252px !important;
+    min-width: 252px !important;
+    padding: 10px 12px !important;
+    background: #ffffff !important;
+    border-radius: 8px !important;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.16), 0 2px 8px rgba(0, 0, 0, 0.08) !important;
+    border: 1px solid #cbd5e1 !important;
+    z-index: 1060 !important;
+    display: none;
+    margin-top: 4px;
+    box-sizing: border-box;
+  }
+  .note-color-word-group.open .word-color-dropdown,
+  .note-color-word-group.show .word-color-dropdown {
+    display: block !important;
+  }
+  .word-color-auto-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 6px 8px;
+    border-radius: 5px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #1e293b;
+    transition: all 0.15s ease;
+    margin-bottom: 8px;
+  }
+  .word-color-auto-btn:hover {
+    background: #e2e8f0;
+    border-color: #cbd5e1;
+  }
+  .word-color-section {
+    margin-bottom: 8px;
+  }
+  .word-color-section-title {
+    font-size: 0.74rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    color: #475569;
+    margin-bottom: 6px;
+  }
+  .word-color-grid {
+    display: grid;
+    grid-template-columns: repeat(10, 1fr);
+    gap: 2.5px;
+  }
+  .word-color-cell {
+    width: 19px;
+    height: 18px;
+    border-radius: 2px;
+    border: 1px solid rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    box-sizing: border-box;
+    padding: 0;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+  }
+  .word-color-cell:hover {
+    transform: scale(1.35);
+    z-index: 20;
+    position: relative;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+    border-color: #000;
+  }
+  .word-color-divider {
+    height: 1px;
+    background: #e2e8f0;
+    margin: 8px 0;
+  }
+  .word-color-more-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: #0284c7;
+    background: #f0f9ff;
+    border: 1px dashed #bae6fd;
+    transition: all 0.15s ease;
+    position: relative;
+    margin-top: 4px;
+  }
+  .word-color-more-row:hover {
+    background: #e0f2fe;
+    border-color: #0284c7;
+  }
+  .note-editable {
+    background: #ffffff !important;
+    min-height: 380px;
+    font-family: inherit;
+    font-size: 1rem;
+    line-height: 1.75;
+    color: #1e293b;
+  }
+
+  /* ========================================================
+     MODERN SUMMERNOTE MODAL (VIDEO / IMAGE / LINK)
+     ======================================================== */
+  .note-modal-backdrop {
+    background: rgba(15, 23, 42, 0.6) !important;
+    backdrop-filter: blur(4px) !important;
+    -webkit-backdrop-filter: blur(4px) !important;
+    z-index: 1050 !important;
+  }
+  .note-modal {
+    z-index: 1060 !important;
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    padding: 20px;
+  }
+  .note-modal.open,
+  .note-modal.show {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+  .note-modal-content {
+    background: #ffffff !important;
+    border-radius: 16px !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(0, 0, 0, 0.03) !important;
+    width: 100% !important;
+    max-width: 520px !important;
+    overflow: hidden !important;
+    animation: modalSlideIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
+    font-family: inherit !important;
+  }
+  @keyframes modalSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-16px) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  .note-modal-header {
+    background: #f8fafc !important;
+    padding: 18px 24px !important;
+    border-bottom: 1px solid #e2e8f0 !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+  }
+  .note-modal-title {
+    order: 1 !important;
+    font-size: 1.15rem !important;
+    font-weight: 800 !important;
+    color: #0f172a !important;
+    display: flex !important;
+    align-items: center !important;
+    gap: 8px !important;
+    margin: 0 !important;
+  }
+  .note-modal-header .close,
+  .note-modal-header .note-modal-close {
+    order: 2 !important;
+    background: #f1f5f9 !important;
+    border: none !important;
+    width: 32px !important;
+    height: 32px !important;
+    border-radius: 50% !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 1.25rem !important;
+    line-height: 1 !important;
+    color: #64748b !important;
+    cursor: pointer !important;
+    transition: all 0.18s ease !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  .note-modal-header .close:hover,
+  .note-modal-header .note-modal-close:hover {
+    background: #fee2e2 !important;
+    color: #ef4444 !important;
+    transform: rotate(90deg);
+  }
+
+  .note-modal-body {
+    padding: 24px !important;
+  }
+  .note-modal-body .note-form-group,
+  .note-modal-body .form-group {
+    margin-bottom: 16px !important;
+  }
+  .note-modal-body .note-form-group:last-child,
+  .note-modal-body .form-group:last-child {
+    margin-bottom: 0 !important;
+  }
+  .note-modal-body .note-form-label,
+  .note-modal-body label {
+    font-size: 0.88rem !important;
+    font-weight: 700 !important;
+    color: #334155 !important;
+    margin-bottom: 8px !important;
+    display: block !important;
+  }
+  .note-modal-body .note-input,
+  .note-modal-body .note-form-control,
+  .note-modal-body input[type="text"],
+  .note-modal-body input[type="file"] {
+    width: 100% !important;
+    padding: 11px 14px !important;
+    border: 1.5px solid #cbd5e1 !important;
+    border-radius: 8px !important;
+    font-size: 0.92rem !important;
+    font-family: inherit !important;
+    color: #1e293b !important;
+    background: #ffffff !important;
+    outline: none !important;
+    transition: all 0.2s ease !important;
+    box-sizing: border-box !important;
+  }
+  .note-modal-body .note-input:focus,
+  .note-modal-body .note-form-control:focus,
+  .note-modal-body input[type="text"]:focus {
+    border-color: var(--primary, #0090a1) !important;
+    box-shadow: 0 0 0 3px rgba(0, 144, 161, 0.15) !important;
+  }
+
+  .note-modal-body .help-block,
+  .note-modal-body .note-help-block {
+    font-size: 0.8rem !important;
+    color: #64748b !important;
+    margin-top: 6px !important;
+    line-height: 1.5 !important;
+  }
+
+  /* Image Upload Dropzone */
+  .note-dropzone {
+    border: 2px dashed #cbd5e1 !important;
+    border-radius: 12px !important;
+    padding: 24px 16px !important;
+    background: #f8fafc !important;
+    text-align: center !important;
+    color: #64748b !important;
+    font-weight: 600 !important;
+    font-size: 0.9rem !important;
+    transition: all 0.2s ease !important;
+    margin-bottom: 14px !important;
+  }
+  .note-dropzone:hover {
+    border-color: var(--primary, #0090a1) !important;
+    background: #f0fdfa !important;
+    color: var(--primary, #0090a1) !important;
+  }
+
+  /* Modal Footer & Buttons */
+  .note-modal-footer {
+    padding: 16px 24px !important;
+    background: #f8fafc !important;
+    border-top: 1px solid #e2e8f0 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: flex-end !important;
+    gap: 12px !important;
+    height: auto !important;
+  }
+  .note-modal-footer .note-btn,
+  .note-modal-footer .btn {
+    padding: 10px 22px !important;
+    font-size: 0.92rem !important;
+    font-weight: 700 !important;
+    border-radius: 8px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    border: none !important;
+  }
+  .note-modal-footer .note-btn-primary,
+  .note-modal-footer .note-image-btn,
+  .note-modal-footer .note-video-btn,
+  .note-modal-footer .note-link-btn,
+  .note-modal-footer .btn-primary {
+    background: var(--primary, #0090a1) !important;
+    color: #ffffff !important;
+    box-shadow: 0 2px 6px rgba(0, 144, 161, 0.25) !important;
+  }
+  .note-modal-footer .note-btn-primary:hover:not(:disabled):not(.disabled),
+  .note-modal-footer .note-image-btn:hover:not(:disabled):not(.disabled),
+  .note-modal-footer .note-video-btn:hover:not(:disabled):not(.disabled),
+  .note-modal-footer .note-link-btn:hover:not(:disabled):not(.disabled) {
+    background: var(--primary-dark, #007a8a) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 144, 161, 0.3) !important;
+  }
+  .note-modal-footer .note-btn:disabled,
+  .note-modal-footer .note-btn.disabled {
+    background: #cbd5e1 !important;
+    color: #94a3b8 !important;
+    cursor: not-allowed !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  /* Image Preview */
+  .current-img {
+    max-width: 160px;
+    max-height: 100px;
+    border-radius: 8px;
+    object-fit: cover;
+    display: block;
+    margin-bottom: 8px;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  }
+
+  /* Switch Toggle CSS for Form */
+  .switch-tbl {
+    position: relative;
+    display: inline-block;
+    width: 46px;
+    height: 25px;
+    vertical-align: middle;
+    margin: 0;
+  }
+  .switch-tbl input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .slider-tbl {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #cbd5e1;
+    transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 24px;
+  }
+  .slider-tbl:before {
+    position: absolute;
+    content: "";
+    height: 19px;
+    width: 19px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  }
+  .switch-tbl input:checked + .slider-tbl {
+    background-color: #10b981;
+  }
+  .switch-tbl input:checked + .slider-tbl:before {
+    transform: translateX(21px);
+  }
+
+  /* Live Preview Column */
+  .live-preview-wrapper {
+    position: sticky;
+    top: 80px;
+  }
+  .preview-badge-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .preview-badge {
+    background: #f0fdf4;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .preview-pulse-dot {
+    width: 8px;
+    height: 8px;
+    background: #22c55e;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.3);
+  }
+
+  /* News Card Replica */
+  .news-card-replica {
+    background: #ffffff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+  }
+  .news-thumb-wrap {
+    position: relative;
+    aspect-ratio: 16/10;
+    width: 100%;
+    overflow: hidden;
+    background: #e2e8f0;
+  }
+  .news-thumb-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  .news-info-replica {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+  }
+  .news-category-badge {
+    display: inline-block;
+    align-self: flex-start;
+    padding: 4px 12px;
+    background: #e0f2fe;
+    color: #0284c7;
+    font-size: 0.8rem;
+    font-weight: 700;
+    border-radius: 4px;
+    margin-bottom: 10px;
+  }
+  .news-title-replica {
+    font-size: 1.15rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+    line-height: 1.4;
+    color: var(--text, #1e293b);
+  }
+  .news-desc-replica {
+    color: var(--text-muted, #64748b);
+    font-size: 0.88rem;
+    line-height: 1.6;
+    margin-bottom: 16px;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .news-footer-replica {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-top: 1px solid #f1f5f9;
+    padding-top: 14px;
+    margin-top: auto;
+  }
+</style>
+
+<div class="news-editor-layout">
+  <!-- LEFT COLUMN: FORM -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><%= article ? 'Sửa Bài Viết' : 'Viết Bài Mới' %></div>
+    </div>
+
+    <form action="/admin/news/<%= article ? article.id + '/edit' : 'create' %>" method="POST" enctype="multipart/form-data" id="newsForm">
+      
+      <% const isDefaultActive = article ? Boolean(article.is_active) : false; %>
+
+      <!-- Trạng thái bài viết (Đăng ngay / Bản nháp) -->
+      <div class="form-group" style="background: #f8fafc; padding: 14px 18px; border-radius: 10px; border: 1.5px solid #e2e8f0; margin-bottom: 20px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 16px;">
+          <div>
+            <div style="font-weight: 800; font-size: 0.95rem; color: #1e293b; display: flex; align-items: center; gap: 8px;">
+              <span>Trạng thái:</span>
+              <span id="statusLabelText" style="font-weight: 800; color: <%= isDefaultActive ? '#059669' : '#e11d48' %>;">
+                <%= isDefaultActive ? 'Đăng (Xuất bản)' : 'Nháp (Tạm ẩn)' %>
+              </span>
+            </div>
+            <div style="font-size: 0.8rem; color: #64748b; margin-top: 3px;">
+              Mặc định lưu dạng nháp. Gạt bật nếu bạn muốn xuất bản bài viết lên website ngay lập tức.
+            </div>
+          </div>
+          <label class="switch-tbl" style="flex-shrink: 0;">
+            <input type="checkbox" name="is_active" value="1" id="newsStatusToggle" <%= isDefaultActive ? 'checked' : '' %>>
+            <span class="slider-tbl"></span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Tiêu đề & Danh mục -->
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label for="newsTitle">Tiêu đề bài viết <span class="required-star">*</span></label>
+          <input type="text" id="newsTitle" name="title" value="<%= article ? article.title : '' %>" placeholder="Nhập tiêu đề bài viết..." required autocomplete="off">
+        </div>
+        
+        <div class="form-group">
+          <label for="newsCategory">Danh mục</label>
+          <select name="category" id="newsCategory">
+            <option value="Tin tức" <%= !article || article.category === 'Tin tức' ? 'selected' : '' %>>Tin tức</option>
+            <option value="Sức khỏe" <%= article && article.category === 'Sức khỏe' ? 'selected' : '' %>>Sức khỏe</option>
+            <option value="Chuyên khoa" <%= article && article.category === 'Chuyên khoa' ? 'selected' : '' %>>Chuyên khoa</option>
+            <option value="Khuyến mãi" <%= article && article.category === 'Khuyến mãi' ? 'selected' : '' %>>Khuyến mãi</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Tóm tắt ngắn -->
+      <div class="form-group">
+        <label for="newsExcerpt">Tóm tắt ngắn (Hiển thị ngoài danh sách & thẻ chia sẻ)</label>
+        <textarea id="newsExcerpt" name="excerpt" rows="3" placeholder="Nhập tóm tắt ngắn về nội dung bài viết..."><%= article ? article.excerpt : '' %></textarea>
+      </div>
+
+      <!-- Nội dung chi tiết (Summernote WYSIWYG) -->
+      <div class="form-group">
+        <label for="newsContent" style="display: flex; justify-content: space-between; align-items: center;">
+          <span>Nội dung chi tiết bài viết <span class="required-star">*</span></span>
+          <span style="font-size: 0.78rem; color: #0284c7; font-weight: 700; background: #e0f2fe; padding: 2px 8px; border-radius: 4px;">
+            <i class="fas fa-magic"></i> Soạn thảo chuyên nghiệp (Font, Size, Màu sắc, Video Youtube/FB, Link)
+          </span>
+        </label>
+        <textarea id="newsContent" name="content" required><%= article ? article.content : '' %></textarea>
+      </div>
+
+      <!-- Ảnh đại diện -->
+      <div class="form-group">
+        <label for="newsImage">
+          <span>Ảnh đại diện bài viết</span>
+          <span style="font-size: 0.78rem; color: #0284c7; font-weight: 700; margin-left: 4px; background: #e0f2fe; padding: 2px 6px; border-radius: 4px;">Kích thước chuẩn: 800 x 500 px (Tỉ lệ 16:10)</span>
+        </label>
+        <% if (article && article.image_url) { %>
+          <img src="<%= article.image_url %>" class="current-img" alt="<%= article.title %>">
+        <% } %>
+        <input type="file" id="newsImage" name="image" accept="image/*">
+        <div style="font-size: 0.76rem; color: #64748b; margin-top: 4px;">Ảnh thumbnail đại diện hiển thị trên trang chủ và danh sách tin tức.</div>
+      </div>
+
+      <!-- Submit Buttons Aligned to Right -->
+      <div style="display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);">
+        <a href="/admin/news" class="btn btn-secondary" style="padding: 10px 20px;">Hủy bỏ</a>
+        <button type="submit" class="btn btn-primary" id="btnSubmitNews" style="padding: 10px 24px; font-size: 0.95rem;">
+          <i class="fas <%= isDefaultActive ? 'fa-save' : 'fa-file-alt' %>" id="btnSubmitIcon"></i> 
+          <span id="btnSubmitText"><%= article ? (article.is_active ? 'Cập nhật & Đăng bài' : 'Cập nhật bản nháp') : 'Lưu bản nháp' %></span>
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- RIGHT COLUMN: LIVE PREVIEW -->
+  <div class="live-preview-wrapper">
+    <div class="preview-badge-header">
+      <div class="preview-badge" id="previewStatusBadge" style="background: <%= isDefaultActive ? '#f0fdf4' : '#f1f5f9' %>; color: <%= isDefaultActive ? '#166534' : '#475569' %>; border-color: <%= isDefaultActive ? '#bbf7d0' : '#cbd5e1' %>;">
+        <span class="preview-pulse-dot" id="previewPulseDot" style="background: <%= isDefaultActive ? '#22c55e' : '#94a3b8' %>;"></span>
+        <span id="previewStatusText"><%= isDefaultActive ? 'Live Preview (Đăng)' : 'Bản Nháp (Ẩn)' %></span>
+      </div>
+      <span style="font-size: 0.8rem; color: #64748b; font-weight: 600;">Giao diện hiển thị thực tế</span>
+    </div>
+
+    <!-- Card Replica -->
+    <div class="news-card-replica">
+      <div class="news-thumb-wrap">
+        <img id="previewImage" 
+             src="<%= (article && article.image_url) ? article.image_url : 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=600&h=375&fit=crop' %>" 
+             alt="Preview">
+      </div>
+      
+      <div class="news-info-replica">
+        <span class="news-category-badge" id="previewCategoryBadge">
+          <%= (article && article.category) ? article.category : 'Tin tức' %>
+        </span>
+        
+        <h2 class="news-title-replica" id="previewTitleText">
+          <%= (article && article.title) ? article.title : 'Tiêu đề bài viết tin tức & y khoa' %>
+        </h2>
+        
+        <p class="news-desc-replica" id="previewExcerptText">
+          <%= (article && article.excerpt) ? article.excerpt : 'Tóm tắt nội dung bài viết sẽ hiển thị ở đây giúp người đọc dễ dàng nắm bắt thông tin...' %>
+        </p>
+
+        <div class="news-footer-replica">
+          <span style="font-size: 0.8rem; color: #64748b; display: flex; align-items: center; gap: 6px;">
+            <i class="fas fa-calendar-alt" style="color: var(--primary);"></i>
+            <span><%= new Date().toLocaleDateString('vi-VN') %></span>
+          </span>
+          <span style="font-size: 0.88rem; font-weight: 700; color: var(--primary); display: inline-flex; align-items: center; gap: 6px;">
+            <span>Xem thêm</span> <i class="fas fa-arrow-right" style="font-size: 0.82rem;"></i>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- jQuery & Summernote JS CDN -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/summernote-lite.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.20/dist/lang/summernote-vi-VN.min.js"></script>
+
+<script>
+  // Plugin Word-style Color Picker for Summernote
+  (function($) {
+    $.extend($.summernote.plugins, {
+      'wordColor': function(context) {
+        var themeColors = [
+          ['#ffffff', '#000000', '#e7e6e6', '#203764', '#2f5597', '#c65911', '#375623', '#2e75b6', '#7030a0', '#70ad47'],
+          ['#f2f2f2', '#7f7f7f', '#d0cece', '#d9e1f2', '#deebf7', '#fbe5d6', '#e2efda', '#ddebf7', '#f2dcdb', '#ebf1df'],
+          ['#d9d9d9', '#595959', '#aeaaaa', '#b4c6e7', '#bdd7ee', '#f8cbad', '#c6e0b4', '#bdd7ee', '#e5b9b7', '#d7e3bc'],
+          ['#bfbfbf', '#3f3f3f', '#757171', '#8ea9db', '#9bc2e6', '#f4b084', '#a9d08e', '#9bc2e6', '#d99694', '#c3d69b'],
+          ['#a6a6a6', '#262626', '#3a3838', '#305496', '#2f5597', '#c65911', '#548235', '#2e75b6', '#953734', '#76933c'],
+          ['#7f7f7f', '#0d0d0d', '#161616', '#1f3864', '#1f3864', '#833c0c', '#375623', '#1f4e78', '#632523', '#4f6128']
+        ];
+
+        var standardColors = ['#c00000', '#ff0000', '#ffc000', '#ffff00', '#92d050', '#00b050', '#00b0f0', '#0070c0', '#002060', '#7030a0'];
+
+        var highlightColors = [
+          '#ffff00', '#00ff00', '#00ffff', '#ff00ff', '#0000ff', 
+          '#ff0000', '#000080', '#008080', '#008000', '#800080', 
+          '#800000', '#808000', '#808080', '#c0c0c0', '#000000'
+        ];
+
+        var lastTextColor = '#c00000';
+        var lastBgColor = '#ffff00';
+
+        // Word Text Color Button
+        context.memo('button.wordTextColor', function() {
+          var $group = $('<div class="note-btn-group btn-group note-color-word-group">');
+          
+          var $btnApply = $('<button type="button" class="note-btn btn btn-default" title="Màu chữ (Áp dụng màu đang chọn)">' +
+            '<div class="word-color-icon-wrap">' +
+              '<span class="word-color-letter">A</span>' +
+              '<span class="word-color-bar word-text-color-bar" style="background-color: ' + lastTextColor + ';"></span>' +
+            '</div>' +
+          '</button>');
+
+          var $btnToggle = $('<button type="button" class="note-btn btn btn-default dropdown-toggle" title="Bảng màu chữ">' +
+            '<span class="note-icon-caret"></span>' +
+          '</button>');
+
+          var dropdownHtml = '<div class="note-dropdown-menu dropdown-menu word-color-dropdown">' +
+            '<button type="button" class="word-color-auto-btn" data-color="#000000">' +
+              '<span class="word-color-cell" style="background: #000000;"></span>' +
+              '<span>Automatic (Tự động)</span>' +
+            '</button>' +
+            '<div class="word-color-section">' +
+              '<div class="word-color-section-title">Theme Colors</div>' +
+              '<div class="word-color-grid">';
+
+          for (var c = 0; c < 10; c++) {
+            dropdownHtml += '<button type="button" class="word-color-cell" data-color="' + themeColors[0][c] + '" style="background: ' + themeColors[0][c] + '; margin-bottom: 3px;" title="' + themeColors[0][c] + '"></button>';
+          }
+          for (var r = 1; r < 6; r++) {
+            for (var c = 0; c < 10; c++) {
+              dropdownHtml += '<button type="button" class="word-color-cell" data-color="' + themeColors[r][c] + '" style="background: ' + themeColors[r][c] + ';" title="' + themeColors[r][c] + '"></button>';
+            }
+          }
+
+          dropdownHtml += '</div></div>' +
+            '<div class="word-color-divider"></div>' +
+            '<div class="word-color-section">' +
+              '<div class="word-color-section-title">Standard Colors</div>' +
+              '<div class="word-color-grid">';
+
+          for (var s = 0; s < standardColors.length; s++) {
+            dropdownHtml += '<button type="button" class="word-color-cell" data-color="' + standardColors[s] + '" style="background: ' + standardColors[s] + ';" title="' + standardColors[s] + '"></button>';
+          }
+
+          dropdownHtml += '</div></div>' +
+            '<div class="word-color-divider"></div>' +
+            '<label class="word-color-more-row">' +
+              '<i class="fas fa-palette" style="font-size: 0.95rem;"></i>' +
+              '<span>More Colors... (Tùy chọn khác)</span>' +
+              '<input type="color" class="word-custom-color-picker" style="opacity:0; width:1px; height:1px; position:absolute; pointer-events:none;">' +
+            '</label>' +
+          '</div>';
+
+          var $dropdown = $(dropdownHtml);
+
+          $btnApply.on('click', function(e) {
+            e.preventDefault();
+            context.invoke('editor.restoreRange');
+            context.invoke('editor.color', { foreColor: lastTextColor });
+          });
+
+          $dropdown.on('click', '.word-color-cell, .word-color-auto-btn', function(e) {
+            e.preventDefault();
+            var color = $(this).data('color');
+            if (color) {
+              lastTextColor = color;
+              $btnApply.find('.word-text-color-bar').css('background-color', color);
+              context.invoke('editor.restoreRange');
+              context.invoke('editor.color', { foreColor: color });
+              $group.removeClass('open show');
+            }
+          });
+
+          $dropdown.find('.word-color-more-row').on('click', function(e) {
+            var $picker = $(this).find('.word-custom-color-picker');
+            $picker.trigger('click');
+          });
+
+          $dropdown.find('.word-custom-color-picker').on('input change', function() {
+            var color = this.value;
+            if (color) {
+              lastTextColor = color;
+              $btnApply.find('.word-text-color-bar').css('background-color', color);
+              context.invoke('editor.restoreRange');
+              context.invoke('editor.color', { foreColor: color });
+              $group.removeClass('open show');
+            }
+          });
+
+          $btnToggle.on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            context.invoke('editor.saveRange');
+            var isOpen = $group.hasClass('open') || $group.hasClass('show');
+            $('.note-color-word-group').removeClass('open show');
+            if (!isOpen) {
+              $group.addClass('open show');
+            }
+          });
+
+          $group.append($btnApply).append($btnToggle).append($dropdown);
+          return $group;
+        });
+
+        // Word Background Color Button
+        context.memo('button.wordBgColor', function() {
+          var $group = $('<div class="note-btn-group btn-group note-color-word-group">');
+          
+          var $btnApply = $('<button type="button" class="note-btn btn btn-default" title="Màu nền highlight">' +
+            '<div class="word-color-icon-wrap">' +
+              '<i class="fas fa-highlighter" style="font-size: 0.95rem; color: #1e293b;"></i>' +
+              '<span class="word-color-bar word-bg-color-bar" style="background-color: ' + lastBgColor + ';"></span>' +
+            '</div>' +
+          '</button>');
+
+          var $btnToggle = $('<button type="button" class="note-btn btn btn-default dropdown-toggle" title="Bảng màu nền">' +
+            '<span class="note-icon-caret"></span>' +
+          '</button>');
+
+          var dropdownHtml = '<div class="note-dropdown-menu dropdown-menu word-color-dropdown" style="width: 220px !important; min-width: 220px !important;">' +
+            '<button type="button" class="word-color-auto-btn" data-color="transparent">' +
+              '<span style="display:inline-flex; width:18px; height:18px; border:1px solid #cbd5e1; border-radius:2px; align-items:center; justify-content:center; background:#fff;"><i class="fas fa-ban" style="color:#ef4444; font-size:0.75rem;"></i></span>' +
+              '<span>Không màu (No Color)</span>' +
+            '</button>' +
+            '<div class="word-color-section">' +
+              '<div class="word-color-section-title">Màu Highlight</div>' +
+              '<div class="word-color-grid" style="grid-template-columns: repeat(5, 1fr); gap: 4px;">';
+
+          for (var h = 0; h < highlightColors.length; h++) {
+            dropdownHtml += '<button type="button" class="word-color-cell" data-color="' + highlightColors[h] + '" style="background: ' + highlightColors[h] + '; width: 34px; height: 22px;" title="' + highlightColors[h] + '"></button>';
+          }
+
+          dropdownHtml += '</div></div>' +
+            '<div class="word-color-divider"></div>' +
+            '<label class="word-color-more-row">' +
+              '<i class="fas fa-fill-drip" style="font-size: 0.95rem;"></i>' +
+              '<span>More Colors... (Tùy chọn khác)</span>' +
+              '<input type="color" class="word-custom-bg-picker" style="opacity:0; width:1px; height:1px; position:absolute; pointer-events:none;">' +
+            '</label>' +
+          '</div>';
+
+          var $dropdown = $(dropdownHtml);
+
+          $btnApply.on('click', function(e) {
+            e.preventDefault();
+            context.invoke('editor.restoreRange');
+            context.invoke('editor.color', { backColor: lastBgColor });
+          });
+
+          $dropdown.on('click', '.word-color-cell, .word-color-auto-btn', function(e) {
+            e.preventDefault();
+            var color = $(this).data('color');
+            if (color) {
+              if (color !== 'transparent') {
+                lastBgColor = color;
+                $btnApply.find('.word-bg-color-bar').css('background-color', color);
+              }
+              context.invoke('editor.restoreRange');
+              context.invoke('editor.color', { backColor: color });
+              $group.removeClass('open show');
+            }
+          });
+
+          $dropdown.find('.word-color-more-row').on('click', function(e) {
+            var $picker = $(this).find('.word-custom-bg-picker');
+            $picker.trigger('click');
+          });
+
+          $dropdown.find('.word-custom-bg-picker').on('input change', function() {
+            var color = this.value;
+            if (color) {
+              lastBgColor = color;
+              $btnApply.find('.word-bg-color-bar').css('background-color', color);
+              context.invoke('editor.restoreRange');
+              context.invoke('editor.color', { backColor: color });
+              $group.removeClass('open show');
+            }
+          });
+
+          $btnToggle.on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            context.invoke('editor.saveRange');
+            var isOpen = $group.hasClass('open') || $group.hasClass('show');
+            $('.note-color-word-group').removeClass('open show');
+            if (!isOpen) {
+              $group.addClass('open show');
+            }
+          });
+
+          $group.append($btnApply).append($btnToggle).append($dropdown);
+          return $group;
+        });
+      }
+    });
+  })(jQuery);
+
+  $(document).ready(function() {
+    // Close word color dropdowns on click outside
+    $(document).on('click', function(e) {
+      if (!$(e.target).closest('.note-color-word-group').length) {
+        $('.note-color-word-group').removeClass('open show');
+      }
+    });
+
+    // Custom Vietnamese Translations for Modals
+    if ($.summernote && $.summernote.lang && $.summernote.lang['vi-VN']) {
+      $.extend(true, $.summernote.lang['vi-VN'], {
+        image: {
+          image: 'Hình ảnh',
+          insert: 'Chèn Hình Ảnh',
+          resizeFull: '100% Kích thước gốc',
+          resizeHalf: '50% Kích thước',
+          resizeQuarter: '25% Kích thước',
+          floatLeft: 'Căn trái',
+          floatRight: 'Căn phải',
+          floatNone: 'Không căn',
+          dragImageHere: 'Kéo và thả ảnh vào đây',
+          selectFromFiles: 'Tải ảnh từ máy tính (Chọn tệp)',
+          url: 'Hoặc dán URL liên kết hình ảnh trực tuyến',
+          removeImage: 'Xóa ảnh'
+        },
+        video: {
+          video: 'Video',
+          videoLink: 'Đường dẫn Video (URL)',
+          insert: 'Chèn Video',
+          url: 'Đường dẫn video (YouTube, Facebook, Vimeo...)',
+          providers: '(Hỗ trợ YouTube, Facebook, Vimeo, TikTok,...)'
+        },
+        link: {
+          link: 'Liên kết',
+          insert: 'Chèn Liên Kết',
+          unlink: 'Gỡ liên kết',
+          edit: 'Chỉnh sửa',
+          textToDisplay: 'Văn bản hiển thị',
+          url: 'Đường dẫn liên kết (URL)',
+          openInNewWindow: 'Mở trong tab mới'
+        }
+      });
+    }
+
+    // Initialize Summernote Rich Text Editor
+    $('#newsContent').summernote({
+      placeholder: 'Viết nội dung bài viết chi tiết tại đây...',
+      tabsize: 2,
+      height: 420,
+      lang: 'vi-VN',
+      fontNames: ['Mulish', 'Arial', 'Arial Black', 'Comic Sans MS', 'Courier New', 'Helvetica', 'Impact', 'Tahoma', 'Times New Roman', 'Verdana', 'Roboto'],
+      fontNamesIgnoreCheck: ['Mulish', 'Roboto'],
+      fontSizes: ['12', '13', '14', '15', '16', '18', '20', '22', '24', '28', '32', '36', '48'],
+      toolbar: [
+        ['style', ['style']],
+        ['fontname', ['fontname']],
+        ['fontsize', ['fontsize']],
+        ['font', ['bold', 'italic', 'underline', 'strikethrough', 'superscript', 'subscript', 'clear']],
+        ['wordColors', ['wordTextColor', 'wordBgColor']],
+        ['para', ['ul', 'ol', 'paragraph', 'height']],
+        ['table', ['table']],
+        ['insert', ['link', 'picture', 'video', 'hr']],
+        ['view', ['fullscreen', 'codeview', 'help']]
+      ],
+      popover: {
+        image: [
+          ['image', ['resizeFull', 'resizeHalf', 'resizeQuarter', 'resizeNone']],
+          ['float', ['floatLeft', 'floatRight', 'floatNone']],
+          ['remove', ['removeMedia']]
+        ],
+        link: [
+          ['link', ['linkDialogShow', 'unlink']]
+        ]
+      }
+    });
+  });
+
+  const newsTitle = document.getElementById('newsTitle');
+  const newsCategory = document.getElementById('newsCategory');
+  const newsExcerpt = document.getElementById('newsExcerpt');
+  const newsImage = document.getElementById('newsImage');
+
+  const previewTitleText = document.getElementById('previewTitleText');
+  const previewCategoryBadge = document.getElementById('previewCategoryBadge');
+  const previewExcerptText = document.getElementById('previewExcerptText');
+  const previewImage = document.getElementById('previewImage');
+
+  const newsStatusToggle = document.getElementById('newsStatusToggle');
+  const statusLabelText = document.getElementById('statusLabelText');
+  const btnSubmitText = document.getElementById('btnSubmitText');
+  const btnSubmitIcon = document.getElementById('btnSubmitIcon');
+  const previewStatusBadge = document.getElementById('previewStatusBadge');
+  const previewPulseDot = document.getElementById('previewPulseDot');
+  const previewStatusText = document.getElementById('previewStatusText');
+
+  if (newsStatusToggle) {
+    newsStatusToggle.addEventListener('change', function() {
+      const isPublished = this.checked;
+      if (isPublished) {
+        statusLabelText.textContent = 'Đăng (Xuất bản)';
+        statusLabelText.style.color = '#059669';
+        btnSubmitText.textContent = '<%= article ? "Cập nhật & Đăng bài" : "Lưu và Đăng bài" %>';
+        btnSubmitIcon.className = 'fas fa-save';
+        if (previewStatusBadge) {
+          previewStatusBadge.style.background = '#f0fdf4';
+          previewStatusBadge.style.color = '#166534';
+          previewStatusBadge.style.borderColor = '#bbf7d0';
+        }
+        if (previewPulseDot) previewPulseDot.style.background = '#22c55e';
+        if (previewStatusText) previewStatusText.textContent = 'Live Preview (Đăng)';
+      } else {
+        statusLabelText.textContent = 'Nháp (Tạm ẩn)';
+        statusLabelText.style.color = '#e11d48';
+        btnSubmitText.textContent = '<%= article ? "Cập nhật bản nháp" : "Lưu bản nháp" %>';
+        btnSubmitIcon.className = 'fas fa-file-alt';
+        if (previewStatusBadge) {
+          previewStatusBadge.style.background = '#f1f5f9';
+          previewStatusBadge.style.color = '#475569';
+          previewStatusBadge.style.borderColor = '#cbd5e1';
+        }
+        if (previewPulseDot) previewPulseDot.style.background = '#94a3b8';
+        if (previewStatusText) previewStatusText.textContent = 'Bản Nháp (Ẩn)';
+      }
+    });
+  }
+
+  if (newsTitle) {
+    newsTitle.addEventListener('input', function() {
+      previewTitleText.textContent = this.value.trim() || 'Tiêu đề bài viết tin tức & y khoa';
+    });
+  }
+
+  if (newsCategory) {
+    newsCategory.addEventListener('change', function() {
+      previewCategoryBadge.textContent = this.value;
+    });
+  }
+
+  if (newsExcerpt) {
+    newsExcerpt.addEventListener('input', function() {
+      previewExcerptText.textContent = this.value.trim() || 'Tóm tắt nội dung bài viết sẽ hiển thị ở đây giúp người đọc dễ dàng nắm bắt thông tin...';
+    });
+  }
+
+  if (newsImage) {
+    newsImage.addEventListener('change', function() {
+      if (this.files && this.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          if (previewImage) previewImage.src = e.target.result;
+        };
+        reader.readAsDataURL(this.files[0]);
+      }
+    });
+  }
+</script>
+
+<%- include('../layouts/admin-bottom') %>
+
+

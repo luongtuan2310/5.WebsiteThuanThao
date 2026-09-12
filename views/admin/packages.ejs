@@ -1,0 +1,163 @@
+<%- include('../layouts/admin-top') %>
+<style>
+  /* Switch Toggle CSS for Table */
+  .switch-tbl {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    vertical-align: middle;
+  }
+  .switch-tbl input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .slider-tbl {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #cbd5e1;
+    transition: .3s;
+    border-radius: 24px;
+  }
+  .slider-tbl:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .switch-tbl input:checked + .slider-tbl {
+    background-color: var(--primary, #0090a1);
+  }
+  .switch-tbl input:checked + .slider-tbl:before {
+    transform: translateX(20px);
+  }
+  .pkg-service-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #f1f5f9;
+    color: #334155;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 4px;
+    margin: 2px 4px 2px 0;
+    max-width: 220px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .pkg-service-more {
+    display: inline-block;
+    color: #0284c7;
+    font-size: 0.76rem;
+    font-weight: 700;
+    background: #e0f2fe;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 2px;
+  }
+</style>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">Gói Khám (<%= packages.length %>)</div>
+    <a href="/admin/packages/create" class="btn btn-primary"><i class="fas fa-plus"></i> Thêm gói</a>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 50px;">#</th>
+          <th style="min-width: 160px;">Tên gói</th>
+          <th>Dịch vụ thuộc gói</th>
+          <th style="width: 130px;">Giá</th>
+          <th style="text-align: center; width: 100px;">Nổi bật</th>
+          <th style="text-align: center; width: 100px;">Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% packages.forEach(function(p) { 
+          var features = [];
+          if (p.features) {
+            try {
+              features = typeof p.features === 'string' ? JSON.parse(p.features) : p.features;
+              if (!Array.isArray(features)) features = [features];
+            } catch(e) {
+              features = p.features.split('\n').map(function(s) { return s.trim(); }).filter(Boolean);
+            }
+          }
+        %>
+        <tr>
+          <td><%= p.id %></td>
+          <td><strong><%= p.name %></strong></td>
+          <td style="max-width: 320px;">
+            <% if (features && features.length > 0) { %>
+              <div style="display: flex; flex-wrap: wrap; align-items: center;">
+                <% features.slice(0, 2).forEach(function(feat) { %>
+                  <span class="pkg-service-tag" title="<%= feat %>">
+                    <i class="fas fa-check" style="font-size: 0.68rem; color: #0d9488;"></i> <%= feat %>
+                  </span>
+                <% }) %>
+                <% if (features.length > 2) { %>
+                  <span class="pkg-service-more" title="<%= features.slice(2).join(', ') %>">
+                    +<%= features.length - 2 %> dịch vụ...
+                  </span>
+                <% } %>
+              </div>
+            <% } else { %>
+              <span style="color: #94a3b8; font-size: 0.8rem; font-style: italic;">Chưa gán dịch vụ</span>
+            <% } %>
+          </td>
+          <td style="white-space: nowrap; font-weight: 700; color: #0d9488;">
+            <%= parseInt(p.price || 0).toLocaleString('vi-VN') %> đ
+          </td>
+          <td style="text-align: center;">
+            <label class="switch-tbl" title="Bật/Tắt hiển thị nổi bật">
+              <input type="checkbox" onchange="togglePackageFeatured(<%= p.id %>, this)" <%= p.is_featured ? 'checked' : '' %>>
+              <span class="slider-tbl"></span>
+            </label>
+          </td>
+          <td style="text-align: center; white-space: nowrap;">
+            <a href="/admin/packages/<%= p.id %>/edit" class="btn btn-warning btn-sm" title="Chỉnh sửa"><i class="fas fa-edit"></i></a>
+            <form action="/admin/packages/<%= p.id %>/delete" method="POST" style="display:inline">
+              <button class="btn btn-danger btn-sm confirm-delete" title="Xóa"><i class="fas fa-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  async function togglePackageFeatured(id, inputElem) {
+    const isChecked = inputElem.checked;
+    try {
+      const res = await fetch(`/admin/packages/${id}/toggle-featured`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await res.json();
+      if (!data.success) {
+        alert(data.message || 'Có lỗi xảy ra khi cập nhật trạng thái');
+        inputElem.checked = !isChecked; // Revert
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Lỗi kết nối máy chủ');
+      inputElem.checked = !isChecked; // Revert
+    }
+  }
+</script>
+
+<%- include('../layouts/admin-bottom') %>

@@ -1,0 +1,68 @@
+<%- include('./layouts/main-top') %>
+
+<!-- Page Hero -->
+<section class="page-hero">
+  <div class="container">
+    <nav class="breadcrumb">
+      <a href="/">Trang chủ</a> <i class="fas fa-chevron-right"></i> <span>Bác Sĩ</span>
+    </nav>
+    <h1 class="page-title">Đội Ngũ Bác Sĩ</h1>
+    <p class="page-desc">Giàu kinh nghiệm, tận tâm vì sức khỏe của bạn</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <% if (specialties && specialties.length > 0) { %>
+    <div class="filter-tabs" data-aos="fade-up">
+      <button class="filter-tab active" data-filter="all">Tất cả</button>
+      <% specialties.forEach(function(sp) { %>
+      <button class="filter-tab" data-filter="<%= sp.id %>"><%= sp.name %></button>
+      <% }) %>
+    </div>
+    <div class="section-spacer-sm"></div>
+    <% } %>
+
+    <% if (doctors && doctors.length > 0) { %>
+    <div class="doctors-grid">
+      <% doctors.forEach(function(doc, i) { %>
+      <div class="doctor-card-full" data-aos="fade-up" data-aos-delay="<%= (i % 3) * 80 %>"
+           data-specialty="<%= doc.specialty_id || '' %>">
+        <a href="/bac-si/<%= doc.id %>" class="doctor-photo-link">
+          <figure class="doctor-photo-full">
+            <img src="<%= doc.image_url || 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=600&h=800&fit=crop' %>"
+                 alt="<%= doc.name %>" loading="lazy">
+          </figure>
+        </a>
+        <div class="doctor-info-full">
+          <% if (doc.title) { %>
+          <div class="doctor-title-badge" style="font-size: 0.78rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 4px;"><%= doc.title %></div>
+          <% } %>
+          <div class="doctor-name" style="font-size: 1.05rem; font-weight: 800; margin-bottom: 6px;">
+            <a href="/bac-si/<%= doc.id %>" style="color: inherit; text-decoration: none;"><%= doc.name %></a>
+          </div>
+          <% if (doc.specialty_name) { %>
+          <div class="doctor-specialty-tag">
+            <i class="fas fa-stethoscope"></i> <%= doc.specialty_name %>
+          </div>
+          <% } %>
+          <% if (doc.description) { %>
+          <p class="doctor-bio"><%= doc.description %></p>
+          <% } %>
+          <a href="/bac-si/<%= doc.id %>" class="btn-primary btn-sm" style="display: inline-flex; align-items: center; gap: 6px;">
+            <span>Xem thêm</span> <i class="fas fa-arrow-right" style="font-size: 0.82rem;"></i>
+          </a>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+    <% } else { %>
+    <div class="empty-state">
+      <i class="fas fa-user-md"></i>
+      <p>Chưa có thông tin bác sĩ.</p>
+    </div>
+    <% } %>
+  </div>
+</section>
+
+<%- include('./layouts/main-bottom') %>

@@ -1,0 +1,654 @@
+<%- include('../layouts/admin-top') %>
+
+<style>
+  .settings-container {
+    width: 100%;
+  }
+  .settings-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+  }
+  .settings-header h2 {
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #1e293b;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .settings-tabs {
+    display: flex;
+    gap: 8px;
+    background: #f1f5f9;
+    padding: 6px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border: 1px solid var(--border);
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    flex: 1;
+    min-width: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 10px 16px;
+    background: none;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #64748b;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .tab-btn:hover {
+    color: var(--primary);
+    background: rgba(255,255,255,0.6);
+  }
+  .tab-btn.active {
+    background: #ffffff;
+    color: var(--primary);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .tab-content {
+    display: none;
+  }
+  .tab-content.active {
+    display: block;
+    animation: fadeIn 0.25s ease-out;
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(4px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .settings-section-card {
+    background: #fff;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+  }
+  .section-subtitle {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 16px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .preset-color-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 10px;
+    margin-top: 12px;
+    margin-bottom: 20px;
+  }
+  .preset-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #e2e8f0;
+    background: #f8fafc;
+    cursor: pointer;
+    font-size: 0.8rem;
+    font-weight: 600;
+    transition: all 0.15s;
+    text-align: left;
+  }
+  .preset-btn:hover {
+    border-color: #94a3b8;
+    background: #ffffff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+  }
+  .preset-swatch {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    border: 2px solid #fff;
+    box-shadow: 0 0 2px rgba(0,0,0,0.3);
+  }
+  .color-picker-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: #ffffff;
+    padding: 12px 16px;
+    border-radius: 10px;
+    border: 1.5px solid #cbd5e1;
+    transition: all 0.2s ease;
+  }
+  .color-picker-wrapper:focus-within {
+    border-color: #0090a1;
+    box-shadow: 0 0 0 3px rgba(0, 144, 161, 0.12);
+  }
+  .color-picker-input {
+    -webkit-appearance: none !important;
+    -moz-appearance: none !important;
+    appearance: none !important;
+    width: 44px !important;
+    min-width: 44px !important;
+    max-width: 44px !important;
+    height: 44px !important;
+    border: 2px solid #cbd5e1 !important;
+    cursor: pointer !important;
+    background: none !important;
+    padding: 0 !important;
+    border-radius: 8px !important;
+    flex-shrink: 0 !important;
+    outline: none !important;
+  }
+  .color-picker-input::-webkit-color-swatch-wrapper {
+    padding: 0;
+  }
+  .color-picker-input::-webkit-color-swatch {
+    border: none;
+    border-radius: 6px;
+  }
+  .color-picker-input::-moz-color-swatch {
+    border: none;
+    border-radius: 6px;
+  }
+  .hex-input-container {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    flex: 1;
+  }
+  .hex-input-group {
+    display: flex;
+    align-items: center;
+    background: #f8fafc;
+    border: 1.5px solid #cbd5e1;
+    border-radius: 8px;
+    overflow: hidden;
+    width: 170px;
+    transition: all 0.2s;
+  }
+  .hex-input-group:focus-within {
+    border-color: #0090a1;
+    background: #ffffff;
+  }
+  .hex-hash {
+    padding: 0 10px;
+    font-weight: 800;
+    color: #64748b;
+    font-size: 0.95rem;
+    user-select: none;
+    background: #f1f5f9;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    border-right: 1px solid #cbd5e1;
+  }
+  .hex-text-input {
+    border: none !important;
+    background: transparent !important;
+    padding: 6px 10px !important;
+    font-family: 'Courier New', Courier, monospace !important;
+    font-size: 1rem !important;
+    font-weight: 700 !important;
+    color: #0f172a !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1px !important;
+    width: 100% !important;
+    height: 38px !important;
+    outline: none !important;
+    box-shadow: none !important;
+  }
+  .color-hint-text {
+    font-size: 0.78rem;
+    color: #64748b;
+    margin-top: 2px;
+  }
+  .preview-box {
+    background: #f8fafc;
+    border: 1px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 20px;
+    margin-top: 16px;
+  }
+  .upload-media-card {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: 20px;
+    align-items: center;
+    background: #f8fafc;
+    padding: 16px;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 16px;
+  }
+  .media-preview-box {
+    width: 100%;
+    height: 110px;
+    background: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px;
+    overflow: hidden;
+  }
+  .media-preview-box img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+  @media(max-width: 768px) {
+    .upload-media-card {
+      grid-template-columns: 1fr;
+    }
+    .media-preview-box {
+      max-width: 180px;
+    }
+  }
+</style>
+
+<div class="settings-container">
+  <form action="/admin/settings" method="POST" enctype="multipart/form-data" id="settingsForm">
+    <div class="settings-header">
+      <h2><i class="fas fa-palette" style="color:var(--primary)"></i> Nhận Diện Thương Hiệu & Thông Tin Cơ Sở</h2>
+      <button type="submit" class="btn btn-primary" style="padding:9px 24px;font-size:0.95rem;font-weight:700;display:inline-flex;align-items:center;gap:8px;box-shadow:0 3px 10px rgba(0,0,0,0.12);border-radius:8px;">
+        <i class="fas fa-save"></i> Lưu
+      </button>
+    </div>
+
+  <div class="settings-tabs">
+    <button type="button" class="tab-btn active" onclick="switchTab('tab-general', this)">
+      <i class="fas fa-hospital"></i> <span>Thông Tin & Pháp Lý</span>
+    </button>
+    <button type="button" class="tab-btn" onclick="switchTab('tab-branding', this)">
+      <i class="fas fa-image"></i> <span>Logo & Favicon</span>
+    </button>
+    <button type="button" class="tab-btn" onclick="switchTab('tab-colors', this)">
+      <i class="fas fa-fill-drip"></i> <span>Màu Sắc Thương Hiệu</span>
+    </button>
+    <button type="button" class="tab-btn" onclick="switchTab('tab-social', this)">
+      <i class="fas fa-share-alt"></i> <span>Mạng Xã Hội & Bản Đồ</span>
+    </button>
+  </div>
+
+  <!-- TAB 1: THÔNG TIN CƠ SỞ & PHÁP LÝ -->
+  <div id="tab-general" class="tab-content active">
+      <div class="settings-section-card">
+        <div class="section-subtitle">
+          <i class="fas fa-building" style="color:var(--primary)"></i> Thông Tin Cơ Bản Phòng Khám
+        </div>
+        
+        <div class="form-group">
+          <label>Tên cơ sở y tế / Tên thương hiệu <span style="color:#ef4444">*</span>:</label>
+          <input type="text" name="clinic_name" value="<%= settings.clinic_name %>" required placeholder="Ví dụ: Phòng Khám Đa Khoa Quốc Tế VIP">
+          <small style="color:#64748b;display:block;margin-top:4px;">Tên này sẽ xuất hiện trên tiêu đề trang, logo phụ, chân trang, form liên hệ và bản quyền website.</small>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label>Số điện thoại / Hotline (có thể nhập nhiều số):</label>
+            <input type="text" name="clinic_phone" value="<%= settings.clinic_phone %>" placeholder="Ví dụ: 028 3822 1234, 1900 6868">
+            <small style="color:#64748b;display:block;margin-top:4px;">Phân cách nhiều số bằng dấu phẩy hoặc dấu gạch nối.</small>
+          </div>
+          <div class="form-group">
+            <label>Email liên hệ:</label>
+            <input type="email" name="clinic_email" value="<%= settings.clinic_email %>" placeholder="contact@phongkhamvip.vn">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Địa chỉ trụ sở:</label>
+          <input type="text" name="clinic_address" value="<%= settings.clinic_address %>" placeholder="Ví dụ: 123 Đường ABC, Phường Bến Nghé, Quận 1, TP.HCM">
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label>Mã số thuế (MST):</label>
+            <input type="text" name="clinic_tax_code" value="<%= settings.clinic_tax_code %>" placeholder="Ví dụ: 0312345678">
+            <small style="color:#64748b;display:block;margin-top:4px;">Hiển thị ở chân trang website và thông tin pháp lý liên hệ.</small>
+          </div>
+          <div class="form-group">
+            <label>Thời gian làm việc:</label>
+            <input type="text" name="clinic_working_hours" value="<%= settings.clinic_working_hours %>" placeholder="Ví dụ: Thứ 2 — Thứ 7: 7:00 — 17:00">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: LOGO & FAVICON -->
+    <div id="tab-branding" class="tab-content">
+      <div class="settings-section-card">
+        <div class="section-subtitle">
+          <i class="fas fa-icons" style="color:var(--primary)"></i> Biểu Tượng & Logo Nhận Diện
+        </div>
+
+        <!-- LOGO -->
+        <label style="font-weight:700;font-size:0.9rem;margin-bottom:8px;display:block;">1. Logo Website (Hiển thị tại Header & Footer):</label>
+        <div class="upload-media-card">
+          <div class="media-preview-box">
+            <img id="previewLogo" src="<%= settings.clinic_logo || '/images/logo.svg' %>" alt="Logo Preview">
+          </div>
+          <div>
+            <input type="file" name="logo" id="inputLogo" accept="image/png,image/svg+xml,image/jpeg,image/webp" onchange="previewSelectedImage(this, 'previewLogo')">
+            <small style="color:#64748b;display:block;margin-top:6px;">
+              • Định dạng hỗ trợ: PNG nền trong suốt, SVG, WebP, JPG.<br>
+              • Kích thước khuyến nghị: Ngang 250px – 400px, Chiều cao 60px – 100px.
+            </small>
+          </div>
+        </div>
+
+        <!-- FAVICON -->
+        <label style="font-weight:700;font-size:0.9rem;margin-bottom:8px;display:block;margin-top:20px;">2. Favicon (Biểu tượng hiển thị trên tab trình duyệt & sidebar CMS):</label>
+        <div class="upload-media-card">
+          <div class="media-preview-box" style="background:#f1f5f9;">
+            <img id="previewFavicon" src="<%= settings.clinic_favicon || settings.clinic_logo || '/images/logo.svg' %>" alt="Favicon Preview" style="width:36px;height:36px;object-fit:contain;">
+          </div>
+          <div>
+            <input type="file" name="favicon" id="inputFavicon" accept="image/png,image/x-icon,image/svg+xml,image/jpeg,image/webp" onchange="previewSelectedImage(this, 'previewFavicon')">
+            <small style="color:#64748b;display:block;margin-top:6px;">
+              • Định dạng: ICO, PNG (hình vuông, kích thước 32x32 hoặc 64x64 pixel), SVG.<br>
+              • Sẽ xuất hiện cạnh tiêu đề tab trình duyệt cho cả trang chủ và trang quản trị Admin.
+            </small>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 3: MÀU SẮC THƯƠNG HIỆU -->
+    <div id="tab-colors" class="tab-content">
+      <div class="settings-section-card">
+        <div class="section-subtitle">
+          <i class="fas fa-brush" style="color:var(--primary)"></i> Tùy Chỉnh Màu Sắc Chủ Đạo Toàn Dự Án
+        </div>
+        <p style="font-size:0.875rem;color:#64748b;margin-bottom:16px;">
+          Khi thay đổi màu sắc ở đây, toàn bộ giao diện website (nút bấm, màu chữ điểm nhấn, dải màu gradient header, badge chuyên khoa, menu đang chọn trong CMS Admin) sẽ tự động đồng bộ theo màu nhận diện thương hiệu.
+        </p>
+
+        <!-- Preset Palettes -->
+        <label style="font-weight:700;font-size:0.85rem;color:#475569;display:block;">Bảng màu y tế chuẩn gợi ý (bấm để chọn nhanh):</label>
+        <div class="preset-color-grid">
+          <button type="button" class="preset-btn" onclick="applyPreset('#0090a1', '#007a8a')">
+            <span class="preset-swatch" style="background:#0090a1;"></span>
+            <span>Xanh Ngọc VIP</span>
+          </button>
+          <button type="button" class="preset-btn" onclick="applyPreset('#0d6efd', '#0b5ed7')">
+            <span class="preset-swatch" style="background:#0d6efd;"></span>
+            <span>Xanh Dương Chuẩn</span>
+          </button>
+          <button type="button" class="preset-btn" onclick="applyPreset('#00796b', '#004d40')">
+            <span class="preset-swatch" style="background:#00796b;"></span>
+            <span>Xanh Cổ Vịt</span>
+          </button>
+          <button type="button" class="preset-btn" onclick="applyPreset('#198754', '#157347')">
+            <span class="preset-swatch" style="background:#198754;"></span>
+            <span>Xanh Lá Y Khoa</span>
+          </button>
+          <button type="button" class="preset-btn" onclick="applyPreset('#dc3545', '#b02a37')">
+            <span class="preset-swatch" style="background:#dc3545;"></span>
+            <span>Đỏ Ruby Y Tế</span>
+          </button>
+          <button type="button" class="preset-btn" onclick="applyPreset('#6f42c1', '#59359a')">
+            <span class="preset-swatch" style="background:#6f42c1;"></span>
+            <span>Tím Lavender</span>
+          </button>
+          <button type="button" class="preset-btn" onclick="applyPreset('#0284c7', '#0369a1')">
+            <span class="preset-swatch" style="background:#0284c7;"></span>
+            <span>Xanh Bầu Trời</span>
+          </button>
+          <button type="button" class="preset-btn" onclick="applyPreset('#ea580c', '#c2410c')">
+            <span class="preset-swatch" style="background:#ea580c;"></span>
+            <span>Cam Năng Động</span>
+          </button>
+        </div>
+
+        <div class="form-grid-2">
+          <!-- Primary Color -->
+          <div class="form-group">
+            <label style="font-weight:700;margin-bottom:8px;display:block;">
+              <i class="fas fa-palette" style="color:var(--primary);margin-right:5px;"></i> Màu chủ đạo (Primary Color):
+            </label>
+            <div class="color-picker-wrapper">
+              <input type="color" id="primaryColorPicker" class="color-picker-input" value="<%= settings.primary_color || '#0090a1' %>" oninput="onPrimaryPickerChange(this)" title="Bấm để chọn màu trên bảng màu">
+              <div class="hex-input-container">
+                <div class="hex-input-group">
+                  <span class="hex-hash">#</span>
+                  <input type="text" id="primaryHexInput" class="hex-text-input" value="<%= (settings.primary_color || '#0090a1').replace(/^#/, '').toUpperCase() %>" maxlength="6" placeholder="0090A1" oninput="onPrimaryHexChange(this)" title="Nhập trực tiếp mã màu Hex">
+                </div>
+                <div class="color-hint-text">Màu nút chính, link nổi bật, icon điểm nhấn</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Primary Dark Color -->
+          <div class="form-group">
+            <label style="font-weight:700;margin-bottom:8px;display:block;">
+              <i class="fas fa-circle-half-stroke" style="color:var(--primary-dark);margin-right:5px;"></i> Màu phụ / Màu tối hơn (Dark Accent & Hover):
+            </label>
+            <div class="color-picker-wrapper">
+              <input type="color" id="primaryDarkPicker" class="color-picker-input" value="<%= settings.primary_dark || '#007a8a' %>" oninput="onDarkPickerChange(this)" title="Bấm để chọn màu tối trên bảng màu">
+              <div class="hex-input-container">
+                <div class="hex-input-group">
+                  <span class="hex-hash">#</span>
+                  <input type="text" id="primaryDarkHexInput" class="hex-text-input" value="<%= (settings.primary_dark || '#007a8a').replace(/^#/, '').toUpperCase() %>" maxlength="6" placeholder="007A8A" oninput="onDarkHexChange(this)" title="Nhập trực tiếp mã màu Hex tối">
+                </div>
+                <div class="color-hint-text">Màu khi rê chuột (Hover) & dải màu gradient</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Hidden inputs for form submission -->
+        <input type="hidden" name="primary_color" id="finalPrimaryColor" value="<%= settings.primary_color || '#0090a1' %>">
+        <input type="hidden" name="primary_dark" id="finalPrimaryDark" value="<%= settings.primary_dark || '#007a8a' %>">
+
+        <!-- Live Preview UI Component -->
+        <label style="font-weight:700;font-size:0.85rem;color:#475569;display:block;margin-top:16px;">Xem trước tương tác thực tế (Live Preview):</label>
+        <div class="preview-box" id="previewBox">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
+            <button type="button" id="previewBtnPrimary" class="btn" style="background:<%= settings.primary_color || '#0090a1' %>;color:#fff;padding:10px 20px;border-radius:8px;font-weight:700;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;">
+              <i class="fas fa-calendar-check"></i> Đặt Lịch Hẹn Ngay
+            </button>
+            <span id="previewBadge" style="background:rgba(0,144,161,0.12);color:<%= settings.primary_color || '#0090a1' %>;padding:6px 14px;border-radius:20px;font-weight:700;font-size:0.85rem;">
+              <i class="fas fa-heart-pulse"></i> Chuyên Khoa Tim Mạch
+            </span>
+            <div id="previewHeaderGrad" style="background:linear-gradient(135deg, <%= settings.primary_color || '#0090a1' %> 0%, <%= settings.primary_dark || '#007a8a' %> 100%);color:#fff;padding:10px 18px;border-radius:8px;font-weight:700;font-size:0.85rem;">
+              Dải màu Gradient Header / Banner
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: MẠNG XÃ HỘI & BẢN ĐỒ -->
+    <div id="tab-social" class="tab-content">
+      <div class="settings-section-card">
+        <div class="section-subtitle">
+          <i class="fas fa-globe" style="color:var(--primary)"></i> Liên Kết Mạng Xã Hội & Bản Đồ Nhúng
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label><i class="fab fa-facebook-f" style="color:#1877f2;width:18px;"></i> Link Trang Facebook Fanpage:</label>
+            <input type="text" name="social_facebook" value="<%= settings.social_facebook %>" placeholder="https://facebook.com/phongkhamvip">
+          </div>
+          <div class="form-group">
+            <label><i class="fas fa-comment-dots" style="color:#0068ff;width:18px;"></i> Số Zalo hoặc Link Zalo Official:</label>
+            <input type="text" name="social_zalo" value="<%= settings.social_zalo %>" placeholder="Ví dụ: 0901234567 hoặc https://zalo.me/...">
+          </div>
+        </div>
+
+        <div class="form-grid-2">
+          <div class="form-group">
+            <label><i class="fab fa-youtube" style="color:#ff0000;width:18px;"></i> Link Kênh YouTube:</label>
+            <input type="text" name="social_youtube" value="<%= settings.social_youtube %>" placeholder="https://youtube.com/@phongkhamvip">
+          </div>
+          <div class="form-group">
+            <label><i class="fab fa-tiktok" style="color:#000000;width:18px;"></i> Link Kênh TikTok:</label>
+            <input type="text" name="social_tiktok" value="<%= settings.social_tiktok %>" placeholder="https://tiktok.com/@phongkhamvip">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top:10px;">
+          <label><i class="fas fa-map-marked-alt" style="color:#ea4335;width:18px;"></i> Link nhúng bản đồ Google Maps (URL `iframe src`):</label>
+          <input type="text" name="clinic_map_url" value="<%= settings.clinic_map_url %>" placeholder="https://www.google.com/maps/embed?pb=...">
+          <small style="color:#64748b;display:block;margin-top:4px;">
+            Mẹo: Vào Google Maps > Chọn địa chỉ cơ sở > Chia sẻ > Chọn tab "Nhúng bản đồ" > Sao chép đường dẫn trong thuộc tính <code>src="..."</code> dán vào đây.
+          </small>
+        </div>
+      </div>
+    </div>
+  </form>
+</div>
+
+<script>
+  function switchTab(tabId, btn) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    
+    btn.classList.add('active');
+    const target = document.getElementById(tabId);
+    if (target) target.classList.add('active');
+  }
+
+  function previewSelectedImage(input, previewImgId) {
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const preview = document.getElementById(previewImgId);
+        if (preview) {
+          preview.src = e.target.result;
+        }
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  // Tự động tính toán màu tối hơn dựa trên mã màu chính
+  function darkenColor(hex, percent) {
+    hex = hex.replace(/^#/, '');
+    if (hex.length === 3) {
+      hex = hex.split('').map(c => c + c).join('');
+    }
+    const num = parseInt(hex, 16);
+    if (isNaN(num)) return '#007a8a';
+    const r = Math.max(0, Math.floor((num >> 16) * (1 - percent / 100)));
+    const g = Math.max(0, Math.floor(((num >> 8) & 0x00FF) * (1 - percent / 100)));
+    const b = Math.max(0, Math.floor((num & 0x0000FF) * (1 - percent / 100)));
+    const pad = (n) => (n.length === 1 ? '0' : '') + n;
+    return '#' + pad(r.toString(16)) + pad(g.toString(16)) + pad(b.toString(16));
+  }
+
+  // Khi chọn màu chính trên Color Picker
+  function onPrimaryPickerChange(picker) {
+    const hex = picker.value.toUpperCase();
+    document.getElementById('primaryHexInput').value = hex.replace('#', '');
+    
+    // Tự động gợi ý màu tối đi kèm
+    const darkHex = darkenColor(hex, 18).toUpperCase();
+    document.getElementById('primaryDarkPicker').value = darkHex;
+    document.getElementById('primaryDarkHexInput').value = darkHex.replace('#', '');
+    
+    syncFinalColors();
+    updateLivePreview();
+  }
+
+  // Khi nhập trực tiếp mã màu chính vào ô text
+  function onPrimaryHexChange(input) {
+    let val = input.value.replace(/[^0-9A-Fa-f]/g, '').toUpperCase();
+    input.value = val;
+    if (val.length === 3 || val.length === 6) {
+      const fullHex = val.length === 3 ? val.split('').map(c => c + c).join('') : val;
+      const hexColor = '#' + fullHex;
+      document.getElementById('primaryColorPicker').value = hexColor;
+      
+      const darkHex = darkenColor(hexColor, 18).toUpperCase();
+      document.getElementById('primaryDarkPicker').value = darkHex;
+      document.getElementById('primaryDarkHexInput').value = darkHex.replace('#', '');
+      
+      syncFinalColors();
+      updateLivePreview();
+    }
+  }
+
+  // Khi chọn màu tối trên Color Picker
+  function onDarkPickerChange(picker) {
+    const hex = picker.value.toUpperCase();
+    document.getElementById('primaryDarkHexInput').value = hex.replace('#', '');
+    syncFinalColors();
+    updateLivePreview();
+  }
+
+  // Khi nhập trực tiếp mã màu tối vào ô text
+  function onDarkHexChange(input) {
+    let val = input.value.replace(/[^0-9A-Fa-f]/g, '').toUpperCase();
+    input.value = val;
+    if (val.length === 3 || val.length === 6) {
+      const fullHex = val.length === 3 ? val.split('').map(c => c + c).join('') : val;
+      document.getElementById('primaryDarkPicker').value = '#' + fullHex;
+      syncFinalColors();
+      updateLivePreview();
+    }
+  }
+
+  // Áp dụng bảng màu mẫu có sẵn
+  function applyPreset(primary, primaryDark) {
+    const pClean = primary.replace('#', '').toUpperCase();
+    const pdClean = primaryDark.replace('#', '').toUpperCase();
+    
+    document.getElementById('primaryColorPicker').value = primary;
+    document.getElementById('primaryHexInput').value = pClean;
+    
+    document.getElementById('primaryDarkPicker').value = primaryDark;
+    document.getElementById('primaryDarkHexInput').value = pdClean;
+    
+    syncFinalColors();
+    updateLivePreview();
+  }
+
+  function syncFinalColors() {
+    const pPicker = document.getElementById('primaryColorPicker');
+    const pdPicker = document.getElementById('primaryDarkPicker');
+    document.getElementById('finalPrimaryColor').value = pPicker.value;
+    document.getElementById('finalPrimaryDark').value = pdPicker.value;
+  }
+
+  function updateLivePreview() {
+    const primary = document.getElementById('primaryColorPicker').value;
+    const primaryDark = document.getElementById('primaryDarkPicker').value;
+
+    const btn = document.getElementById('previewBtnPrimary');
+    if (btn) btn.style.backgroundColor = primary;
+
+    const badge = document.getElementById('previewBadge');
+    if (badge) {
+      badge.style.color = primary;
+      badge.style.backgroundColor = primary + '20';
+    }
+
+    const grad = document.getElementById('previewHeaderGrad');
+    if (grad) {
+      grad.style.background = `linear-gradient(135deg, ${primary} 0%, ${primaryDark} 100%)`;
+    }
+  }
+
+  // Đảm bảo giá trị form submit luôn đồng bộ chính xác
+  const settingsForm = document.querySelector('form');
+  if (settingsForm) {
+    settingsForm.addEventListener('submit', function() {
+      syncFinalColors();
+    });
+  }
+</script>
+
+<%- include('../layouts/admin-bottom') %>
+

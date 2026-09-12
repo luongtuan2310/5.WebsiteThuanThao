@@ -1,0 +1,113 @@
+<%- include('./layouts/main-top') %>
+
+<!-- Page Hero -->
+<section class="page-hero">
+  <div class="container">
+    <nav class="breadcrumb">
+      <a href="/">Trang chủ</a> <i class="fas fa-chevron-right"></i>
+      <a href="/bac-si">Bác Sĩ</a> <i class="fas fa-chevron-right"></i>
+      <span><%= doc.name %></span>
+    </nav>
+    <h1 class="page-title" style="font-size: 1.65rem; font-weight: 800; letter-spacing: -0.2px;">
+      <%= doc.title ? doc.title + ' ' : '' %><%= doc.name %>
+    </h1>
+    <p class="page-desc"><%= doc.specialty_name ? 'Chuyên khoa ' + doc.specialty_name : 'Bác sĩ chuyên khoa' %> - <%= typeof clinicName !== 'undefined' ? clinicName : (locals.clinicName || 'Phòng Khám VIP') %></p>
+  </div>
+</section>
+
+<!-- ===================== DOCTOR DETAIL PROFILE (IMAGE 2 STYLE) ===================== -->
+<section class="section section-doctor-detail">
+  <div class="container">
+    <div class="doctor-detail-layout" style="display: grid; grid-template-columns: 340px 1fr; gap: 48px; align-items: start;">
+      
+      <!-- Left Column: Photo & Action -->
+      <div class="doctor-profile-sidebar" data-aos="fade-up">
+        <div class="doctor-profile-card" style="background: #ffffff; border-radius: 20px; padding: 24px; box-shadow: 0 8px 30px rgba(0,0,0,0.06); border: 1px solid var(--border); text-align: center;">
+          <figure class="doctor-profile-photo-wrap" style="background: #eef8fa; border-radius: 16px; overflow: hidden; margin: 0 0 18px; aspect-ratio: 3/3.8;">
+            <img src="<%= doc.image_url || 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=600&h=800&fit=crop' %>" 
+                 alt="<%= doc.name %>" 
+                 style="width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block;"
+                 loading="lazy">
+          </figure>
+          
+          <!-- Học hàm / Học vị ở trên -->
+          <% if (doc.title) { %>
+            <div class="doctor-profile-title" style="font-size: 0.85rem; font-weight: 700; color: #0090a1; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;">
+              <%= doc.title %>
+            </div>
+          <% } %>
+          
+          <!-- Họ và tên ở dưới -->
+          <h2 class="doctor-profile-name" style="font-size: 1.15rem; font-weight: 800; color: #006875; margin-bottom: 6px; line-height: 1.35;">
+            <%= doc.name %>
+          </h2>
+          
+          <p class="doctor-profile-org" style="font-size: 0.88rem; color: var(--text-muted); margin-bottom: 18px; font-weight: 500;">
+            <%= typeof clinicName !== 'undefined' ? clinicName : (locals.clinicName || 'Phòng Khám VIP') %> <%= doc.specialty_name ? '— ' + doc.specialty_name : '' %>
+          </p>
+          
+          <a href="/dat-lich?doctor=<%= doc.id %>" class="btn-primary btn-block btn-lg" style="display: flex; align-items: center; justify-content: center; gap: 10px; padding: 12px 20px; font-size: 0.95rem;">
+            <i class="fas fa-calendar-alt"></i> <span>Đặt lịch hẹn</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Right Column: Bio, Credentials & Experience -->
+      <div class="doctor-profile-content" data-aos="fade-up" data-aos-delay="100">
+        
+        <!-- Section 1: Giới thiệu -->
+        <div class="doctor-bio-section" style="margin-bottom: 36px;">
+          <h3 style="font-size: 1.45rem; font-weight: 900; color: #006875; margin-bottom: 14px;">Giới thiệu</h3>
+          <p style="font-size: 0.98rem; color: #374151; line-height: 1.8; margin-bottom: 14px; white-space: pre-line;">
+            <%= doc.description || (doc.title + ' ' + doc.name + ' là chuyên gia y tế giàu kinh nghiệm, tận tâm với người bệnh, có nhiều năm cống hiến trong công tác thăm khám, chẩn đoán và điều trị chuyên sâu.') %>
+          </p>
+        </div>
+
+        <!-- Section 2: Bằng cấp & Chứng chỉ -->
+        <% 
+          let certList = [];
+          if (doc.certificates && doc.certificates.trim()) {
+            certList = doc.certificates.split('\n').map(c => c.trim()).filter(Boolean);
+          }
+        %>
+        <% if (certList.length > 0) { %>
+        <div class="doctor-bio-section" style="margin-bottom: 36px;">
+          <h3 style="font-size: 1.45rem; font-weight: 900; color: #006875; margin-bottom: 14px;">Bằng cấp & Chứng chỉ</h3>
+          <div style="font-size: 0.96rem; color: #374151; line-height: 1.85;">
+            <% certList.forEach(function(item, idx) { %>
+              <p style="margin-bottom: 8px; display: flex; align-items: flex-start; gap: 8px;">
+                <span style="font-weight: 700; color: #0090a1; flex-shrink: 0;"><%= idx + 1 %>/</span>
+                <span><%= item %></span>
+              </p>
+            <% }) %>
+          </div>
+        </div>
+        <% } %>
+
+        <!-- Section 3: Kinh nghiệm làm việc -->
+        <% 
+          let expList = [];
+          if (doc.experience && doc.experience.trim()) {
+            expList = doc.experience.split('\n').map(e => e.trim()).filter(Boolean);
+          }
+        %>
+        <% if (expList.length > 0) { %>
+        <div class="doctor-bio-section">
+          <h3 style="font-size: 1.45rem; font-weight: 900; color: #006875; margin-bottom: 14px;">Kinh nghiệm làm việc</h3>
+          <div style="font-size: 0.96rem; color: #374151; line-height: 1.85;">
+            <% expList.forEach(function(item, idx) { %>
+              <p style="margin-bottom: 8px; display: flex; align-items: flex-start; gap: 8px;">
+                <span style="font-weight: 700; color: #0090a1; flex-shrink: 0;"><%= idx + 1 %>/</span>
+                <span><%= item %></span>
+              </p>
+            <% }) %>
+          </div>
+        </div>
+        <% } %>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+<%- include('./layouts/main-bottom') %>

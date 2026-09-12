@@ -1,0 +1,169 @@
+<header class="site-header" id="siteHeader">
+  <!-- Pre-header bar -->
+  <div class="pre-header">
+    <div class="container">
+      <div class="pre-header-inner">
+        <div class="pre-header-info">
+          <% const navPhones = (typeof clinicPhone !== 'undefined' && clinicPhone ? clinicPhone : '').split(/[,;\n\/]+/).map(p => p.trim()).filter(Boolean); %>
+          <% if (navPhones.length > 0) { %>
+            <a href="tel:<%= navPhones[0].replace(/\s/g,'') %>" class="info-item">
+              <i class="fas fa-phone-alt"></i>
+              <span><%= navPhones.join(' - ') %></span>
+            </a>
+          <% } %>
+          <a href="mailto:<%= clinicEmail %>" class="info-item">
+            <i class="fas fa-envelope"></i>
+            <span><%= clinicEmail %></span>
+          </a>
+        </div>
+        <div class="pre-header-divider"></div>
+        <div class="pre-header-social">
+          <% if (typeof socialFacebook !== 'undefined' && socialFacebook && socialFacebook !== '#') { %>
+            <a href="<%= socialFacebook %>" target="_blank" rel="noopener" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+          <% } %>
+          <% if (typeof socialYoutube !== 'undefined' && socialYoutube && socialYoutube !== '#') { %>
+            <a href="<%= socialYoutube %>" target="_blank" rel="noopener" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+          <% } %>
+          <% if (typeof socialZalo !== 'undefined' && socialZalo && socialZalo !== '#') { %>
+            <a href="<%= socialZalo.startsWith('http') ? socialZalo : 'https://zalo.me/' + socialZalo.replace(/\D/g,'') %>" target="_blank" rel="noopener" aria-label="Zalo"><i class="fas fa-comment-dots"></i></a>
+          <% } %>
+          <% if (typeof socialTiktok !== 'undefined' && socialTiktok) { %>
+            <a href="<%= socialTiktok %>" target="_blank" rel="noopener" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+          <% } %>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Navigation -->
+  <div class="main-header">
+    <div class="container">
+      <div class="header-inner">
+        <!-- Logo (Uploaded by Admin) -->
+        <a href="/" class="site-logo">
+          <img src="<%= (typeof clinicLogo !== 'undefined' && clinicLogo) ? clinicLogo : (locals.clinicLogo || '/images/logo.svg') %>" 
+               alt="<%= typeof clinicName !== 'undefined' ? clinicName : (locals.clinicName || 'Phòng Khám VIP') %>" 
+               class="site-logo-img">
+        </a>
+
+        <!-- Desktop Navigation -->
+        <nav class="desktop-nav" id="desktopNav">
+          <% 
+            const showServices = typeof hasServices !== 'undefined' ? hasServices : true;
+            const showPackages = typeof hasPackages !== 'undefined' ? hasPackages : true;
+            const showSpecialties = typeof hasSpecialties !== 'undefined' ? hasSpecialties : true;
+            const showDoctors = typeof hasDoctors !== 'undefined' ? hasDoctors : true;
+            const showNews = typeof hasNews !== 'undefined' ? hasNews : true;
+          %>
+          <ul class="nav-menu">
+            <li><a href="/" class="nav-link">Trang chủ</a></li>
+            <li><a href="/ve-chung-toi" class="nav-link">Về chúng tôi</a></li>
+            
+            <% if (showServices && showPackages) { %>
+              <li class="nav-item-dropdown">
+                <a href="/dich-vu" class="nav-link">
+                  Dịch vụ <i class="fas fa-chevron-down nav-dropdown-icon"></i>
+                </a>
+                <ul class="dropdown-menu">
+                  <li>
+                    <a href="/dich-vu" class="dropdown-item">
+                      <i class="fas fa-list-alt"></i>
+                      <span>Giá dịch vụ</span>
+                    </a>
+                  </li>
+                  <li>
+                    <a href="/goi-kham" class="dropdown-item">
+                      <i class="fas fa-box-open"></i>
+                      <span>Gói khám</span>
+                    </a>
+                  </li>
+                </ul>
+              </li>
+            <% } else if (showServices) { %>
+              <li><a href="/dich-vu" class="nav-link">Dịch vụ</a></li>
+            <% } else if (showPackages) { %>
+              <li><a href="/goi-kham" class="nav-link">Gói khám</a></li>
+            <% } %>
+
+            <% if (showSpecialties) { %>
+            <li><a href="/chuyen-khoa" class="nav-link">Chuyên khoa</a></li>
+            <% } %>
+
+            <% if (showDoctors) { %>
+            <li><a href="/bac-si" class="nav-link">Bác sĩ</a></li>
+            <% } %>
+
+            <% if (showNews) { %>
+            <li><a href="/tin-tuc" class="nav-link">Tin tức</a></li>
+            <% } %>
+
+            <li><a href="/lien-he" class="nav-link">Liên hệ</a></li>
+          </ul>
+        </nav>
+
+        <!-- Header Actions -->
+        <div class="header-actions">
+          <a href="/dat-lich" class="btn-booking">
+            <span>Đặt lịch hẹn</span>
+            <i class="fas fa-arrow-right"></i>
+          </a>
+          <button class="mobile-toggle" id="mobileToggle" aria-label="Menu" aria-expanded="false">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- Mobile Drawer -->
+<div class="mobile-drawer" id="mobileDrawer" aria-hidden="true">
+  <div class="drawer-overlay" id="drawerOverlay"></div>
+  <div class="drawer-panel">
+    <div class="drawer-header">
+      <a href="/" class="drawer-logo">
+        <img src="<%= (typeof clinicLogo !== 'undefined' && clinicLogo) ? clinicLogo : (locals.clinicLogo || '/images/logo.svg') %>" 
+             alt="<%= typeof clinicName !== 'undefined' ? clinicName : (locals.clinicName || 'Phòng Khám VIP') %>" 
+             class="site-logo-img" style="max-height:38px;">
+      </a>
+      <button class="drawer-close" id="drawerClose" aria-label="Đóng menu">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <nav class="drawer-nav">
+      <ul>
+        <li><a href="/">Trang chủ</a></li>
+        <li><a href="/ve-chung-toi">Về chúng tôi</a></li>
+
+        <% if (showServices && showPackages) { %>
+        <li><a href="/dich-vu">Dịch vụ</a></li>
+        <li><a href="/goi-kham">Gói khám</a></li>
+        <% } else if (showServices) { %>
+        <li><a href="/dich-vu">Dịch vụ</a></li>
+        <% } else if (showPackages) { %>
+        <li><a href="/goi-kham">Gói khám</a></li>
+        <% } %>
+
+        <% if (showSpecialties) { %>
+        <li><a href="/chuyen-khoa">Chuyên khoa</a></li>
+        <% } %>
+
+        <% if (showDoctors) { %>
+        <li><a href="/bac-si">Bác sĩ</a></li>
+        <% } %>
+
+        <% if (showNews) { %>
+        <li><a href="/tin-tuc">Tin tức</a></li>
+        <% } %>
+
+        <li><a href="/lien-he">Liên hệ</a></li>
+      </ul>
+    </nav>
+    <div class="drawer-cta">
+      <a href="/dat-lich" class="btn-booking-mobile">
+        <span>Đặt lịch hẹn</span>
+        <i class="fas fa-arrow-right"></i>
+      </a>
+    </div>
+  </div>
+</div>

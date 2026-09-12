@@ -1,0 +1,129 @@
+<%- include('../layouts/admin-top') %>
+
+<div style="width: 100%;">
+  <form action="/admin/about" method="POST" enctype="multipart/form-data">
+    
+    <!-- THANH ĐIỀU HƯỚNG TRÊN CÙNG -->
+    <div style="margin-bottom: 22px; display: flex; justify-content: space-between; align-items: center; background: #ffffff; padding: 14px 20px; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 2px 6px rgba(0,0,0,0.02);">
+      <div style="display: flex; align-items: center; gap: 12px;">
+        <a href="/admin/dashboard" class="btn btn-secondary" style="font-weight: 600;">
+          <i class="fas fa-arrow-left"></i> Dashboard
+        </a>
+        <a href="/ve-chung-toi" target="_blank" class="btn btn-sm" style="background: #e0f2fe; color: #0369a1; font-weight: 700; border: 1px solid #bae6fd; padding: 7px 14px; border-radius: 6px; text-decoration: none;">
+          <i class="fas fa-external-link-alt"></i> Xem trang ngoài Website
+        </a>
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-lg" style="padding: 10px 38px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(0, 144, 161, 0.35);">
+        <i class="fas fa-save"></i> Lưu Thông Tin Giới Thiệu
+      </button>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 24px; align-items: start;">
+      
+      <!-- CỘT TRÁI: NỘI DUNG VĂN BẢN -->
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+
+        <!-- CARD 1: LỜI CHÀO & NỘI DUNG GIỚI THIỆU -->
+        <div class="card" style="padding: 24px; margin: 0; border-top: 4px solid var(--primary);">
+          <div class="card-header" style="margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9;">
+            <div class="card-title" style="font-size: 1.1rem; font-weight: 800; color: #006875;">
+              <i class="fas fa-align-left"></i> 1. Lời Chào & Nội Dung Giới Thiệu
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label style="font-weight: 700; color: #334155;">Huy hiệu / Lời chào ngắn (Badge)</label>
+            <input type="text" name="greeting_badge" value="<%= about.greeting_badge %>" placeholder="Ví dụ: Lời chào từ Phòng Khám VIP">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label style="font-weight: 700; color: #334155;">Tiêu đề chính của khối giới thiệu</label>
+            <input type="text" name="main_title" value="<%= about.main_title %>" placeholder="Ví dụ: Đồng Hành Cùng Sức Khỏe Gia Đình Bạn">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label style="font-weight: 700; color: #334155;">Đoạn văn mở đầu / Lời chào mừng (Nhấn Enter để xuống dòng)</label>
+            <textarea name="lead_text" rows="5" placeholder="Nhập đoạn văn chào mừng giới thiệu phòng khám..."><%= about.lead_text %></textarea>
+          </div>
+        </div>
+
+        <!-- CARD 2: SỨ MỆNH & GIÁ TRỊ CỐT LÕI -->
+        <div class="card" style="padding: 24px; margin: 0; border-top: 4px solid #16a34a;">
+          <div class="card-header" style="margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9;">
+            <div class="card-title" style="font-size: 1.1rem; font-weight: 800; color: #15803d;">
+              <i class="fas fa-bullseye"></i> 2. Sứ Mệnh & Giá Trị Cốt Lõi
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label style="font-weight: 700; color: #334155;">Tiêu đề Sứ Mệnh</label>
+            <input type="text" name="mission_title" value="<%= about.mission_title %>" placeholder="Ví dụ: Sứ Mệnh Của Chúng Tôi">
+          </div>
+
+          <div class="form-group" style="margin-bottom: 16px;">
+            <label style="font-weight: 700; color: #334155;">Nội dung Sứ Mệnh</label>
+            <textarea name="mission_desc" rows="3" placeholder="Ví dụ: Mang đến dịch vụ y tế toàn diện, chuẩn mực và nhân văn..."><%= about.mission_desc %></textarea>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <label style="font-weight: 700; color: #334155;">Các giá trị cốt lõi (Phân cách bằng dấu phẩy)</label>
+            <input type="text" name="values" value="<%= about.values %>" placeholder="Ví dụ: Tận Tâm, Chuyên Nghiệp, Hiện Đại, Trách Nhiệm">
+            <small style="color: #64748b; font-size: 0.82rem; margin-top: 4px; display: block;">Mỗi giá trị phân cách bằng dấu phẩy sẽ được hiển thị thành một huy hiệu đẹp mắt.</small>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- CỘT PHẢI: ẢNH ĐẠI DIỆN -->
+      <div style="display: flex; flex-direction: column; gap: 20px;">
+        
+        <!-- CARD 3: ẢNH MINH HỌA -->
+        <div class="card" style="padding: 24px; margin: 0; border-top: 4px solid #0284c7;">
+          <div class="card-header" style="margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid #f1f5f9;">
+            <div class="card-title" style="font-size: 1.1rem; font-weight: 800; color: #0284c7;">
+              <i class="fas fa-image"></i> Ảnh Đại Diện (Chuẩn 800 x 600 px)
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom: 0;">
+            <div style="margin-bottom: 14px; width: 100%; background: #0f172a; border-radius: 12px; overflow: hidden; border: 1.5px solid #e2e8f0; box-shadow: 0 4px 12px rgba(0,0,0,0.06);">
+              <img src="<%= about.image_url %>" id="aboutPreviewImg" alt="About Image" style="width: 100%; height: auto; max-height: 380px; object-fit: cover; display: block;">
+            </div>
+            <input type="file" name="image" id="aboutFileInput" accept="image/*" style="width: 100%; padding: 10px 14px; border: 1.5px dashed #cbd5e1; border-radius: 8px; background: #f8fafc;">
+            <div style="background: #f0fdfa; border: 1px solid #99f6e4; padding: 8px 12px; border-radius: 6px; margin-top: 8px;">
+              <small style="color: #0f766e; font-weight: 700; font-size: 0.82rem; display: block;">
+                <i class="fas fa-ruler-combined"></i> Kích thước tiêu chuẩn khuyến nghị: <strong>800 x 600 px</strong> (hoặc 1200 x 900 px, tỷ lệ 4:3).
+              </small>
+              <small style="color: #64748b; font-size: 0.78rem; display: block; margin-top: 2px;">Hệ thống tự động tối ưu hóa WebP và căn chỉnh sắc nét.</small>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const fileInput = document.getElementById('aboutFileInput');
+  const previewImg = document.getElementById('aboutPreviewImg');
+
+  if (fileInput && previewImg) {
+    fileInput.addEventListener('change', function(e) {
+      if (this.files && this.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          previewImg.src = evt.target.result;
+        };
+        reader.readAsDataURL(this.files[0]);
+      }
+    });
+  }
+});
+</script>
+
+<%- include('../layouts/admin-bottom') %>

@@ -1,0 +1,126 @@
+<%- include('../layouts/admin-top') %>
+<style>
+  /* Switch Toggle CSS for Table */
+  .switch-tbl {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+    vertical-align: middle;
+  }
+  .switch-tbl input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .slider-tbl {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #cbd5e1;
+    transition: .3s;
+    border-radius: 24px;
+  }
+  .slider-tbl:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  }
+  .switch-tbl input:checked + .slider-tbl {
+    background-color: var(--primary, #0090a1);
+  }
+  .switch-tbl input:checked + .slider-tbl:before {
+    transform: translateX(20px);
+  }
+</style>
+
+<div class="card">
+  <div class="card-header">
+    <div class="card-title">Chuyên Khoa (<%= specialties.length %>)</div>
+    <a href="/admin/specialties/create" class="btn btn-primary"><i class="fas fa-plus"></i> Thêm chuyên khoa</a>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 50px;">#</th>
+          <th>Ảnh</th>
+          <th>Tên chuyên khoa</th>
+          <th>Icon</th>
+          <th style="text-align: center; width: 140px;">Trạng thái</th>
+          <th style="text-align: center; width: 100px;">Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% specialties.forEach(function(s) { %>
+        <tr>
+          <td><%= s.id %></td>
+          <td class="td-img">
+            <img src="<%= s.image_url || 'https://via.placeholder.com/60x45' %>" alt="<%= s.name %>" style="width: 50px; height: 38px; object-fit: cover; border-radius: 6px;">
+          </td>
+          <td><strong><%= s.name %></strong></td>
+          <td>
+            <span style="display: inline-flex; align-items: center; gap: 8px; background: #f1f5f9; padding: 4px 10px; border-radius: 6px; font-weight: 600; font-size: 0.82rem; color: #334155;">
+              <i class="fas <%= s.icon || 'fa-stethoscope' %>" style="color: var(--primary);"></i>
+              <span><%= s.icon || 'fa-stethoscope' %></span>
+            </span>
+          </td>
+          <td style="text-align: center;">
+            <div style="display: inline-flex; align-items: center; gap: 8px;">
+              <label class="switch-tbl" title="Gạt để Kích hoạt / Tạm ngưng">
+                <input type="checkbox" onchange="toggleSpecialtyStatus(<%= s.id %>, this)" <%= s.is_active ? 'checked' : '' %>>
+                <span class="slider-tbl"></span>
+              </label>
+              <span class="status-label-<%= s.id %>" style="font-size: 0.78rem; font-weight: 700; color: <%= s.is_active ? '#15803d' : '#94a3b8' %>;">
+                <%= s.is_active ? 'Kích hoạt' : 'Tạm ngưng' %>
+              </span>
+            </div>
+          </td>
+          <td style="text-align: center; white-space: nowrap;">
+            <a href="/admin/specialties/<%= s.id %>/edit" class="btn btn-warning btn-sm" title="Chỉnh sửa"><i class="fas fa-edit"></i></a>
+            <form action="/admin/specialties/<%= s.id %>/delete" method="POST" style="display:inline">
+              <button class="btn btn-danger btn-sm confirm-delete" title="Xóa"><i class="fas fa-trash"></i></button>
+            </form>
+          </td>
+        </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  async function toggleSpecialtyStatus(id, inputElem) {
+    const isChecked = inputElem.checked;
+    const labelElem = document.querySelector(`.status-label-${id}`);
+    try {
+      const res = await fetch(`/admin/specialties/${id}/toggle`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      const data = await res.json();
+      if (data.success) {
+        if (labelElem) {
+          labelElem.textContent = data.is_active ? 'Kích hoạt' : 'Tạm ngưng';
+          labelElem.style.color = data.is_active ? '#15803d' : '#94a3b8';
+        }
+      } else {
+        alert(data.message || 'Có lỗi xảy ra khi cập nhật trạng thái');
+        inputElem.checked = !isChecked; // Revert
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Lỗi kết nối máy chủ');
+      inputElem.checked = !isChecked; // Revert
+    }
+  }
+</script>
+
+<%- include('../layouts/admin-bottom') %>

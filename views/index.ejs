@@ -1,0 +1,357 @@
+<%- include('./layouts/main-top') %>
+
+<!-- ===================== HERO BANNER SLIDER ===================== -->
+<section class="hero-section">
+  <div class="hero-slider">
+    <% if (banners && banners.length > 0) { %>
+      <% banners.forEach(function(banner, i) { %>
+      <% 
+        let bStyle = {};
+        if (banner.content_style) {
+          try { bStyle = typeof banner.content_style === 'string' ? JSON.parse(banner.content_style) : banner.content_style; } catch(e) { bStyle = {}; }
+        }
+
+        const layout = bStyle.layout || {};
+        const bPosition = layout.position || bStyle.content_position || 'left';
+        const bAlign = layout.align || bStyle.text_align || 'left';
+        const bBoxBg = layout.box_bg || bStyle.box_bg || 'transparent';
+
+        const justifyMap = { left: 'flex-start', center: 'center', right: 'flex-end' };
+        const justifyVal = justifyMap[bPosition] || 'flex-start';
+
+        const layers = (bStyle.layers && Array.isArray(bStyle.layers) && bStyle.layers.length > 0) ? bStyle.layers : null;
+        const hasCustomContent = layers ? (layers.some(l => l.text && l.text.trim())) : ((banner.content_title && banner.content_title.trim()) || (banner.content && banner.content.trim()));
+      %>
+      <div class="slide-item">
+        <figure class="banner-img">
+          <img src="<%= banner.image_url %>" alt="<%= banner.title || clinicName %>"
+               loading="<%= i === 0 ? 'eager' : 'lazy' %>">
+        </figure>
+        <% if (hasCustomContent) { %>
+        <div class="banner-overlay" style="display: flex; align-items: center; justify-content: <%= justifyVal %>;">
+          <div class="container" style="display: flex; justify-content: <%= justifyVal %>;">
+            <div class="banner-custom-box" style="
+              max-width: 640px;
+              background: <%= bBoxBg %>;
+              text-align: <%= bAlign %>;
+              display: flex;
+              flex-direction: column;
+              gap: 8px;
+              <%= bBoxBg !== 'transparent' ? 'padding: 22px 28px; border-radius: 12px; backdrop-filter: blur(4px); box-shadow: 0 10px 30px rgba(0,0,0,0.25);' : '' %>
+            ">
+              <% if (layers) { %>
+                <% layers.forEach(function(layer) { %>
+                  <% if (layer.text && layer.text.trim()) { %>
+                    <% 
+                      const isTitle = layer.type === 'title';
+                      const anim = layer.animation_in || 'fade-up';
+                      const animAttr = anim !== 'none' ? `data-aos="${anim}"` : '';
+                      const delayMs = Math.round(parseFloat(layer.animation_delay || '0') * 1000) || 0;
+                      const delayAttr = delayMs > 0 ? `data-aos-delay="${delayMs}"` : '';
+                    %>
+                    <% if (isTitle) { %>
+                      <h2 <%- animAttr %> <%- delayAttr %> style="
+                        margin: 0;
+                        font-family: '<%= layer.font_family || 'Montserrat' %>', sans-serif;
+                        color: <%= layer.color || '#ffffff' %>;
+                        font-size: <%= layer.font_size || '36px' %>;
+                        font-weight: <%= layer.font_weight || '700' %>;
+                        font-style: <%= layer.font_style || 'normal' %>;
+                        line-height: 1.25;
+                        text-shadow: <%= bBoxBg === 'transparent' ? '0 2px 8px rgba(0,0,0,0.6)' : 'none' %>;
+                      "><%= layer.text.trim() %></h2>
+                    <% } else { %>
+                      <div <%- animAttr %> <%- delayAttr %> style="display: flex; flex-direction: column; gap: 4px;">
+                        <% layer.text.split(/\r?\n/).forEach(function(line) { %>
+                          <% if (line.trim()) { %>
+                          <p style="
+                            margin: 0;
+                            font-family: '<%= layer.font_family || 'Montserrat' %>', sans-serif;
+                            color: <%= layer.color || '#ffffff' %>;
+                            font-size: <%= layer.font_size || '18px' %>;
+                            font-weight: <%= layer.font_weight || '400' %>;
+                            font-style: <%= layer.font_style || 'normal' %>;
+                            line-height: 1.55;
+                            text-shadow: <%= bBoxBg === 'transparent' ? '0 2px 6px rgba(0,0,0,0.6)' : 'none' %>;
+                          "><%= line.trim() %></p>
+                          <% } %>
+                        <% }) %>
+                      </div>
+                    <% } %>
+                  <% } %>
+                <% }) %>
+              <% } else { %>
+                <!-- Legacy fallback -->
+                <% if (banner.content_title && banner.content_title.trim()) { %>
+                <h2 data-aos="fade-up" style="
+                  margin: 0;
+                  font-family: 'Montserrat', sans-serif;
+                  color: #ffffff;
+                  font-size: 36px;
+                  font-weight: 700;
+                  line-height: 1.25;
+                  text-shadow: 0 2px 8px rgba(0,0,0,0.6);
+                "><%= banner.content_title.trim() %></h2>
+                <% } %>
+                <% if (banner.content && banner.content.trim()) { %>
+                <div data-aos="fade-up" data-aos-delay="200" style="display: flex; flex-direction: column; gap: 4px;">
+                  <% banner.content.split(/\r?\n/).forEach(function(line) { %>
+                    <% if (line.trim()) { %>
+                    <p style="
+                      margin: 0;
+                      font-family: 'Montserrat', sans-serif;
+                      color: #ffffff;
+                      font-size: 18px;
+                      line-height: 1.55;
+                      text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+                    "><%= line.trim() %></p>
+                    <% } %>
+                  <% }) %>
+                </div>
+                <% } %>
+              <% } %>
+            </div>
+          </div>
+        </div>
+        <% } %>
+      </div>
+      <% }) %>
+    <% } else { %>
+    <div class="slide-item">
+      <figure class="banner-img">
+        <img src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=1920&h=700&fit=crop"
+             alt="<%= clinicName %>" loading="eager">
+      </figure>
+      <div class="banner-overlay">
+        <div class="container">
+          <div class="banner-content">
+            <h1>Chăm Sóc Sức Khỏe Toàn Diện</h1>
+            <p>Đội ngũ bác sĩ chuyên nghiệp — Trang thiết bị hiện đại</p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <% } %>
+  </div>
+
+  <!-- Quick Access Bar -->
+  <div class="quick-access-bar">
+    <div class="container">
+      <div class="quick-access-inner">
+        <a href="/dat-lich" class="qa-item">
+          <span class="qa-icon"><i class="fas fa-calendar-check"></i></span>
+          <span class="qa-label">Đặt lịch hẹn</span>
+        </a>
+
+        <% if (typeof hasServices !== 'undefined' && hasServices) { %>
+        <div class="qa-divider"></div>
+        <a href="/dich-vu" class="qa-item">
+          <span class="qa-icon"><i class="fas fa-list-alt"></i></span>
+          <span class="qa-label">Bảng giá dịch vụ</span>
+        </a>
+        <% } else if (packages && packages.length > 0) { %>
+        <div class="qa-divider"></div>
+        <a href="/goi-kham" class="qa-item">
+          <span class="qa-icon"><i class="fas fa-heart-pulse"></i></span>
+          <span class="qa-label">Lựa chọn gói khám</span>
+        </a>
+        <% } %>
+
+        <div class="qa-divider"></div>
+        <a href="/lien-he" class="qa-item">
+          <span class="qa-icon"><i class="fas fa-phone-volume"></i></span>
+          <span class="qa-label">Liên hệ</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== PACKAGES SECTION ===================== -->
+<% if (packages && packages.length > 0) { %>
+<section class="section section-packages" id="packages">
+  <div class="container">
+    <div class="section-header text-center" data-aos="fade-up">
+      <span class="section-badge">Dịch Vụ</span>
+      <h2 class="section-title">Gói Khám Ưu Đãi</h2>
+      <p class="section-desc">Lựa chọn chăm sóc sức khỏe thông minh hơn với các gói dịch vụ giá trị tuyệt vời</p>
+    </div>
+    <div class="section-spacer"></div>
+
+    <ul class="packages-slider">
+      <% packages.forEach(function(pkg) { %>
+      <li class="package-slide-item">
+        <div class="package-card">
+          <a href="/goi-kham/<%= pkg.id %>">
+            <figure class="package-thumb">
+              <img src="<%= pkg.image_url || 'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=800&h=600&fit=crop' %>"
+                   alt="<%= pkg.name %>" loading="lazy">
+              <div class="package-brand-line"></div>
+            </figure>
+          </a>
+          <div class="package-info">
+            <span class="package-tag"><%= parseInt(pkg.price || 0).toLocaleString('vi-VN') %> đ</span>
+            <h3 class="package-name"><a href="/goi-kham/<%= pkg.id %>"><%= pkg.name %></a></h3>
+            <p class="package-desc"><%= pkg.description %></p>
+            <a href="/goi-kham/<%= pkg.id %>" class="seemore-link">
+              <span>Xem thêm</span>
+              <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+      </li>
+      <% }) %>
+    </ul>
+
+    <div class="section-spacer"></div>
+    <div class="cta-group text-center" data-aos="fade-up">
+      <a href="/dat-lich" class="btn-primary"><span>Đặt lịch hẹn</span> <i class="fas fa-arrow-right"></i></a>
+      <a href="/goi-kham" class="btn-outlined"><span>Tất cả gói khám</span> <i class="fas fa-arrow-right"></i></a>
+    </div>
+  </div>
+</section>
+<% } %>
+
+<!-- ===================== SPECIALTIES SECTION ===================== -->
+<% if (specialties && specialties.length > 0) { %>
+<section class="section section-specialties bg-light" id="specialties">
+  <div class="container">
+    <div class="section-header text-center" data-aos="fade-up">
+      <span class="section-badge">Chuyên môn</span>
+      <h2 class="section-title">Chuyên Khoa Mũi Nhọn</h2>
+      <p class="section-desc">Cung cấp dịch vụ y tế đa dạng, kết hợp kinh nghiệm với công nghệ tiên tiến</p>
+    </div>
+    <div class="section-spacer"></div>
+
+    <ul class="specialties-slider">
+      <% specialties.forEach(function(sp) { %>
+      <li class="specialty-slide-item">
+        <div class="specialty-card">
+          <div class="specialty-bg">
+            <img src="<%= sp.image_url || 'https://images.unsplash.com/photo-1584515933487-779824d29309?w=600&h=400&fit=crop' %>"
+                 alt="<%= sp.name %>" loading="lazy">
+            <div class="specialty-overlay"></div>
+          </div>
+          <div class="specialty-info">
+            <h3 class="specialty-title"><%= sp.name %></h3>
+            <p class="specialty-desc"><%= sp.description %></p>
+            <a href="/chuyen-khoa/<%= sp.id %>" class="btn-white-outline">
+              <span>Xem thêm</span> <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+      </li>
+      <% }) %>
+    </ul>
+
+    <div class="section-spacer"></div>
+    <div class="cta-group text-center" data-aos="fade-up">
+      <a href="/dat-lich" class="btn-primary"><span>Đặt lịch hẹn</span> <i class="fas fa-arrow-right"></i></a>
+      <a href="/chuyen-khoa" class="btn-outlined"><span>Tất cả chuyên khoa</span> <i class="fas fa-arrow-right"></i></a>
+    </div>
+  </div>
+</section>
+<% } %>
+
+<!-- ===================== DOCTORS SECTION ===================== -->
+<% if (doctors && doctors.length > 0) { %>
+<section class="section section-doctors curve-top" id="doctors">
+  <div class="container">
+    <div class="section-header text-center" data-aos="fade-up">
+      <span class="section-badge">Chuyên gia</span>
+      <h2 class="section-title">Bác Sĩ Của Chúng Tôi</h2>
+      <p class="section-desc">Đội ngũ bác sĩ giàu kinh nghiệm, tận tâm vì sức khỏe của bạn</p>
+    </div>
+    <div class="section-spacer-sm"></div>
+
+    <ul class="doctors-slider">
+      <% doctors.forEach(function(doc) { %>
+      <li class="doctor-slide-item">
+        <div class="doctor-card">
+          <a href="/bac-si" class="doctor-photo-link">
+            <figure class="doctor-photo">
+              <img src="<%= doc.image_url || 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=600&h=800&fit=crop' %>"
+                   alt="<%= doc.name %>" loading="lazy">
+            </figure>
+          </a>
+          <div class="doctor-info">
+            <% if (doc.title) { %>
+              <div class="doctor-title" style="font-size: 0.8rem; font-weight: 700; color: #0090a1; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 2px;"><%= doc.title %></div>
+            <% } %>
+            <h3 class="doctor-name" style="font-size: 1.05rem; font-weight: 800; margin-bottom: 6px;"><a href="/bac-si/<%= doc.id %>"><%= doc.name %></a></h3>
+            <% if (doc.specialty_name) { %>
+            <div class="doctor-specialty"><i class="fas fa-stethoscope"></i> <%= doc.specialty_name %></div>
+            <% } %>
+          </div>
+          <div class="doctor-card-bottom">
+            <div class="doctor-brand-line"></div>
+            <a href="/bac-si" class="doctor-btn" aria-label="Xem thêm thông tin bác sĩ">
+              <span class="doctor-btn-text">Xem thêm</span>
+              <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+      </li>
+      <% }) %>
+    </ul>
+
+    <div class="section-spacer"></div>
+    <div class="cta-group text-center" data-aos="fade-up">
+      <a href="/dat-lich" class="btn-primary"><span>Đặt lịch hẹn</span> <i class="fas fa-arrow-right"></i></a>
+      <a href="/bac-si" class="btn-outlined"><span>Tất cả bác sĩ</span> <i class="fas fa-arrow-right"></i></a>
+    </div>
+  </div>
+</section>
+<% } %>
+
+<!-- ===================== NEWS SECTION ===================== -->
+<% if (news && news.length > 0) { %>
+<section class="section section-news bg-light" id="news">
+  <div class="container">
+    <div class="section-header text-center" data-aos="fade-up">
+      <span class="section-badge">Cập nhật</span>
+      <h2 class="section-title">Tin Tức & Sức Khỏe</h2>
+      <p class="section-desc">Cập nhật thông tin sức khỏe hữu ích từ đội ngũ chuyên gia</p>
+    </div>
+    <div class="section-spacer"></div>
+
+    <ul class="news-slider">
+      <% news.forEach(function(article) { %>
+      <li class="news-slide-item">
+        <article class="news-card">
+          <a href="/tin-tuc/<%= article.slug %>" class="news-card-img-link">
+            <figure class="news-thumb">
+              <img src="<%= article.image_url || 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=400&h=210&fit=crop' %>"
+                   alt="<%= article.title %>" loading="lazy">
+            </figure>
+          </a>
+          <div class="news-body">
+            <span class="news-category"><%= article.category || 'Tin tức' %></span>
+            <h3 class="news-title">
+              <a href="/tin-tuc/<%= article.slug %>"><%= article.title %></a>
+            </h3>
+            <p class="news-excerpt"><%= article.excerpt %></p>
+            <div class="news-footer">
+              <span class="news-date">
+                <i class="fas fa-calendar"></i>
+                <%= new Date(article.published_at).toLocaleDateString('vi-VN') %>
+              </span>
+              <a href="/tin-tuc/<%= article.slug %>" class="news-read-more">
+                <span>Xem thêm</span> <i class="fas fa-arrow-right"></i>
+              </a>
+            </div>
+          </div>
+        </article>
+      </li>
+      <% }) %>
+    </ul>
+
+    <div class="section-spacer"></div>
+    <div class="text-center" data-aos="fade-up">
+      <a href="/tin-tuc" class="btn-outlined"><span>Xem tất cả tin tức</span> <i class="fas fa-arrow-right"></i></a>
+    </div>
+  </div>
+</section>
+<% } %>
+
+<%- include('./layouts/main-bottom') %>

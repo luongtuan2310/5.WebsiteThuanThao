@@ -1,0 +1,103 @@
+<%- include('../layouts/admin-top') %>
+
+<div class="card">
+  <div class="card-header" style="flex-wrap: wrap; gap: 12px;">
+    <div>
+      <div class="card-title" style="font-size: 1.05rem; font-weight: 800; margin: 0;">
+        <i class="fas fa-shield-alt" style="color: var(--primary); margin-right: 6px;"></i> Nhóm Quyền & Ma Trận Phân Quyền
+      </div>
+      <div style="font-size: 0.8rem; color: #64748b; margin-top: 3px;">
+        Định nghĩa các vai trò chức vụ và thiết lập ma trận phân quyền chi tiết cho từng phân hệ trong phòng khám.
+      </div>
+    </div>
+
+    <% if (locals.hasPermission && locals.hasPermission('roles.create')) { %>
+      <a href="/admin/roles/create" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; font-weight: 700; border-radius: 8px;">
+        <i class="fas fa-plus-circle"></i> Thêm nhóm quyền mới
+      </a>
+    <% } %>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 50px;">#</th>
+          <th>Tên nhóm quyền</th>
+          <th>Mã định danh (Code)</th>
+          <th>Mô tả vai trò</th>
+          <th style="text-align: center;">Số thành viên</th>
+          <th style="text-align: center;">Loại nhóm</th>
+          <th style="text-align: right;">Thao tác</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% if (roles && roles.length > 0) { %>
+          <% roles.forEach(function(r) { %>
+          <tr>
+            <td style="font-weight: 800; color: #64748b;">
+              #<%= r.id %>
+            </td>
+            <td>
+              <div style="font-weight: 800; color: #0f172a; font-size: 0.95rem; display: flex; align-items: center; gap: 8px;">
+                <i class="fas fa-shield-halved" style="color: <%= r.code === 'superadmin' ? '#7c3aed' : 'var(--primary)' %>;"></i>
+                <%= r.name %>
+              </div>
+            </td>
+            <td>
+              <code style="background: #f1f5f9; padding: 3px 8px; border-radius: 6px; font-size: 0.82rem; color: #007a8a; font-weight: 700;">
+                <%= r.code %>
+              </code>
+            </td>
+            <td style="color: #475569; font-size: 0.86rem; max-width: 280px;">
+              <%= r.description || '—' %>
+            </td>
+            <td style="text-align: center;">
+              <span style="font-weight: 800; font-size: 0.95rem; color: <%= r.user_count > 0 ? '#0284c7' : '#94a3b8' %>; background: <%= r.user_count > 0 ? '#e0f2fe' : '#f8fafc' %>; padding: 3px 10px; border-radius: 20px;">
+                <i class="fas fa-users" style="font-size: 0.75rem;"></i> <%= r.user_count %>
+              </span>
+            </td>
+            <td style="text-align: center;">
+              <% if (r.is_system || r.code === 'superadmin') { %>
+                <span style="font-size: 0.75rem; font-weight: 800; background: #fef3c7; color: #b45309; border: 1px solid #fde68a; padding: 3px 8px; border-radius: 6px;">
+                  <i class="fas fa-lock" style="font-size: 0.7rem;"></i> Mặc định
+                </span>
+              <% } else { %>
+                <span style="font-size: 0.75rem; font-weight: 700; background: #f1f5f9; color: #475569; padding: 3px 8px; border-radius: 6px;">
+                  Tự tạo
+                </span>
+              <% } %>
+            </td>
+            <td style="text-align: right;">
+              <div style="display: inline-flex; align-items: center; gap: 6px;">
+                <% if (locals.hasPermission && locals.hasPermission('roles.edit')) { %>
+                  <a href="/admin/roles/<%= r.id %>/edit" class="btn btn-primary btn-sm" style="padding: 5px 10px;" title="Cấu hình ma trận phân quyền">
+                    <i class="fas fa-sliders-h"></i> Phân quyền
+                  </a>
+                <% } %>
+                <% if (locals.hasPermission && locals.hasPermission('roles.delete')) { %>
+                  <% if (!r.is_system && r.code !== 'superadmin') { %>
+                    <form action="/admin/roles/<%= r.id %>/delete" method="POST" style="display:inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa nhóm quyền <%= r.name %>?');">
+                      <button type="submit" class="btn btn-danger btn-sm" style="padding: 5px 8px;" title="Xóa nhóm quyền">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </form>
+                  <% } %>
+                <% } %>
+              </div>
+            </td>
+          </tr>
+          <% }) %>
+        <% } else { %>
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 32px 20px; color: #64748b;">
+              Chưa có nhóm quyền nào.
+            </td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<%- include('../layouts/admin-bottom') %>

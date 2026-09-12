@@ -1,0 +1,575 @@
+<%- include('../layouts/admin-top') %>
+
+<style>
+  .user-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+  .user-stat-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 18px 20px;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: transform 0.2s ease;
+  }
+  .user-stat-card:hover {
+    transform: translateY(-2px);
+  }
+  .user-stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    flex-shrink: 0;
+  }
+  .user-stat-icon.total { background: #e0f2fe; color: #0284c7; }
+  .user-stat-icon.active { background: #dcfce7; color: #15803d; }
+  .user-stat-icon.locked { background: #fee2e2; color: #dc2626; }
+  .user-stat-icon.roles { background: #ede9fe; color: #7c3aed; }
+  
+  .user-stat-val {
+    font-size: 1.65rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: #0f172a;
+  }
+  .user-stat-lbl {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-top: 3px;
+  }
+
+  /* User table styling */
+  .user-avatar-cell {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    background: #e2e8f0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    color: #475569;
+    font-size: 1.1rem;
+    border: 1.5px solid #cbd5e1;
+    flex-shrink: 0;
+  }
+
+  /* Role Badges */
+  .role-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+  }
+  .role-badge.superadmin {
+    background: #ede9fe;
+    color: #6d28d9;
+    border: 1px solid #ddd6fe;
+  }
+  .role-badge.doctor {
+    background: #e0f2fe;
+    color: #0369a1;
+    border: 1px solid #bae6fd;
+  }
+  .role-badge.receptionist {
+    background: #fef3c7;
+    color: #b45309;
+    border: 1px solid #fde68a;
+  }
+  .role-badge.editor {
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+  }
+  .role-badge.custom {
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #cbd5e1;
+  }
+
+  /* Switch Toggle */
+  .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 38px;
+    height: 22px;
+  }
+  .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #cbd5e1;
+    transition: .25s;
+    border-radius: 22px;
+  }
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .25s;
+    border-radius: 50%;
+  }
+  input:checked + .slider {
+    background-color: #16a34a;
+  }
+  input:checked + .slider:before {
+    transform: translateX(16px);
+  }
+  input:disabled + .slider {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+</style>
+
+<!-- 1. STATS CARDS -->
+<div class="user-stats-grid">
+  <div class="user-stat-card">
+    <div class="user-stat-icon total"><i class="fas fa-users-cog"></i></div>
+    <div>
+      <div class="user-stat-val"><%= stats.total %></div>
+      <div class="user-stat-lbl">Tổng người dùng</div>
+    </div>
+  </div>
+
+  <div class="user-stat-card">
+    <div class="user-stat-icon active"><i class="fas fa-user-check"></i></div>
+    <div>
+      <div class="user-stat-val"><%= stats.active %></div>
+      <div class="user-stat-lbl">Đang hoạt động</div>
+    </div>
+  </div>
+
+  <div class="user-stat-card">
+    <div class="user-stat-icon locked"><i class="fas fa-user-lock"></i></div>
+    <div>
+      <div class="user-stat-val"><%= stats.locked %></div>
+      <div class="user-stat-lbl">Đang tạm khóa</div>
+    </div>
+  </div>
+
+  <div class="user-stat-card">
+    <div class="user-stat-icon roles"><i class="fas fa-shield-alt"></i></div>
+    <div>
+      <div class="user-stat-val"><%= stats.roles %></div>
+      <div class="user-stat-lbl">Nhóm quyền hệ thống</div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. MAIN USER TABLE CARD -->
+<div class="card">
+  <div class="card-header" style="flex-wrap: wrap; gap: 12px;">
+    <div>
+      <div class="card-title" style="font-size: 1.05rem; font-weight: 800; margin: 0;">
+        <i class="fas fa-users" style="color: var(--primary); margin-right: 6px;"></i> Danh Sách Tài Khoản
+      </div>
+      <div style="font-size: 0.8rem; color: #64748b; margin-top: 3px;">
+        Quản lý danh sách tài khoản, quyền truy cập và trạng thái hoạt động của người dùng trong hệ thống.
+      </div>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+      <div style="position: relative; min-width: 200px;">
+        <input type="text" id="userSearch" placeholder="Tìm tên, username, email..." 
+               style="width: 100%; padding: 6px 12px 6px 32px; font-size: 0.82rem; border: 1.5px solid var(--border); border-radius: 20px; outline: none;">
+        <i class="fas fa-search" style="position: absolute; left: 11px; top: 50%; transform: translateY(-50%); font-size: 0.8rem; color: #94a3b8;"></i>
+      </div>
+
+      <% if (locals.hasPermission && locals.hasPermission('users.create')) { %>
+        <a href="/admin/users/create" class="btn btn-primary" style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; font-weight: 700; border-radius: 8px;">
+          <i class="fas fa-user-plus"></i> Thêm người dùng
+        </a>
+      <% } %>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 50px;">#</th>
+          <th>Người dùng</th>
+          <th>Email & Số điện thoại</th>
+          <th>Nhóm quyền</th>
+          <th style="text-align: center;">Trạng thái</th>
+          <th>Lần đăng nhập cuối</th>
+          <th style="text-align: right; min-width: 150px;">Thao tác</th>
+        </tr>
+      </thead>
+      <tbody id="userTableBody">
+        <% if (users && users.length > 0) { %>
+          <% users.forEach(function(u) { %>
+          <tr class="user-row" data-search="<%= (u.username + ' ' + (u.full_name || '') + ' ' + (u.email || '') + ' ' + (u.phone || '')).toLowerCase() %>">
+            <td style="font-weight: 800; color: #64748b;">
+              #<%= u.id %>
+            </td>
+            <td>
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <% if (u.avatar) { %>
+                  <img src="<%= u.avatar %>" alt="<%= u.username %>" class="user-avatar-cell">
+                <% } else { %>
+                  <div class="user-avatar-cell">
+                    <%= (u.full_name || u.username).trim().charAt(0).toUpperCase() %>
+                  </div>
+                <% } %>
+                <div>
+                  <div style="font-weight: 800; color: #0f172a; font-size: 0.92rem;">
+                    <%= u.full_name || u.username %>
+                    <% if (u.id === 1) { %>
+                      <span style="font-size: 0.7rem; background: #e0f2fe; color: #0284c7; padding: 1px 6px; border-radius: 10px; font-weight: 800; margin-left: 4px;">Root Admin</span>
+                    <% } %>
+                  </div>
+                  <div style="font-size: 0.78rem; color: #64748b;">
+                    @<%= u.username %>
+                  </div>
+                </div>
+              </div>
+            </td>
+            <td>
+              <div>
+                <% if (u.email) { %>
+                  <a href="mailto:<%= u.email %>" style="color: #0284c7; text-decoration: none; font-size: 0.84rem; display: block;">
+                    <i class="fas fa-envelope" style="font-size: 0.75rem; margin-right: 4px; color: #94a3b8;"></i> <%= u.email %>
+                  </a>
+                <% } else { %>
+                  <span style="color: #94a3b8; font-size: 0.8rem;">Chưa có email</span>
+                <% } %>
+                <% if (u.phone) { %>
+                  <div style="font-size: 0.78rem; color: #64748b; margin-top: 2px;">
+                    <i class="fas fa-phone" style="font-size: 0.75rem; margin-right: 4px; color: #94a3b8;"></i> <%= u.phone %>
+                  </div>
+                <% } %>
+              </div>
+            </td>
+            <td>
+              <% 
+                let badgeClass = 'custom';
+                if (u.role_code === 'superadmin' || u.id === 1) badgeClass = 'superadmin';
+                else if (u.role_code === 'doctor') badgeClass = 'doctor';
+                else if (u.role_code === 'receptionist') badgeClass = 'receptionist';
+                else if (u.role_code === 'editor') badgeClass = 'editor';
+              %>
+              <span class="role-badge <%= badgeClass %>">
+                <i class="fas fa-shield-alt"></i> <%= u.role_name || (u.id === 1 ? 'Quản trị viên tối cao' : 'Chưa phân nhóm') %>
+              </span>
+            </td>
+            <td style="text-align: center;" id="status-badge-<%= u.id %>">
+              <% if (u.is_active) { %>
+                <span class="badge" style="background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; font-weight: 700; font-size: 0.78rem; padding: 4px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 4px;">
+                  <i class="fas fa-check-circle"></i> Kích hoạt
+                </span>
+              <% } else { %>
+                <span class="badge" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; font-weight: 700; font-size: 0.78rem; padding: 4px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 4px;">
+                  <i class="fas fa-ban"></i> Ngưng
+                </span>
+              <% } %>
+            </td>
+            <td>
+              <% if (u.last_login) { %>
+                <div style="font-size: 0.82rem; font-weight: 700; color: #1e293b;">
+                  <%= new Date(u.last_login).toLocaleDateString('vi-VN') %>
+                </div>
+                <div style="font-size: 0.75rem; color: #64748b;">
+                  <%= new Date(u.last_login).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) %>
+                </div>
+              <% } else { %>
+                <span style="color: #94a3b8; font-size: 0.8rem; font-style: italic;">Chưa đăng nhập</span>
+              <% } %>
+            </td>
+            <td style="text-align: right;">
+              <div style="display: inline-flex; align-items: center; justify-content: flex-end; gap: 8px;">
+                <!-- Button gạt: Kích hoạt / Ngưng -->
+                <% if (locals.hasPermission && locals.hasPermission('users.edit')) { %>
+                  <% if (u.id !== 1 && (!locals.currentUser || locals.currentUser.id !== u.id)) { %>
+                    <label class="toggle-switch" title="<%= u.is_active ? 'Gạt để Ngưng' : 'Gạt để Kích hoạt' %>" style="margin-right: 2px;">
+                      <input type="checkbox" <%= u.is_active ? 'checked' : '' %> onchange="toggleUserStatus(<%= u.id %>, this)">
+                      <span class="slider"></span>
+                    </label>
+                  <% } else { %>
+                    <label class="toggle-switch" title="Không thể đổi trạng thái tài khoản này" style="margin-right: 2px; opacity: 0.45; cursor: not-allowed;">
+                      <input type="checkbox" checked disabled>
+                      <span class="slider"></span>
+                    </label>
+                  <% } %>
+                <% } %>
+
+                <!-- Reset mật khẩu -->
+                <% if (locals.hasPermission && locals.hasPermission('users.edit')) { %>
+                  <button type="button" class="btn btn-outline btn-sm" style="padding: 5px 9px; color: #d97706; border-color: #fde68a;" title="Đặt lại mật khẩu" onclick="openResetModal(<%= u.id %>, '<%= u.username %>', '<%= (u.full_name || u.username).replace(/'/g, "\\'") %>')">
+                    <i class="fas fa-key"></i>
+                  </button>
+                <% } %>
+
+                <% if (locals.hasPermission && locals.hasPermission('users.edit')) { %>
+                  <a href="/admin/users/<%= u.id %>/edit" class="btn btn-outline btn-sm" style="padding: 5px 9px;" title="Chỉnh sửa tài khoản">
+                    <i class="fas fa-edit"></i>
+                  </a>
+                <% } %>
+                <% if (locals.hasPermission && locals.hasPermission('users.delete')) { %>
+                  <% if (u.id !== 1 && (!locals.currentUser || locals.currentUser.id !== u.id)) { %>
+                    <form action="/admin/users/<%= u.id %>/delete" method="POST" style="display:inline" onsubmit="return confirm('Bạn có chắc muốn XÓA tài khoản người dùng @<%= u.username %>? Thao tác này không thể hoàn tác!');">
+                      <button type="submit" class="btn btn-danger btn-sm" style="padding: 5px 8px;" title="Xóa tài khoản">
+                        <i class="fas fa-trash"></i>
+                      </button>
+                    </form>
+                  <% } %>
+                <% } %>
+              </div>
+            </td>
+          </tr>
+          <% }) %>
+        <% } else { %>
+          <tr>
+            <td colspan="7" style="text-align: center; padding: 32px 20px; color: #64748b;">
+              Chưa có tài khoản người dùng nào.
+            </td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- MODAL RESET MẬT KHẨU -->
+<div id="resetPasswordModal" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); z-index: 9999; align-items: center; justify-content: center; backdrop-filter: blur(4px);">
+  <div style="background: #ffffff; border-radius: 14px; width: 100%; max-width: 440px; margin: 16px; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 8px 10px -6px rgba(0,0,0,0.1); overflow: hidden;">
+    <div style="padding: 16px 20px; border-bottom: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: space-between; background: #fafafa;">
+      <div style="font-weight: 800; font-size: 1.05rem; color: #0f172a; display: flex; align-items: center; gap: 8px;">
+        <span style="width: 32px; height: 32px; border-radius: 8px; background: #fef3c7; color: #d97706; display: flex; align-items: center; justify-content: center; font-size: 0.9rem;">
+          <i class="fas fa-key"></i>
+        </span>
+        Đặt Lại Mật Khẩu
+      </div>
+      <button type="button" onclick="closeResetModal()" style="background: none; border: none; font-size: 1.2rem; color: #94a3b8; cursor: pointer; padding: 4px;">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+
+    <form id="resetPasswordForm" onsubmit="submitResetPassword(event)" style="padding: 20px;">
+      <input type="hidden" id="resetUserId" value="">
+      
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 12px 14px; margin-bottom: 16px; display: flex; align-items: center; gap: 12px;">
+        <div id="resetUserAvatar" style="width: 38px; height: 38px; border-radius: 50%; background: #0090a1; color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1rem; flex-shrink: 0;">
+          U
+        </div>
+        <div>
+          <div id="resetUserName" style="font-weight: 800; color: #0f172a; font-size: 0.92rem;">Tên người dùng</div>
+          <div id="resetUserUsername" style="font-size: 0.8rem; color: #64748b;">@username</div>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 14px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px;">
+          <label style="font-size: 0.82rem; font-weight: 700; color: #334155; margin: 0;">Mật khẩu mới <span style="color: #ef4444;">*</span></label>
+          <button type="button" onclick="generateRandomPassword()" style="background: none; border: none; font-size: 0.76rem; color: #0090a1; font-weight: 700; cursor: pointer; text-decoration: underline; padding: 0;">
+            <i class="fas fa-dice"></i> Tạo ngẫu nhiên
+          </button>
+        </div>
+        <div style="position: relative;">
+          <input type="password" id="newPasswordInput" required minlength="6" placeholder="Nhập mật khẩu mới (tối thiểu 6 ký tự)"
+                 style="width: 100%; padding: 9px 40px 9px 12px; font-size: 0.88rem; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none;">
+          <button type="button" onclick="togglePasswordVisibility('newPasswordInput', this)" 
+                  style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 0.88rem;">
+            <i class="fas fa-eye"></i>
+          </button>
+        </div>
+      </div>
+
+      <div style="margin-bottom: 18px;">
+        <label style="display: block; font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 6px;">
+          Xác nhận mật khẩu mới <span style="color: #ef4444;">*</span>
+        </label>
+        <div style="position: relative;">
+          <input type="password" id="confirmPasswordInput" required minlength="6" placeholder="Nhập lại mật khẩu mới"
+                 style="width: 100%; padding: 9px 40px 9px 12px; font-size: 0.88rem; border: 1.5px solid #cbd5e1; border-radius: 8px; outline: none;">
+          <button type="button" onclick="togglePasswordVisibility('confirmPasswordInput', this)" 
+                  style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #94a3b8; cursor: pointer; font-size: 0.88rem;">
+            <i class="fas fa-eye"></i>
+          </button>
+        </div>
+        <div id="resetErrorMsg" style="color: #ef4444; font-size: 0.78rem; font-weight: 600; margin-top: 6px; display: none;"></div>
+      </div>
+
+      <div style="display: flex; align-items: center; justify-content: flex-end; gap: 10px;">
+        <button type="button" onclick="closeResetModal()" class="btn btn-outline" style="padding: 8px 18px; font-weight: 700;">
+          Hủy
+        </button>
+        <button type="submit" id="btnSubmitReset" class="btn btn-primary" style="padding: 8px 18px; font-weight: 700; display: inline-flex; align-items: center; gap: 6px;">
+          <i class="fas fa-save"></i> Lưu mật khẩu
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  // Quick Search Filter
+  document.getElementById('userSearch')?.addEventListener('input', function(e) {
+    const term = (e.target.value || '').toLowerCase().trim();
+    const rows = document.querySelectorAll('.user-row');
+    rows.forEach(row => {
+      const searchData = row.getAttribute('data-search') || '';
+      row.style.display = (!term || searchData.includes(term)) ? '' : 'none';
+    });
+  });
+
+  // Toggle user status via AJAX
+  async function toggleUserStatus(userId, checkbox) {
+    try {
+      const res = await fetch(`/admin/users/${userId}/toggle`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' }
+      });
+      const data = await res.json();
+      if (!data.success) {
+        alert(data.message || 'Không thể đổi trạng thái người dùng.');
+        checkbox.checked = !checkbox.checked;
+      } else {
+        const badgeContainer = document.getElementById(`status-badge-${userId}`);
+        if (badgeContainer) {
+          if (checkbox.checked) {
+            badgeContainer.innerHTML = `<span class="badge" style="background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; font-weight: 700; font-size: 0.78rem; padding: 4px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-check-circle"></i> Kích hoạt</span>`;
+            checkbox.parentElement.setAttribute('title', 'Gạt để Ngưng');
+          } else {
+            badgeContainer.innerHTML = `<span class="badge" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca; font-weight: 700; font-size: 0.78rem; padding: 4px 10px; border-radius: 20px; display: inline-flex; align-items: center; gap: 4px;"><i class="fas fa-ban"></i> Ngưng</span>`;
+            checkbox.parentElement.setAttribute('title', 'Gạt để Kích hoạt');
+          }
+        }
+      }
+    } catch (err) {
+      alert('Có lỗi xảy ra khi kết nối máy chủ.');
+      checkbox.checked = !checkbox.checked;
+    }
+  }
+
+  // Reset Password Modal
+  function openResetModal(userId, username, fullName) {
+    document.getElementById('resetUserId').value = userId;
+    document.getElementById('resetUserName').innerText = fullName || username;
+    document.getElementById('resetUserUsername').innerText = '@' + username;
+    document.getElementById('resetUserAvatar').innerText = (fullName || username).trim().charAt(0).toUpperCase();
+    document.getElementById('newPasswordInput').value = '';
+    document.getElementById('confirmPasswordInput').value = '';
+    document.getElementById('newPasswordInput').type = 'password';
+    document.getElementById('confirmPasswordInput').type = 'password';
+    document.getElementById('resetErrorMsg').style.display = 'none';
+    document.getElementById('resetPasswordModal').style.display = 'flex';
+  }
+
+  function closeResetModal() {
+    document.getElementById('resetPasswordModal').style.display = 'none';
+  }
+
+  function togglePasswordVisibility(inputId, btn) {
+    const input = document.getElementById(inputId);
+    const icon = btn.querySelector('i');
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.className = 'fas fa-eye-slash';
+    } else {
+      input.type = 'password';
+      icon.className = 'fas fa-eye';
+    }
+  }
+
+  function generateRandomPassword() {
+    const chars = 'abcdefghijkmnpqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ23456789!@#$%';
+    let pwd = '';
+    for (let i = 0; i < 10; i++) {
+      pwd += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    const inputNew = document.getElementById('newPasswordInput');
+    const inputConfirm = document.getElementById('confirmPasswordInput');
+    inputNew.value = pwd;
+    inputConfirm.value = pwd;
+    inputNew.type = 'text';
+    inputConfirm.type = 'text';
+  }
+
+  async function submitResetPassword(e) {
+    e.preventDefault();
+    const userId = document.getElementById('resetUserId').value;
+    const newPwd = document.getElementById('newPasswordInput').value;
+    const confirmPwd = document.getElementById('confirmPasswordInput').value;
+    const errDiv = document.getElementById('resetErrorMsg');
+    const btn = document.getElementById('btnSubmitReset');
+
+    if (!newPwd || newPwd.length < 6) {
+      errDiv.innerText = 'Mật khẩu phải có tối thiểu 6 ký tự.';
+      errDiv.style.display = 'block';
+      return;
+    }
+
+    if (newPwd !== confirmPwd) {
+      errDiv.innerText = 'Mật khẩu xác nhận không khớp!';
+      errDiv.style.display = 'block';
+      return;
+    }
+
+    errDiv.style.display = 'none';
+    btn.disabled = true;
+    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang lưu...';
+
+    try {
+      const res = await fetch(`/admin/users/${userId}/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ new_password: newPwd })
+      });
+      const data = await res.json();
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-save"></i> Lưu mật khẩu';
+
+      if (data.success) {
+        closeResetModal();
+        alert(data.message || 'Đã đổi mật khẩu thành công!');
+      } else {
+        errDiv.innerText = data.message || 'Không thể đổi mật khẩu.';
+        errDiv.style.display = 'block';
+      }
+    } catch (err) {
+      btn.disabled = false;
+      btn.innerHTML = '<i class="fas fa-save"></i> Lưu mật khẩu';
+      errDiv.innerText = 'Có lỗi kết nối máy chủ.';
+      errDiv.style.display = 'block';
+    }
+  }
+
+  // Close modal when clicking outside
+  window.addEventListener('click', function(e) {
+    const modal = document.getElementById('resetPasswordModal');
+    if (e.target === modal) {
+      closeResetModal();
+    }
+  });
+</script>
+
+<%- include('../layouts/admin-bottom') %>

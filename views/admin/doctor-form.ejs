@@ -1,0 +1,483 @@
+<%- include('../layouts/admin-top') %>
+
+<style>
+  .doctor-editor-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(320px, 0.9fr);
+    gap: 24px;
+    align-items: start;
+  }
+  @media (max-width: 1024px) {
+    .doctor-editor-layout {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .required-star {
+    color: #ef4444;
+    font-weight: 800;
+    margin-left: 2px;
+  }
+
+  /* Featured Switch Box */
+  .featured-toggle-box {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    background: #f8fafc;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 12px;
+    padding: 14px 18px !important;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    margin: 0 !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .featured-toggle-box:hover {
+    border-color: var(--primary, #0090a1);
+    background: #f0fdfa;
+  }
+  .featured-toggle-info {
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 14px !important;
+    flex: 1 1 auto !important;
+  }
+  .featured-toggle-icon {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+    background: #fef3c7;
+    color: #d97706;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    flex-shrink: 0;
+  }
+  .featured-toggle-title {
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin-bottom: 2px;
+  }
+  .featured-toggle-desc {
+    font-size: 0.78rem;
+    color: #64748b;
+  }
+
+  /* Switch Toggle CSS */
+  .switch {
+    position: relative;
+    display: inline-block !important;
+    width: 48px !important;
+    min-width: 48px !important;
+    max-width: 48px !important;
+    height: 26px !important;
+    flex-shrink: 0 !important;
+    margin-left: auto !important;
+  }
+  .switch input {
+    opacity: 0;
+    width: 0 !important;
+    height: 0 !important;
+  }
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-color: #cbd5e1;
+    transition: .3s;
+    border-radius: 26px;
+  }
+  .slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    left: 3px;
+    bottom: 3px;
+    background-color: white;
+    transition: .3s;
+    border-radius: 50%;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+  }
+  .switch input:checked + .slider {
+    background-color: #d97706;
+  }
+  .switch input:checked + .slider:before {
+    transform: translateX(22px);
+  }
+
+  /* Image Preview */
+  .current-img {
+    max-width: 100px;
+    max-height: 130px;
+    border-radius: 8px;
+    object-fit: cover;
+    display: block;
+    margin-bottom: 8px;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  }
+
+  /* Live Preview Column */
+  .live-preview-wrapper {
+    position: sticky;
+    top: 80px;
+  }
+  .preview-badge-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .preview-badge {
+    background: #f0fdf4;
+    color: #166534;
+    border: 1px solid #bbf7d0;
+    font-size: 0.75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .preview-pulse-dot {
+    width: 8px;
+    height: 8px;
+    background: #22c55e;
+    border-radius: 50%;
+    display: inline-block;
+    box-shadow: 0 0 0 2px rgba(34, 197, 94, 0.3);
+  }
+
+  /* Doctor Card Replica */
+  .doctor-card-replica {
+    background: #ffffff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    border: 1px solid var(--border);
+    display: flex;
+    flex-direction: column;
+  }
+  .doc-photo-wrap {
+    position: relative;
+    aspect-ratio: 3/4;
+    width: 100%;
+    overflow: hidden;
+    background: #e2e8f0;
+  }
+  .doc-photo-wrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    display: block;
+  }
+  .doc-featured-ribbon {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 800;
+    padding: 4px 10px;
+    border-radius: 20px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    z-index: 2;
+  }
+  .doc-info-replica {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+  }
+  .doc-name-replica {
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin-bottom: 4px;
+    color: var(--text, #1e293b);
+  }
+  .doc-title-replica {
+    color: #0090a1;
+    font-weight: 700;
+    font-size: 0.88rem;
+    margin-bottom: 8px;
+  }
+  .doc-spec-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: #e0f2fe;
+    color: #0369a1;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    margin-bottom: 12px;
+    width: fit-content;
+  }
+  .doc-bio-replica {
+    color: var(--text-muted, #64748b);
+    font-size: 0.86rem;
+    line-height: 1.6;
+    margin-bottom: 18px;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+</style>
+
+<div class="doctor-editor-layout">
+  <!-- LEFT COLUMN: FORM -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title"><%= doctor ? 'Sửa Bác Sĩ' : 'Thêm Bác Sĩ Mới' %></div>
+    </div>
+
+    <form action="/admin/doctors/<%= doctor ? doctor.id + '/edit' : 'create' %>" method="POST" enctype="multipart/form-data" id="doctorForm">
+      
+      <!-- Họ và tên & Học vị -->
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label for="docName">Họ và tên <span class="required-star">*</span></label>
+          <input type="text" id="docName" name="name" value="<%= doctor ? doctor.name : '' %>" placeholder="Nhập họ và tên bác sĩ..." required autocomplete="off">
+        </div>
+        
+        <div class="form-group">
+          <label for="docTitle">Học hàm / Học vị</label>
+          <input type="text" id="docTitle" name="title" value="<%= doctor ? doctor.title : '' %>" placeholder="Nhập học hàm, học vị..." autocomplete="off">
+        </div>
+      </div>
+
+      <!-- Chuyên khoa & Thứ tự -->
+      <div class="form-grid-2">
+        <div class="form-group">
+          <label for="docSpecialty">Chuyên khoa</label>
+          <select name="specialty_id" id="docSpecialty">
+            <option value="">— Chọn chuyên khoa —</option>
+            <% specialties.forEach(function(s) { %>
+              <option value="<%= s.id %>" <%= doctor && doctor.specialty_id == s.id ? 'selected' : '' %> data-name="<%= s.name %>">
+                <%= s.name %>
+              </option>
+            <% }) %>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="docSortOrder">Thứ tự sắp xếp</label>
+          <input type="number" id="docSortOrder" name="sort_order" value="<%= doctor ? doctor.sort_order : 0 %>" min="0">
+        </div>
+      </div>
+
+      <!-- Tiểu sử -->
+      <div class="form-group">
+        <label for="docDescription">Tiểu sử & Giới thiệu chung</label>
+        <textarea id="docDescription" name="description" rows="4" placeholder="Nhập phần giới thiệu tóm tắt và số năm kinh nghiệm của bác sĩ..."><%= doctor ? doctor.description : '' %></textarea>
+      </div>
+
+      <!-- Bằng cấp & Chứng chỉ -->
+      <div class="form-group">
+        <label for="docCertificates">
+          <span>Bằng cấp & Chứng chỉ</span>
+          <span style="font-size: 0.8rem; color: #64748b; font-weight: normal; margin-left: 6px;">(Nhập mỗi bằng cấp / chứng chỉ trên 1 dòng)</span>
+        </label>
+        <textarea id="docCertificates" name="certificates" rows="4" placeholder="Nhập danh sách bằng cấp, chứng chỉ đào tạo y khoa..."><%= doctor ? doctor.certificates : '' %></textarea>
+      </div>
+
+      <!-- Kinh nghiệm làm việc -->
+      <div class="form-group">
+        <label for="docExperience">
+          <span>Kinh nghiệm làm việc</span>
+          <span style="font-size: 0.8rem; color: #64748b; font-weight: normal; margin-left: 6px;">(Nhập mỗi nơi công tác / vị trí trên 1 dòng)</span>
+        </label>
+        <textarea id="docExperience" name="experience" rows="4" placeholder="Nhập quá trình công tác, bệnh viện từng làm việc..."><%= doctor ? doctor.experience : '' %></textarea>
+      </div>
+
+      <!-- Ảnh bác sĩ -->
+      <div class="form-group">
+        <label for="docImage">
+          <span>Ảnh bác sĩ</span>
+          <span style="font-size: 0.78rem; color: #0284c7; font-weight: 700; margin-left: 4px; background: #e0f2fe; padding: 2px 6px; border-radius: 4px;">Kích thước chuẩn: 600 x 800 px (Tỉ lệ 3:4)</span>
+        </label>
+        <% if (doctor && doctor.image_url) { %>
+          <img src="<%= doctor.image_url %>" class="current-img" alt="<%= doctor.name %>">
+        <% } %>
+        <input type="file" id="docImage" name="image" accept="image/*">
+        <div style="font-size: 0.76rem; color: #64748b; margin-top: 4px;">Ảnh chân dung chuyên nghiệp của bác sĩ hiển thị tại Trang Chủ & Danh sách bác sĩ.</div>
+      </div>
+
+      <!-- Hiển thị trên trang chủ (Nổi bật) with Touch Switch -->
+      <div class="form-group" style="margin: 12px 0 20px;">
+        <label class="featured-toggle-box" for="docFeaturedToggle">
+          <div class="featured-toggle-info">
+            <div class="featured-toggle-icon">
+              <i class="fas fa-star"></i>
+            </div>
+            <div>
+              <div class="featured-toggle-title">Hiển thị nổi bật trên Trang Chủ</div>
+              <div class="featured-toggle-desc">Bác sĩ sẽ được hiển thị trên slider Đội Ngũ Bác Sĩ tại trang chủ</div>
+            </div>
+          </div>
+          <div class="switch">
+            <input type="checkbox" id="docFeaturedToggle" name="is_featured" value="1" <%= doctor && doctor.is_featured ? 'checked' : '' %>>
+            <span class="slider"></span>
+          </div>
+        </label>
+      </div>
+
+      <!-- Submit Buttons Aligned to Right -->
+      <div style="display: flex; justify-content: flex-end; align-items: center; gap: 12px; margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border);">
+        <a href="/admin/doctors" class="btn btn-secondary" style="padding: 10px 20px;">Hủy bỏ</a>
+        <button type="submit" class="btn btn-primary" style="padding: 10px 24px; font-size: 0.95rem;">
+          <i class="fas fa-save"></i> Lưu bác sĩ
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+  <!-- RIGHT COLUMN: LIVE PREVIEW -->
+  <div class="live-preview-wrapper">
+    <div class="preview-badge-header">
+      <div class="preview-badge">
+        <span class="preview-pulse-dot"></span> Live Preview
+      </div>
+      <span style="font-size: 0.8rem; color: #64748b; font-weight: 600;">Giao diện hiển thị thực tế</span>
+    </div>
+
+    <!-- Card Replica -->
+    <div class="doctor-card-replica">
+      <div class="doc-photo-wrap">
+        <div class="doc-featured-ribbon" id="previewFeaturedRibbon" style="<%= (doctor && doctor.is_featured) ? 'display:flex;' : 'display:none;' %>">
+          <i class="fas fa-star"></i> Nổi bật
+        </div>
+        <img id="previewImage" 
+             src="<%= (doctor && doctor.image_url) ? doctor.image_url : 'https://images.unsplash.com/photo-1612349317150-e413f6a5b16d?w=600&h=800&fit=crop' %>" 
+             alt="Preview">
+      </div>
+      
+      <div class="doc-info-replica">
+        <div class="doc-title-replica" id="previewTitleText" style="font-size: 0.8rem; font-weight: 700; color: #0090a1; text-transform: uppercase; letter-spacing: 0.4px; margin-bottom: 2px;">
+          <%= (doctor && doctor.title) ? doctor.title : 'Học hàm / Học vị' %>
+        </div>
+        <h2 class="doc-name-replica" id="previewNameText" style="font-size: 1.05rem; font-weight: 800; margin-bottom: 6px;">
+          <%= (doctor && doctor.name) ? doctor.name : 'Họ và tên Bác sĩ' %>
+        </h2>
+        
+        <div class="doc-spec-badge" id="previewSpecBadge" style="<%= (doctor && doctor.specialty_id) ? 'display:inline-flex;' : 'display:none;' %>">
+          <i class="fas fa-stethoscope"></i> 
+          <span id="previewSpecName">
+            <% 
+              let currentSpecName = '';
+              if (doctor && doctor.specialty_id) {
+                const foundSpec = specialties.find(s => s.id == doctor.specialty_id);
+                if (foundSpec) currentSpecName = foundSpec.name;
+              }
+            %>
+            <%= currentSpecName || 'Chuyên khoa' %>
+          </span>
+        </div>
+
+        <p class="doc-bio-replica" id="previewBioText">
+          <%= (doctor && doctor.description) ? doctor.description : 'Mô tả tóm tắt quá trình công tác, chuyên môn và kinh nghiệm thăm khám của bác sĩ...' %>
+        </p>
+
+        <div style="margin-top: auto; display: flex; align-items: center; justify-content: space-between; border-top: 1px solid #f1f5f9; padding-top: 12px;">
+          <span style="font-size: 0.8rem; color: #64748b; font-weight: 600;">Xem chi tiết</span>
+          <span class="btn btn-primary btn-sm" style="pointer-events: none; padding: 6px 12px;">
+            <i class="fas fa-arrow-right"></i>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Elements
+  const docName = document.getElementById('docName');
+  const docTitle = document.getElementById('docTitle');
+  const docSpecialty = document.getElementById('docSpecialty');
+  const docDescription = document.getElementById('docDescription');
+  const docImage = document.getElementById('docImage');
+  const docFeaturedToggle = document.getElementById('docFeaturedToggle');
+
+  // Preview elements
+  const previewNameText = document.getElementById('previewNameText');
+  const previewTitleText = document.getElementById('previewTitleText');
+  const previewSpecBadge = document.getElementById('previewSpecBadge');
+  const previewSpecName = document.getElementById('previewSpecName');
+  const previewBioText = document.getElementById('previewBioText');
+  const previewImage = document.getElementById('previewImage');
+  const previewFeaturedRibbon = document.getElementById('previewFeaturedRibbon');
+
+  // Name Live Update
+  if (docName) {
+    docName.addEventListener('input', function() {
+      previewNameText.textContent = this.value.trim() || 'Họ và tên Bác sĩ';
+    });
+  }
+
+  // Title Live Update
+  if (docTitle) {
+    docTitle.addEventListener('input', function() {
+      previewTitleText.textContent = this.value.trim() || 'Bác sĩ chuyên khoa';
+    });
+  }
+
+  // Specialty Live Update
+  if (docSpecialty) {
+    docSpecialty.addEventListener('change', function() {
+      const selectedOption = this.options[this.selectedIndex];
+      if (this.value) {
+        previewSpecBadge.style.display = 'inline-flex';
+        previewSpecName.textContent = selectedOption.getAttribute('data-name') || selectedOption.textContent.trim();
+      } else {
+        previewSpecBadge.style.display = 'none';
+      }
+    });
+  }
+
+  // Description Live Update
+  if (docDescription) {
+    docDescription.addEventListener('input', function() {
+      previewBioText.textContent = this.value.trim() || 'Mô tả tóm tắt quá trình công tác, chuyên môn và kinh nghiệm thăm khám của bác sĩ...';
+    });
+  }
+
+  // Featured Toggle Live Update
+  if (docFeaturedToggle) {
+    docFeaturedToggle.addEventListener('change', function() {
+      previewFeaturedRibbon.style.display = this.checked ? 'flex' : 'none';
+    });
+  }
+
+  // Image Live Update
+  if (docImage) {
+    docImage.addEventListener('change', function() {
+      if (this.files && this.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          if (previewImage) previewImage.src = e.target.result;
+        };
+        reader.readAsDataURL(this.files[0]);
+      }
+    });
+  }
+</script>
+
+<%- include('../layouts/admin-bottom') %>
+

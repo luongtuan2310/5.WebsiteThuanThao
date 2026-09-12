@@ -1,0 +1,61 @@
+<%- include('./layouts/main-top') %>
+
+<!-- Page Hero -->
+<section class="page-hero">
+  <div class="container">
+    <nav class="breadcrumb">
+      <a href="/">Trang chủ</a> <i class="fas fa-chevron-right"></i> <span>Gói Khám</span>
+    </nav>
+    <h1 class="page-title">Gói Khám Sức Khỏe</h1>
+    <p class="page-desc">Lựa chọn gói khám phù hợp với nhu cầu của bạn</p>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container">
+    <% if (packages && packages.length > 0) { %>
+    <div class="packages-grid">
+      <% packages.forEach(function(pkg) { %>
+      <div class="package-card-full" data-aos="fade-up">
+        <a href="/goi-kham/<%= pkg.id %>">
+          <figure class="package-thumb">
+            <img src="<%= pkg.image_url || 'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?w=800&h=600&fit=crop' %>"
+                 alt="<%= pkg.name %>" loading="lazy">
+            <div class="package-brand-line"></div>
+          </figure>
+        </a>
+        <div class="package-info-full">
+          <div class="package-price-tag"><%= parseInt(pkg.price || 0).toLocaleString('vi-VN') %> đ</div>
+          <h2 class="package-name-lg">
+            <a href="/goi-kham/<%= pkg.id %>"><%= pkg.name %></a>
+          </h2>
+          <p class="package-desc-lg"><%= pkg.description %></p>
+          <% if (pkg.features) {
+            var features = [];
+            try { features = JSON.parse(pkg.features); } catch(e) {}
+            if (features.length > 0) { %>
+          <ul class="package-features">
+            <% features.forEach(function(f) { %>
+            <li><i class="fas fa-check-circle"></i> <%= f %></li>
+            <% }) %>
+          </ul>
+          <% } } %>
+          <div class="package-card-footer">
+            <a href="/goi-kham/<%= pkg.id %>" class="btn-primary" style="width: 100%;">
+              <span>Xem thêm</span> <i class="fas fa-arrow-right"></i>
+            </a>
+          </div>
+        </div>
+      </div>
+      <% }) %>
+    </div>
+    <% } else { %>
+    <div class="empty-state">
+      <i class="fas fa-box-open"></i>
+      <p>Chưa có gói khám nào.</p>
+    </div>
+    <% } %>
+  </div>
+</section>
+
+<%- include('./layouts/main-bottom') %>

@@ -1,0 +1,386 @@
+<%- include('../layouts/admin-top') %>
+
+<style>
+  /* Contacts Stat Cards */
+  .contact-stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+  .contact-stat-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 18px 20px;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+  }
+  .contact-stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+  }
+  .contact-stat-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    flex-shrink: 0;
+  }
+  .contact-stat-icon.total { background: #e0f2fe; color: #0284c7; }
+  .contact-stat-icon.new { background: #fef3c7; color: #d97706; }
+  .contact-stat-icon.in_progress { background: #e0e7ff; color: #4f46e5; }
+  .contact-stat-icon.contacted { background: #dcfce7; color: #15803d; }
+  .contact-stat-icon.today { background: #ede9fe; color: #7c3aed; }
+  
+  .contact-stat-val {
+    font-size: 1.65rem;
+    font-weight: 800;
+    line-height: 1.1;
+    color: #0f172a;
+  }
+  .contact-stat-lbl {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
+    margin-top: 3px;
+  }
+
+  /* Filter Tabs */
+  .contact-filter-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .filter-tabs {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .filter-tab-btn {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    border: 1.5px solid #cbd5e1;
+    background: #ffffff;
+    color: #475569;
+    cursor: pointer;
+    transition: all 0.18s ease;
+  }
+  .filter-tab-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: #f0fdfa;
+  }
+  .filter-tab-btn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 144, 161, 0.25);
+  }
+
+  /* Table styling */
+  .clickable-row {
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .clickable-row:hover td {
+    background: #f8fafc !important;
+  }
+  .contact-cell strong {
+    font-size: 0.92rem;
+    color: #0f172a;
+  }
+  .contact-meta {
+    font-size: 0.78rem;
+    color: #64748b;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 3px;
+  }
+  .contact-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.76rem;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+  }
+  .contact-badge-new {
+    background: #fffbeb;
+    color: #b45309;
+    border: 1px solid #fde68a;
+  }
+  .contact-badge-in_progress {
+    background: #eef2ff;
+    color: #4338ca;
+    border: 1px solid #c7d2fe;
+  }
+  .contact-badge-contacted {
+    background: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #bbf7d0;
+  }
+  .contact-badge-spam {
+    background: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fecaca;
+  }
+  .contact-badge-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    display: inline-block;
+  }
+  .contact-badge-new .contact-badge-dot { background: #f59e0b; }
+  .contact-badge-in_progress .contact-badge-dot { background: #6366f1; }
+  .contact-badge-contacted .contact-badge-dot { background: #22c55e; }
+  .contact-badge-spam .contact-badge-dot { background: #ef4444; }
+
+  .msg-preview {
+    max-width: 320px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: #475569;
+    font-size: 0.85rem;
+  }
+</style>
+
+<!-- 1. STATS CARDS -->
+<div class="contact-stats-grid">
+  <div class="contact-stat-card" onclick="filterContacts('all')">
+    <div class="contact-stat-icon total"><i class="fas fa-inbox"></i></div>
+    <div>
+      <div class="contact-stat-val"><%= stats.total %></div>
+      <div class="contact-stat-lbl">Tổng liên hệ</div>
+    </div>
+  </div>
+
+  <div class="contact-stat-card" onclick="filterContacts('new')">
+    <div class="contact-stat-icon new"><i class="fas fa-envelope-open-text"></i></div>
+    <div>
+      <div class="contact-stat-val"><%= stats.new %></div>
+      <div class="contact-stat-lbl">Mới tiếp nhận</div>
+    </div>
+  </div>
+
+  <div class="contact-stat-card" onclick="filterContacts('in_progress')">
+    <div class="contact-stat-icon in_progress"><i class="fas fa-phone-volume"></i></div>
+    <div>
+      <div class="contact-stat-val"><%= stats.in_progress %></div>
+      <div class="contact-stat-lbl">Đang liên hệ</div>
+    </div>
+  </div>
+
+  <div class="contact-stat-card" onclick="filterContacts('contacted')">
+    <div class="contact-stat-icon contacted"><i class="fas fa-check-circle"></i></div>
+    <div>
+      <div class="contact-stat-val"><%= stats.contacted %></div>
+      <div class="contact-stat-lbl">Đã tư vấn xong</div>
+    </div>
+  </div>
+
+  <div class="contact-stat-card" onclick="filterContacts('all')">
+    <div class="contact-stat-icon today"><i class="fas fa-clock"></i></div>
+    <div>
+      <div class="contact-stat-val"><%= stats.today %></div>
+      <div class="contact-stat-lbl">Liên hệ hôm nay</div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. CONTACTS TABLE CARD -->
+<div class="card">
+  <div class="card-header">
+    <div class="card-title" style="font-size: 1.05rem; font-weight: 800;">
+      <i class="fas fa-address-book" style="color: var(--primary); margin-right: 6px;"></i> Danh Sách Yêu Cầu Liên Hệ (<span id="countDisplay"><%= contacts.length %></span>)
+    </div>
+    <span style="font-size: 0.8rem; color: #64748b; font-weight: 600;">
+      <i class="fas fa-info-circle"></i> Nhấp vào bất kỳ dòng nào để xem chi tiết & ghi chú xử lý
+    </span>
+  </div>
+
+  <!-- Filter Bar -->
+  <div class="contact-filter-bar">
+    <div class="filter-tabs">
+      <button type="button" class="filter-tab-btn active" data-filter="all" onclick="filterContacts('all')">
+        Tất cả (<%= stats.total %>)
+      </button>
+      <button type="button" class="filter-tab-btn" data-filter="new" onclick="filterContacts('new')">
+        <i class="fas fa-envelope" style="color: #f59e0b; font-size: 0.75rem;"></i> Mới tiếp nhận (<%= stats.new %>)
+      </button>
+      <button type="button" class="filter-tab-btn" data-filter="in_progress" onclick="filterContacts('in_progress')">
+        <i class="fas fa-phone-volume" style="color: #6366f1; font-size: 0.75rem;"></i> Đang liên hệ (<%= stats.in_progress %>)
+      </button>
+      <button type="button" class="filter-tab-btn" data-filter="contacted" onclick="filterContacts('contacted')">
+        <i class="fas fa-check-circle" style="color: #10b981; font-size: 0.75rem;"></i> Đã tư vấn (<%= stats.contacted %>)
+      </button>
+      <button type="button" class="filter-tab-btn" data-filter="spam" onclick="filterContacts('spam')">
+        <i class="fas fa-ban" style="color: #ef4444; font-size: 0.75rem;"></i> Spam / Đã hủy (<%= stats.spam %>)
+      </button>
+    </div>
+
+    <!-- Quick Search -->
+    <div style="position: relative; min-width: 240px;">
+      <input type="text" id="searchInput" placeholder="Tìm tên, SĐT, email, nội dung..." 
+             style="width: 100%; padding: 6px 12px 6px 32px; font-size: 0.82rem; border: 1.5px solid var(--border); border-radius: 20px; outline: none;">
+      <i class="fas fa-search" style="position: absolute; left: 11px; top: 50%; transform: translateY(-50%); font-size: 0.8rem; color: #94a3b8;"></i>
+    </div>
+  </div>
+
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th style="width: 50px;">Mã</th>
+          <th>Người liên hệ</th>
+          <th>Số điện thoại</th>
+          <th>Email</th>
+          <th>Nội dung lời nhắn</th>
+          <th>Thời gian gửi</th>
+          <th>Trạng thái</th>
+          <th style="text-align: right;">Thao tác</th>
+        </tr>
+      </thead>
+      <tbody id="contactTableBody">
+        <% if (contacts && contacts.length > 0) { %>
+          <% contacts.forEach(function(c) { 
+               const cStatus = (c.status && c.status.trim()) ? c.status : 'new';
+          %>
+          <tr class="clickable-row contact-row" data-status="<%= cStatus %>" data-search="<%= (c.full_name + ' ' + (c.phone || '') + ' ' + (c.email || '') + ' ' + (c.message || '')).toLowerCase() %>" onclick="window.location.href='/admin/contacts/<%= c.id %>'">
+            <td>
+              <span style="font-weight: 800; color: var(--primary); font-size: 0.88rem;">#<%= c.id %></span>
+            </td>
+            <td class="contact-cell">
+              <strong><%= c.full_name %></strong>
+            </td>
+            <td>
+              <% if (c.phone) { %>
+                <a href="tel:<%= c.phone %>" onclick="event.stopPropagation();" style="font-weight: 700; color: #0284c7; text-decoration: none; display: inline-flex; align-items: center; gap: 5px;">
+                  <i class="fas fa-phone" style="font-size: 0.75rem;"></i> <%= c.phone %>
+                </a>
+              <% } else { %>
+                <span style="color: #94a3b8;">—</span>
+              <% } %>
+            </td>
+            <td>
+              <% if (c.email) { %>
+                <a href="mailto:<%= c.email %>" onclick="event.stopPropagation();" style="color: #475569; text-decoration: none; font-size: 0.84rem;">
+                  <i class="fas fa-envelope" style="color: #94a3b8; font-size: 0.75rem; margin-right: 3px;"></i> <%= c.email %>
+                </a>
+              <% } else { %>
+                <span style="color: #94a3b8;">—</span>
+              <% } %>
+            </td>
+            <td>
+              <div class="msg-preview" title="<%= c.message || '' %>">
+                <%= c.message || '—' %>
+              </div>
+            </td>
+            <td>
+              <div style="font-weight: 700; color: #1e293b; font-size: 0.84rem;">
+                <%= c.created_at ? new Date(c.created_at).toLocaleDateString('vi-VN') : '—' %>
+              </div>
+              <div style="font-size: 0.75rem; color: #64748b;">
+                <%= c.created_at ? new Date(c.created_at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) : '' %>
+              </div>
+            </td>
+            <td>
+              <% if (cStatus === 'contacted') { %>
+                <span class="contact-badge contact-badge-contacted"><span class="contact-badge-dot"></span> Đã tư vấn</span>
+              <% } else if (cStatus === 'in_progress') { %>
+                <span class="contact-badge contact-badge-in_progress"><span class="contact-badge-dot"></span> Đang liên hệ</span>
+              <% } else if (cStatus === 'spam') { %>
+                <span class="contact-badge contact-badge-spam"><span class="contact-badge-dot"></span> Spam / Hủy</span>
+              <% } else { %>
+                <span class="contact-badge contact-badge-new"><span class="contact-badge-dot"></span> Mới tiếp nhận</span>
+              <% } %>
+            </td>
+            <td style="text-align: right;" onclick="event.stopPropagation();">
+              <div style="display: inline-flex; align-items: center; gap: 6px;">
+                <a href="/admin/contacts/<%= c.id %>" class="btn btn-primary btn-sm" style="padding: 5px 10px;" title="Xem chi tiết & xử lý">
+                  <i class="fas fa-eye"></i> Chi tiết
+                </a>
+                <form action="/admin/contacts/<%= c.id %>/delete" method="POST" style="display:inline" onsubmit="return confirm('Bạn có chắc chắn muốn xóa liên hệ #<%= c.id %> của <%= c.full_name %>?');">
+                  <button type="submit" class="btn btn-danger btn-sm" style="padding: 5px 8px;" title="Xóa liên hệ">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </form>
+              </div>
+            </td>
+          </tr>
+          <% }) %>
+        <% } else { %>
+          <tr id="emptyRow">
+            <td colspan="8" style="text-align: center; padding: 36px 20px; color: #64748b;">
+              <i class="fas fa-inbox" style="font-size: 2.2rem; color: #cbd5e1; margin-bottom: 8px; display: block;"></i>
+              Chưa có yêu cầu liên hệ nào được gửi đến.
+            </td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  let currentFilter = 'all';
+
+  function filterContacts(status) {
+    currentFilter = status;
+    document.querySelectorAll('.filter-tab-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-filter') === status);
+    });
+
+    applyFilters();
+  }
+
+  function applyFilters() {
+    const searchTerm = (document.getElementById('searchInput').value || '').toLowerCase().trim();
+    const rows = document.querySelectorAll('.contact-row');
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+      const rowStatus = row.getAttribute('data-status');
+      const rowSearch = row.getAttribute('data-search');
+
+      const matchesStatus = (currentFilter === 'all') || (rowStatus === currentFilter);
+      const matchesSearch = !searchTerm || rowSearch.includes(searchTerm);
+
+      if (matchesStatus && matchesSearch) {
+        row.style.display = '';
+        visibleCount++;
+      } else {
+        row.style.display = 'none';
+      }
+    });
+
+    const countDisplay = document.getElementById('countDisplay');
+    if (countDisplay) countDisplay.textContent = visibleCount;
+  }
+
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) {
+    searchInput.addEventListener('input', applyFilters);
+  }
+</script>
+
+<%- include('../layouts/admin-bottom') %>

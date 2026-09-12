@@ -1,0 +1,627 @@
+<%- include('../layouts/admin-top') %>
+
+<%
+  let initialData = {
+    layout: { position: 'left', align: 'left', box_bg: 'transparent' },
+    layers: []
+  };
+
+  if (banner && banner.parsedStyle) {
+    if (banner.parsedStyle.layers && Array.isArray(banner.parsedStyle.layers)) {
+      initialData = banner.parsedStyle;
+    } else if (banner.content_title || banner.content) {
+      if (banner.content_title) {
+        initialData.layers.push({
+          id: 'layer_1',
+          type: 'title',
+          text: banner.content_title,
+          font_family: banner.parsedStyle.title_font_family || banner.parsedStyle.font_family || 'Montserrat',
+          font_size: banner.parsedStyle.font_size_title || '36px',
+          font_weight: banner.parsedStyle.title_font_weight || '700',
+          font_style: banner.parsedStyle.title_font_style || 'normal',
+          color: banner.parsedStyle.title_color || '#ffffff',
+          animation_in: 'fade-up',
+          animation_duration: '0.8s',
+          animation_delay: '0s'
+        });
+      }
+      if (banner.content) {
+        initialData.layers.push({
+          id: 'layer_2',
+          type: 'body',
+          text: banner.content,
+          font_family: banner.parsedStyle.body_font_family || banner.parsedStyle.font_family || 'Montserrat',
+          font_size: banner.parsedStyle.font_size_body || '18px',
+          font_weight: banner.parsedStyle.body_font_weight || '400',
+          font_style: banner.parsedStyle.body_font_style || 'normal',
+          color: banner.parsedStyle.body_color || '#ffffff',
+          animation_in: 'fade-up',
+          animation_duration: '0.8s',
+          animation_delay: '0.3s'
+        });
+      }
+      initialData.layout = {
+        position: banner.parsedStyle.content_position || 'left',
+        align: banner.parsedStyle.text_align || 'left',
+        box_bg: banner.parsedStyle.box_bg || 'transparent'
+      };
+    }
+  }
+%>
+
+<div style="width: 100%;">
+  <form id="bannerForm" action="/admin/banners/<%= banner ? banner.id + '/edit' : 'create' %>" method="POST" enctype="multipart/form-data">
+    <input type="hidden" name="layers_json" id="layers_json_input" value="">
+
+    <!-- THANH ĐIỀU HƯỚNG TRÊN CÙNG: QUAY LẠI (TRÁI) & NÚT LƯU (PHẢI) -->
+    <div style="margin-bottom: 22px; display: flex; justify-content: space-between; align-items: center; background: #ffffff; padding: 14px 20px; border-radius: 10px; border: 1px solid #e2e8f0; box-shadow: 0 2px 6px rgba(0,0,0,0.02);">
+      <a href="/admin/banners" class="btn btn-secondary" style="font-weight: 600; display: inline-flex; align-items: center; gap: 8px;">
+        <i class="fas fa-arrow-left"></i> Quay lại danh sách
+      </a>
+      
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <!-- CHỌN TRẠNG THÁI: NHÁP / HIỂN THỊ -->
+        <div style="display: flex; align-items: center; gap: 8px; background: #f8fafc; padding: 6px 14px; border-radius: 8px; border: 1px solid #cbd5e1;">
+          <label style="font-size: 0.85rem; font-weight: 700; color: #334155; margin: 0; display: flex; align-items: center; gap: 6px;">
+            <i class="fas fa-toggle-on" style="color: var(--primary);"></i> Trạng thái:
+          </label>
+          <select name="is_active" style="padding: 6px 12px; font-size: 0.88rem; font-weight: 700; border-radius: 6px; border: 1px solid #94a3b8; background: #ffffff; cursor: pointer;">
+            <option value="0" <%= (!banner || banner.is_active === 0 || banner.is_active === '0') ? 'selected' : '' %> style="color: #ca8a04;">🟡 Lưu Nháp (Mặc định)</option>
+            <option value="1" <%= (banner && (banner.is_active === 1 || banner.is_active === '1')) ? 'selected' : '' %> style="color: #16a34a;">🟢 Hiển thị (Xuất bản)</option>
+          </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-lg" style="padding: 10px 38px; font-weight: 700; display: inline-flex; align-items: center; gap: 8px; box-shadow: 0 4px 14px rgba(0, 144, 161, 0.35);">
+          <i class="fas fa-save"></i> Lưu Banner
+        </button>
+      </div>
+    </div>
+
+    <!-- ===================== CARD 1: THÔNG TIN BANNER (FULL WIDTH & ẢNH LỚN RÕ RÀNG) ===================== -->
+    <div class="card" style="margin-bottom: 24px; padding: 24px; box-shadow: 0 4px 16px rgba(0,0,0,0.04);">
+      <div class="card-header" style="margin-bottom: 20px; padding-bottom: 12px; border-bottom: 1.5px solid #f1f5f9;">
+        <div class="card-title" style="font-size: 1.15rem; font-weight: 800; color: #006875;">
+          <i class="fas fa-image"></i> Thông Tin Banner
+        </div>
+      </div>
+      
+      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 18px; margin-bottom: 22px;">
+        <div class="form-group" style="margin: 0;">
+          <label style="font-weight: 700; color: #334155; margin-bottom: 6px; display: block;">Tên Banner (Quản lý nội bộ) <span style="color:red">*</span></label>
+          <input type="text" name="title" value="<%= banner ? banner.title : '' %>" required placeholder="Ví dụ: Banner Khuyến Mãi / Banner Trang Chủ" style="width: 100%; padding: 10px 14px; font-size: 0.95rem;">
+          <small style="color: #64748b; font-size: 0.8rem; margin-top: 4px; display: block;">* Tên này dùng để nhận biết trong danh sách quản lý Admin (sẽ không hiển thị đè lên ảnh ngoài trang chủ).</small>
+        </div>
+
+        <div class="form-group" style="margin: 0;">
+          <label style="font-weight: 700; color: #334155; margin-bottom: 6px; display: block;">Thứ tự hiển thị</label>
+          <input type="number" name="sort_order" value="<%= banner ? banner.sort_order : 0 %>" min="0" style="width: 100%; padding: 10px 14px; font-size: 0.95rem;">
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-bottom: 24px;">
+        <label style="font-weight: 700; color: #334155; margin-bottom: 8px; display: block;">Ảnh Banner (Khuyến nghị tỷ lệ 1920x700px)</label>
+        
+        <!-- KHUNG XEM ẢNH BANNER LỚN RÕ RÀNG -->
+        <div id="bannerImagePreviewWrap" style="margin-bottom: 14px; width: 100%; background: #0f172a; border-radius: 12px; overflow: hidden; border: 1.5px solid #e2e8f0; box-shadow: 0 4px 14px rgba(0,0,0,0.06); <%= (banner && banner.image_url) ? '' : 'display:none;' %>">
+          <img src="<%= banner && banner.image_url ? banner.image_url : '' %>" id="bannerCurrentImg" class="current-img" alt="Current Banner" style="width: 100%; height: auto; max-height: 480px; object-fit: contain; display: block; margin: 0 auto;">
+        </div>
+        
+        <input type="file" name="image" id="bannerFileInput" accept="image/*" style="width: 100%; padding: 10px 14px; border: 1.5px dashed #cbd5e1; border-radius: 8px; background: #f8fafc;">
+        <small style="color:#64748b; display: block; margin-top: 6px; font-size: 0.82rem;">Hệ thống tự động tối ưu hóa WebP và resize chuẩn 1920x700px.</small>
+      </div>
+
+      <!-- THANH KÍCH HOẠT THÊM NỘI DUNG CHỮ TRÊN BANNER -->
+      <div id="addContentBannerPrompt" style="background: #f0fdfa; border: 1.5px dashed #99f6e4; border-radius: 10px; padding: 18px 22px; display: flex; justify-content: space-between; align-items: center; flex-wrap: gap; gap: 14px;">
+        <div>
+          <strong style="color: #0f766e; font-size: 1rem; display: block; margin-bottom: 3px;">
+            <i class="fas fa-font"></i> Chữ & Thông Điệp Hiển Thị Trên Banner (Tùy chọn)
+          </strong>
+          <span style="color: #64748b; font-size: 0.85rem;">Thêm tiêu đề, đoạn văn bản, font chữ, màu sắc và hiệu ứng chuyển động nếu cần.</span>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <button type="button" class="btn btn-sm" onclick="addLayer('title')" style="background: #e0f2fe; color: #0369a1; font-weight: 700; border: 1px solid #bae6fd; padding: 9px 18px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px;">
+            <i class="fas fa-heading"></i> + Thêm Tiêu đề
+          </button>
+          <button type="button" class="btn btn-sm" onclick="addLayer('body')" style="background: #dcfce7; color: #15803d; font-weight: 700; border: 1px solid #bbf7d0; padding: 9px 18px; border-radius: 6px; display: inline-flex; align-items: center; gap: 6px;">
+            <i class="fas fa-paragraph"></i> + Thêm Đoạn nội dung
+          </button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ===================== CARD 2: STUDIO NỘI DUNG & HIỆU ỨNG (CHỈ HIỂN THỊ KHI CÓ LAYER) ===================== -->
+    <div id="contentStudioCard" class="card" style="display: none; padding: 24px; margin-bottom: 24px; box-shadow: 0 4px 16px rgba(0,0,0,0.04); border-top: 4px solid var(--primary);">
+      
+      <div class="card-header" style="margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1.5px solid #f1f5f9; display: flex; justify-content: space-between; align-items: center;">
+        <div class="card-title" style="font-size: 1.15rem; font-weight: 800; color: #006875;">
+          <i class="fas fa-layer-group"></i> Lớp Nội Dung & Typography Studio
+        </div>
+        
+        <div style="display: flex; gap: 8px;">
+          <button type="button" onclick="addLayer('title')" class="btn btn-sm" style="background: #e0f2fe; color: #0369a1; font-weight: 700; border: 1px solid #bae6fd; padding: 6px 12px; border-radius: 6px;">
+            <i class="fas fa-heading"></i> + Thêm Tiêu đề
+          </button>
+          <button type="button" onclick="addLayer('body')" class="btn btn-sm" style="background: #dcfce7; color: #15803d; font-weight: 700; border: 1px solid #bbf7d0; padding: 6px 12px; border-radius: 6px;">
+            <i class="fas fa-paragraph"></i> + Thêm Nội dung
+          </button>
+        </div>
+      </div>
+
+      <!-- DANH SÁCH LAYER CHỮ -->
+      <div id="layersContainer" style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px;"></div>
+
+      <!-- BỐ CỤC CHUNG & NỀN KHUNG CHỮ -->
+      <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px 20px; margin-bottom: 24px;">
+        <h5 style="font-size: 0.9rem; font-weight: 800; color: #1e293b; margin-bottom: 12px; display: flex; align-items: center; gap: 8px;">
+          <i class="fas fa-th-large" style="color: var(--primary);"></i> Vị Trí & Khung Nền Của Khối Chữ
+        </h5>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1.4fr; gap: 14px;">
+          <div>
+            <label style="font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px; display: block;">Căn lề chữ</label>
+            <select id="layout_align" style="width: 100%; padding: 7px 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.85rem;">
+              <option value="left" <%= initialData.layout.align === 'left' ? 'selected' : '' %>>Căn Trái</option>
+              <option value="center" <%= initialData.layout.align === 'center' ? 'selected' : '' %>>Căn Giữa</option>
+              <option value="right" <%= initialData.layout.align === 'right' ? 'selected' : '' %>>Căn Phải</option>
+            </select>
+          </div>
+
+          <div>
+            <label style="font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px; display: block;">Vị trí trên Banner</label>
+            <select id="layout_position" style="width: 100%; padding: 7px 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.85rem;">
+              <option value="left" <%= initialData.layout.position === 'left' ? 'selected' : '' %>>Bên Trái</option>
+              <option value="center" <%= initialData.layout.position === 'center' ? 'selected' : '' %>>Chính Giữa</option>
+              <option value="right" <%= initialData.layout.position === 'right' ? 'selected' : '' %>>Bên Phải</option>
+            </select>
+          </div>
+
+          <div>
+            <label style="font-size: 0.78rem; font-weight: 700; color: #475569; margin-bottom: 4px; display: block;">Kiểu nền hộp chữ</label>
+            <select id="layout_box_bg" style="width: 100%; padding: 7px 10px; border-radius: 6px; border: 1px solid #cbd5e1; font-size: 0.85rem;">
+              <option value="transparent" <%= initialData.layout.box_bg === 'transparent' ? 'selected' : '' %>>Trong suốt (Không nền)</option>
+              <option value="rgba(0,0,0,0.5)" <%= initialData.layout.box_bg === 'rgba(0,0,0,0.5)' ? 'selected' : '' %>>Mờ tối (Đen mờ 50%)</option>
+              <option value="rgba(255,255,255,0.85)" <%= initialData.layout.box_bg === 'rgba(255,255,255,0.85)' ? 'selected' : '' %>>Mờ sáng (Trắng mờ 85%)</option>
+              <option value="rgba(0,104,117,0.85)" <%= initialData.layout.box_bg === 'rgba(0,104,117,0.85)' ? 'selected' : '' %>>Xanh ngọc thương hiệu (Teal 85%)</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- LIVE PREVIEW TRỰC TIẾP -->
+      <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+          <label style="font-size: 0.9rem; font-weight: 800; color: #1e293b; margin: 0; display: flex; align-items: center; gap: 6px;">
+            <i class="fas fa-eye" style="color: var(--primary);"></i> Live Preview (Xem trước & Hiệu ứng):
+          </label>
+          <button type="button" id="btnReplayAnimation" class="btn btn-sm btn-secondary" style="font-weight: 700; display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px;">
+            <i class="fas fa-play" style="color: #0284c7;"></i> Chạy lại hiệu ứng
+          </button>
+        </div>
+
+        <div id="previewBannerContainer" style="position: relative; width: 100%; min-height: 240px; border-radius: 12px; overflow: hidden; background: #1e293b; display: flex; align-items: center; background-size: cover; background-position: center;">
+          <img id="previewBgImg" src="<%= banner && banner.image_url ? banner.image_url : 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=1920&h=700&fit=crop' %>" 
+               style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1;" alt="Background">
+          
+          <div id="previewOverlayWrap" style="position: relative; z-index: 2; width: 100%; padding: 26px; display: flex;">
+            <div id="previewBox" style="max-width: 600px; padding: 18px 24px; border-radius: 12px; transition: all 0.25s ease; display: flex; flex-direction: column; gap: 8px;">
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </form>
+</div>
+
+<!-- CSS CHO HIỆU ỨNG ANIMATION PREVIEW -->
+<style>
+@keyframes animFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes animFadeUp { from { opacity: 0; transform: translateY(28px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes animFadeDown { from { opacity: 0; transform: translateY(-28px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes animFadeLeft { from { opacity: 0; transform: translateX(-35px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes animFadeRight { from { opacity: 0; transform: translateX(35px); } to { opacity: 1; transform: translateX(0); } }
+@keyframes animZoomIn { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+@keyframes animBounceIn { 0% { opacity: 0; transform: scale(0.3); } 50% { opacity: 0.9; transform: scale(1.08); } 70% { transform: scale(0.9); } 100% { opacity: 1; transform: scale(1); } }
+@keyframes animFlipIn { from { opacity: 0; transform: perspective(400px) rotateX(90deg); } to { opacity: 1; transform: perspective(400px) rotateX(0deg); } }
+
+.anim-preview-item {
+  animation-fill-mode: both;
+}
+.anim-fade-in { animation-name: animFadeIn; }
+.anim-fade-up { animation-name: animFadeUp; }
+.anim-fade-down { animation-name: animFadeDown; }
+.anim-fade-left { animation-name: animFadeLeft; }
+.anim-fade-right { animation-name: animFadeRight; }
+.anim-zoom-in { animation-name: animZoomIn; }
+.anim-bounce-in { animation-name: animBounceIn; }
+.anim-flip-in { animation-name: animFlipIn; }
+
+.layer-card {
+  background: #ffffff;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.03);
+  transition: border-color 0.2s ease;
+}
+.layer-card:hover {
+  border-color: #cbd5e1;
+}
+</style>
+
+<!-- JAVASCRIPT QUẢN LÝ LAYERS & LIVE PREVIEW -->
+<script>
+let state = <%- JSON.stringify(initialData) %>;
+if (!state.layers) state.layers = [];
+if (!state.layout) state.layout = { position: 'left', align: 'left', box_bg: 'transparent' };
+
+document.addEventListener('DOMContentLoaded', function() {
+  const container = document.getElementById('layersContainer');
+  const contentStudioCard = document.getElementById('contentStudioCard');
+  const addContentPrompt = document.getElementById('addContentBannerPrompt');
+  const layersJsonInput = document.getElementById('layers_json_input');
+  
+  const layoutAlign = document.getElementById('layout_align');
+  const layoutPosition = document.getElementById('layout_position');
+  const layoutBoxBg = document.getElementById('layout_box_bg');
+
+  const previewBox = document.getElementById('previewBox');
+  const previewOverlayWrap = document.getElementById('previewOverlayWrap');
+  const previewBgImg = document.getElementById('previewBgImg');
+  const bannerFileInput = document.getElementById('bannerFileInput');
+  const bannerCurrentImg = document.getElementById('bannerCurrentImg');
+  const bannerImagePreviewWrap = document.getElementById('bannerImagePreviewWrap');
+  const btnReplay = document.getElementById('btnReplayAnimation');
+
+  // Font Options
+  const fontOptions = [
+    { value: 'Montserrat', label: 'Montserrat (Hiện đại)' },
+    { value: 'Nunito Sans', label: 'Nunito Sans (Thân thiện)' },
+    { value: 'Inter', label: 'Inter (Công nghệ)' },
+    { value: 'Playfair Display', label: 'Playfair Display (Sang trọng)' },
+    { value: 'Roboto', label: 'Roboto (Quốc tế)' },
+    { value: 'Be Vietnam Pro', label: 'Be Vietnam Pro' },
+    { value: 'Arial', label: 'Arial (Cơ bản)' }
+  ];
+
+  // Animation Options
+  const animOptions = [
+    { value: 'fade-up', label: 'Bay từ dưới lên (Fade Up)' },
+    { value: 'fade-down', label: 'Bay từ trên xuống (Fade Down)' },
+    { value: 'fade-left', label: 'Bay từ trái sang (Fade Left)' },
+    { value: 'fade-right', label: 'Bay từ phải sang (Fade Right)' },
+    { value: 'fade-in', label: 'Hiện mờ dần (Fade In)' },
+    { value: 'zoom-in', label: 'Phóng to vào (Zoom In)' },
+    { value: 'bounce-in', label: 'Nảy vào (Bounce In)' },
+    { value: 'flip-in', label: 'Lật mở (Flip In)' },
+    { value: 'none', label: 'Không hiệu ứng' }
+  ];
+
+  function renderLayers() {
+    container.innerHTML = '';
+    if (state.layers.length === 0) {
+      contentStudioCard.style.display = 'none';
+      if (addContentPrompt) addContentPrompt.style.display = 'flex';
+    } else {
+      contentStudioCard.style.display = 'block';
+      if (addContentPrompt) addContentPrompt.style.display = 'none';
+
+      state.layers.forEach((layer, index) => {
+        const isTitle = layer.type === 'title';
+        const card = document.createElement('div');
+        card.id = 'layer_el_' + layer.id;
+
+        // Bảng màu nhẹ nhàng phân biệt rõ ràng từng loại khối
+        const theme = isTitle ? {
+          bg: '#f0f9ff',
+          border: '#bae6fd',
+          accent: '#0284c7',
+          headerColor: '#0369a1',
+          badgeBg: '#0284c7',
+          badgeText: '#ffffff',
+          boxBg: '#ffffff',
+          boxBorder: '#e0f2fe'
+        } : {
+          bg: '#f0fdf4',
+          border: '#bbf7d0',
+          accent: '#16a34a',
+          headerColor: '#15803d',
+          badgeBg: '#16a34a',
+          badgeText: '#ffffff',
+          boxBg: '#ffffff',
+          boxBorder: '#dcfce7'
+        };
+
+        card.style.background = theme.bg;
+        card.style.border = '1.5px solid ' + theme.border;
+        card.style.borderLeft = '6px solid ' + theme.accent;
+        card.style.borderRadius = '10px';
+        card.style.padding = '18px 20px';
+        card.style.boxShadow = '0 2px 8px rgba(0,0,0,0.03)';
+        card.style.transition = 'all 0.2s ease';
+
+        card.innerHTML = `
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px dashed ${theme.border};">
+            <div style="display: flex; align-items: center; gap: 10px;">
+              <span style="background: ${theme.badgeBg}; color: ${theme.badgeText}; font-size: 0.76rem; font-weight: 800; padding: 4px 10px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+                ${isTitle ? '📌 Tiêu đề #' + (index + 1) : '📝 Nội dung #' + (index + 1)}
+              </span>
+              <strong style="font-size: 0.95rem; color: ${theme.headerColor};">${isTitle ? 'Khối Tiêu Đề Nổi Bật' : 'Khối Đoạn Văn Bản / Mô Tả'}</strong>
+            </div>
+            <button type="button" class="btn btn-sm btn-delete" style="background:#fee2e2; color:#b91c1c; border:1px solid #fecaca; padding:5px 12px; font-size:0.8rem; font-weight:700; border-radius:6px; cursor:pointer;" onclick="removeLayer('${layer.id}')">
+              <i class="fas fa-trash-alt"></i> Xóa khối này
+            </button>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 18px; align-items: start;">
+            <!-- Nhập Text -->
+            <div>
+              <label style="font-size: 0.82rem; font-weight: 700; color: #334155; margin-bottom: 6px; display: block;">
+                ${isTitle ? 'Nội dung Tiêu đề' : 'Nội dung đoạn văn (Nhấn Enter để xuống dòng)'}
+              </label>
+              ${isTitle 
+                ? `<input type="text" style="width:100%; padding:10px 14px; font-size:0.95rem; border:1.5px solid #cbd5e1; border-radius:7px; background:#ffffff;" value="${escapeHtml(layer.text)}" placeholder="Ví dụ: Phòng Khám Đa Khoa VIP" oninput="updateLayerField('${layer.id}', 'text', this.value)">`
+                : `<textarea rows="4" style="width:100%; padding:10px 14px; font-size:0.9rem; border:1.5px solid #cbd5e1; border-radius:7px; font-family:inherit; background:#ffffff;" placeholder="Nhập các dòng nội dung..." oninput="updateLayerField('${layer.id}', 'text', this.value)">${escapeHtml(layer.text)}</textarea>`
+              }
+            </div>
+
+            <!-- Bảng Typography & Animation -->
+            <div style="background: ${theme.boxBg}; padding: 14px; border-radius: 8px; border: 1px solid ${theme.boxBorder}; box-shadow: 0 1px 4px rgba(0,0,0,0.03); display: flex; flex-direction: column; gap: 10px;">
+              <!-- Hàng 1: Font & Size -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <div>
+                  <label style="font-size: 0.74rem; font-weight: 700; color: #64748b; margin-bottom: 2px; display: block;">Font chữ</label>
+                  <select style="width:100%; padding:6px 8px; font-size:0.8rem; border-radius:5px; border:1px solid #cbd5e1; background:#ffffff;" onchange="updateLayerField('${layer.id}', 'font_family', this.value)">
+                    ${fontOptions.map(f => `<option value="${f.value}" ${layer.font_family === f.value ? 'selected' : ''}>${f.label}</option>`).join('')}
+                  </select>
+                </div>
+                <div>
+                  <label style="font-size: 0.74rem; font-weight: 700; color: #64748b; margin-bottom: 2px; display: block;">Cỡ chữ</label>
+                  <select style="width:100%; padding:6px 8px; font-size:0.8rem; border-radius:5px; border:1px solid #cbd5e1; background:#ffffff;" onchange="updateLayerField('${layer.id}', 'font_size', this.value)">
+                    ${isTitle ? `
+                      <option value="24px" ${layer.font_size === '24px' ? 'selected' : ''}>24px (Nhỏ)</option>
+                      <option value="30px" ${layer.font_size === '30px' ? 'selected' : ''}>30px (Vừa)</option>
+                      <option value="36px" ${layer.font_size === '36px' ? 'selected' : ''}>36px (Lớn)</option>
+                      <option value="44px" ${layer.font_size === '44px' ? 'selected' : ''}>44px (Rất lớn)</option>
+                      <option value="54px" ${layer.font_size === '54px' ? 'selected' : ''}>54px (Khổng lồ)</option>
+                    ` : `
+                      <option value="14px" ${layer.font_size === '14px' ? 'selected' : ''}>14px (Nhỏ)</option>
+                      <option value="16px" ${layer.font_size === '16px' ? 'selected' : ''}>16px (Chuẩn)</option>
+                      <option value="18px" ${layer.font_size === '18px' ? 'selected' : ''}>18px (Vừa phải)</option>
+                      <option value="22px" ${layer.font_size === '22px' ? 'selected' : ''}>22px (Lớn)</option>
+                      <option value="26px" ${layer.font_size === '26px' ? 'selected' : ''}>26px (Nổi bật)</option>
+                    `}
+                  </select>
+                </div>
+              </div>
+
+              <!-- Hàng 2: Kiểu chữ & Màu -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <div>
+                  <label style="font-size: 0.74rem; font-weight: 700; color: #64748b; margin-bottom: 2px; display: block;">Kiểu chữ</label>
+                  <select style="width:100%; padding:6px 8px; font-size:0.8rem; border-radius:5px; border:1px solid #cbd5e1; background:#ffffff;" onchange="updateWeightStyle('${layer.id}', this.value)">
+                    <option value="700_normal" ${(layer.font_weight === '700' && layer.font_style === 'normal') ? 'selected' : ''}>Đậm (Bold)</option>
+                    <option value="400_normal" ${(layer.font_weight === '400' && layer.font_style === 'normal') ? 'selected' : ''}>Thường (Regular)</option>
+                    <option value="700_italic" ${(layer.font_weight === '700' && layer.font_style === 'italic') ? 'selected' : ''}>Đậm & Nghiêng</option>
+                    <option value="400_italic" ${(layer.font_weight === '400' && layer.font_style === 'italic') ? 'selected' : ''}>Nghiêng (Italic)</option>
+                    <option value="900_normal" ${(layer.font_weight === '900' && layer.font_style === 'normal') ? 'selected' : ''}>Cực đậm (900)</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="font-size: 0.74rem; font-weight: 700; color: #64748b; margin-bottom: 2px; display: block;">Màu chữ</label>
+                  <div style="display: flex; align-items: center; gap: 5px;">
+                    <input type="color" value="${layer.color || '#ffffff'}" style="width:32px; height:28px; padding:1px; border:1px solid #cbd5e1; border-radius:4px; cursor:pointer;" onchange="updateLayerField('${layer.id}', 'color', this.value)">
+                    <input type="text" value="${layer.color || '#ffffff'}" style="flex:1; min-width:0; padding:4px 6px; font-size:0.78rem; border:1px solid #cbd5e1; border-radius:4px; background:#ffffff;" oninput="updateLayerField('${layer.id}', 'color', this.value)">
+                  </div>
+                </div>
+              </div>
+
+              <!-- Hàng 3: Hiệu ứng xuất hiện & Độ trễ -->
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; border-top: 1px dashed #cbd5e1; padding-top: 8px; margin-top: 2px;">
+                <div>
+                  <label style="font-size: 0.74rem; font-weight: 700; color: ${theme.accent}; margin-bottom: 2px; display: block;">
+                    <i class="fas fa-magic"></i> Hiệu ứng vào
+                  </label>
+                  <select style="width:100%; padding:6px 8px; font-size:0.78rem; border-radius:5px; border:1px solid #cbd5e1; background:#ffffff;" onchange="updateLayerField('${layer.id}', 'animation_in', this.value)">
+                    ${animOptions.map(a => `<option value="${a.value}" ${layer.animation_in === a.value ? 'selected' : ''}>${a.label}</option>`).join('')}
+                  </select>
+                </div>
+                <div>
+                  <label style="font-size: 0.74rem; font-weight: 700; color: ${theme.accent}; margin-bottom: 2px; display: block;">
+                    <i class="fas fa-stopwatch"></i> Độ trễ (Delay)
+                  </label>
+                  <select style="width:100%; padding:6px 8px; font-size:0.78rem; border-radius:5px; border:1px solid #cbd5e1; background:#ffffff;" onchange="updateLayerField('${layer.id}', 'animation_delay', this.value)">
+                    <option value="0s" ${layer.animation_delay === '0s' ? 'selected' : ''}>Ngay lập tức (0s)</option>
+                    <option value="0.2s" ${layer.animation_delay === '0.2s' ? 'selected' : ''}>0.2 giây</option>
+                    <option value="0.4s" ${layer.animation_delay === '0.4s' ? 'selected' : ''}>0.4 giây</option>
+                    <option value="0.6s" ${layer.animation_delay === '0.6s' ? 'selected' : ''}>0.6 giây</option>
+                    <option value="0.8s" ${layer.animation_delay === '0.8s' ? 'selected' : ''}>0.8 giây</option>
+                    <option value="1.0s" ${layer.animation_delay === '1.0s' ? 'selected' : ''}>1.0 giây</option>
+                  </select>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    updatePreview();
+    syncHiddenInput();
+  }
+
+  function syncHiddenInput() {
+    state.layout.align = layoutAlign.value;
+    state.layout.position = layoutPosition.value;
+    state.layout.box_bg = layoutBoxBg.value;
+    layersJsonInput.value = JSON.stringify(state);
+  }
+
+  function updatePreview() {
+    syncHiddenInput();
+
+    // Alignment
+    previewBox.style.textAlign = state.layout.align;
+
+    // Position
+    const pos = state.layout.position;
+    if (pos === 'left') previewOverlayWrap.style.justifyContent = 'flex-start';
+    else if (pos === 'center') previewOverlayWrap.style.justifyContent = 'center';
+    else if (pos === 'right') previewOverlayWrap.style.justifyContent = 'flex-end';
+
+    // Box Background
+    const bg = state.layout.box_bg;
+    previewBox.style.background = bg;
+    if (bg !== 'transparent') {
+      previewBox.style.backdropFilter = 'blur(4px)';
+      previewBox.style.boxShadow = '0 8px 24px rgba(0,0,0,0.25)';
+    } else {
+      previewBox.style.backdropFilter = 'none';
+      previewBox.style.boxShadow = 'none';
+    }
+
+    // Render preview elements
+    previewBox.innerHTML = '';
+    if (state.layers.length === 0) {
+      return;
+    }
+
+    state.layers.forEach(layer => {
+      if (!layer.text || !layer.text.trim()) return;
+
+      const isTitle = layer.type === 'title';
+      const animClass = layer.animation_in && layer.animation_in !== 'none' ? 'anim-' + layer.animation_in : '';
+
+      if (isTitle) {
+        const h2 = document.createElement('h2');
+        h2.className = 'anim-preview-item ' + animClass;
+        h2.style.margin = '0';
+        h2.style.fontFamily = (layer.font_family || 'Montserrat') + ', sans-serif';
+        h2.style.fontSize = layer.font_size || '36px';
+        h2.style.fontWeight = layer.font_weight || '700';
+        h2.style.fontStyle = layer.font_style || 'normal';
+        h2.style.color = layer.color || '#ffffff';
+        h2.style.animationDuration = layer.animation_duration || '0.8s';
+        h2.style.animationDelay = layer.animation_delay || '0s';
+        h2.style.textShadow = bg === 'transparent' ? '0 2px 8px rgba(0,0,0,0.6)' : 'none';
+        h2.textContent = layer.text;
+        previewBox.appendChild(h2);
+      } else {
+        const lines = layer.text.split('\n');
+        lines.forEach(line => {
+          if (line.trim()) {
+            const p = document.createElement('p');
+            p.className = 'anim-preview-item ' + animClass;
+            p.style.margin = '0';
+            p.style.lineHeight = '1.55';
+            p.style.fontFamily = (layer.font_family || 'Montserrat') + ', sans-serif';
+            p.style.fontSize = layer.font_size || '18px';
+            p.style.fontWeight = layer.font_weight || '400';
+            p.style.fontStyle = layer.font_style || 'normal';
+            p.style.color = layer.color || '#ffffff';
+            p.style.animationDuration = layer.animation_duration || '0.8s';
+            p.style.animationDelay = layer.animation_delay || '0s';
+            p.style.textShadow = bg === 'transparent' ? '0 2px 6px rgba(0,0,0,0.6)' : 'none';
+            p.textContent = line.trim();
+            previewBox.appendChild(p);
+          }
+        });
+      }
+    });
+  }
+
+  window.addLayer = function(type) {
+    const isTitle = type === 'title';
+    const newLayer = {
+      id: 'layer_' + Date.now(),
+      type: type,
+      text: isTitle ? 'Tiêu Đề Mới' : 'Nội dung chi tiết mô tả thông điệp...',
+      font_family: 'Montserrat',
+      font_size: isTitle ? '36px' : '18px',
+      font_weight: isTitle ? '700' : '400',
+      font_style: 'normal',
+      color: '#ffffff',
+      animation_in: 'fade-up',
+      animation_duration: '0.8s',
+      animation_delay: state.layers.length > 0 ? (state.layers.length * 0.2).toFixed(1) + 's' : '0s'
+    };
+    state.layers.push(newLayer);
+    renderLayers();
+    
+    // Smooth scroll down to new layer
+    setTimeout(() => {
+      const el = document.getElementById('layer_el_' + newLayer.id);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 50);
+  };
+
+  window.removeLayer = function(id) {
+    state.layers = state.layers.filter(l => l.id !== id);
+    renderLayers();
+  };
+
+  window.updateLayerField = function(id, field, value) {
+    const layer = state.layers.find(l => l.id === id);
+    if (layer) {
+      layer[field] = value;
+      updatePreview();
+    }
+  };
+
+  window.updateWeightStyle = function(id, val) {
+    const [w, s] = val.split('_');
+    const layer = state.layers.find(l => l.id === id);
+    if (layer) {
+      layer.font_weight = w;
+      layer.font_style = s;
+      updatePreview();
+    }
+  };
+
+  function escapeHtml(text) {
+    if (!text) return '';
+    return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+  }
+
+  [layoutAlign, layoutPosition, layoutBoxBg].forEach(el => {
+    el.addEventListener('change', updatePreview);
+  });
+
+  // Replay Animation
+  if (btnReplay) {
+    btnReplay.addEventListener('click', function() {
+      const items = previewBox.querySelectorAll('.anim-preview-item');
+      items.forEach(el => {
+        el.style.animation = 'none';
+        el.offsetHeight; // trigger reflow
+        el.style.animation = '';
+      });
+    });
+  }
+
+  // Image Upload Preview in Box
+  if (bannerFileInput) {
+    bannerFileInput.addEventListener('change', function(e) {
+      if (this.files && this.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+          if (previewBgImg) previewBgImg.src = evt.target.result;
+          if (bannerCurrentImg) bannerCurrentImg.src = evt.target.result;
+          if (bannerImagePreviewWrap) bannerImagePreviewWrap.style.display = 'block';
+        };
+        reader.readAsDataURL(this.files[0]);
+      }
+    });
+  }
+
+  // Ensure initial render
+  renderLayers();
+});
+</script>
+
+<%- include('../layouts/admin-bottom') %>

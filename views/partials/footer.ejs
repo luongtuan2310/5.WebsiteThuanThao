@@ -1,0 +1,111 @@
+<footer class="site-footer">
+  <div class="footer-main">
+    <div class="container">
+      <div class="footer-grid">
+        <!-- Brand -->
+        <div class="footer-col footer-brand">
+          <a href="/" class="footer-logo">
+            <img src="<%= (typeof clinicLogo !== 'undefined' && clinicLogo) ? clinicLogo : (locals.clinicLogo || '/images/logo.svg') %>" 
+                 alt="<%= typeof clinicName !== 'undefined' ? clinicName : (locals.clinicName || 'Phòng Khám VIP') %>" 
+                 class="site-logo-img footer-logo-img">
+          </a>
+          <h4 style="font-weight: 700; color: #ffffff; margin: 14px 0 6px 0; font-size: 1.05rem;">Tận tâm chăm sóc</h4>
+          <p class="footer-desc">Chăm sóc sức khỏe toàn diện với đội ngũ bác sĩ chuyên nghiệp, tận tâm!</p>
+          <div class="footer-social">
+            <% if (typeof socialFacebook !== 'undefined' && socialFacebook && socialFacebook !== '#') { %>
+              <a href="<%= socialFacebook %>" target="_blank" rel="noopener" aria-label="Facebook"><i class="fab fa-facebook-f"></i></a>
+            <% } %>
+            <% if (typeof socialYoutube !== 'undefined' && socialYoutube && socialYoutube !== '#') { %>
+              <a href="<%= socialYoutube %>" target="_blank" rel="noopener" aria-label="YouTube"><i class="fab fa-youtube"></i></a>
+            <% } %>
+            <% if (typeof socialZalo !== 'undefined' && socialZalo && socialZalo !== '#') { %>
+              <a href="<%= socialZalo.startsWith('http') ? socialZalo : 'https://zalo.me/' + socialZalo.replace(/\D/g,'') %>" target="_blank" rel="noopener" aria-label="Zalo"><i class="fas fa-comment-dots"></i></a>
+            <% } %>
+            <% if (typeof socialTiktok !== 'undefined' && socialTiktok) { %>
+              <a href="<%= socialTiktok %>" target="_blank" rel="noopener" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+            <% } %>
+          </div>
+        </div>
+
+        <!-- Services -->
+        <div class="footer-col">
+          <h4 class="footer-title">Dịch Vụ</h4>
+          <ul class="footer-links">
+            <% if (typeof hasServices !== 'undefined' && hasServices) { %>
+            <li><a href="/dich-vu"><i class="fas fa-chevron-right"></i> Bảng giá dịch vụ</a></li>
+            <% } %>
+            <% if (typeof hasPackages !== 'undefined' && hasPackages) { %>
+            <li><a href="/goi-kham"><i class="fas fa-chevron-right"></i> Gói khám sức khỏe</a></li>
+            <% } %>
+            <% if (typeof hasSpecialties !== 'undefined' && hasSpecialties) { %>
+            <li><a href="/chuyen-khoa"><i class="fas fa-chevron-right"></i> Chuyên khoa</a></li>
+            <% } %>
+            <% if (typeof hasDoctors !== 'undefined' && hasDoctors) { %>
+            <li><a href="/bac-si"><i class="fas fa-chevron-right"></i> Đội ngũ bác sĩ</a></li>
+            <% } %>
+            <li><a href="/dat-lich"><i class="fas fa-chevron-right"></i> Đặt lịch hẹn</a></li>
+          </ul>
+        </div>
+
+        <!-- Info -->
+        <div class="footer-col">
+          <h4 class="footer-title">Thông Tin</h4>
+          <ul class="footer-links">
+            <li><a href="/ve-chung-toi"><i class="fas fa-chevron-right"></i> Về chúng tôi</a></li>
+            <% if (typeof hasNews !== 'undefined' && hasNews) { %>
+            <li><a href="/tin-tuc"><i class="fas fa-chevron-right"></i> Tin tức & Sức khỏe</a></li>
+            <% } %>
+            <li><a href="/lien-he"><i class="fas fa-chevron-right"></i> Liên hệ</a></li>
+            <li><a href="/dat-lich"><i class="fas fa-chevron-right"></i> Hướng dẫn đặt lịch</a></li>
+          </ul>
+        </div>
+
+        <!-- Contact -->
+        <div class="footer-col">
+          <h4 class="footer-title">Liên Hệ</h4>
+          <ul class="footer-contact">
+            <li>
+              <i class="fas fa-map-marker-alt"></i>
+              <span><%= clinicAddress %></span>
+            </li>
+            <li>
+              <i class="fas fa-phone-alt"></i>
+              <div>
+                <% const footerPhones = (typeof clinicPhone !== 'undefined' && clinicPhone ? clinicPhone : '').split(/[,;\n\/]+/).map(p => p.trim()).filter(Boolean); %>
+                <% footerPhones.forEach((p, idx) => { %>
+                  <a href="tel:<%= p.replace(/\s/g,'') %>" style="display:inline-block;"><%= p %></a><%= idx < footerPhones.length - 1 ? ' — ' : '' %>
+                <% }); %>
+              </div>
+            </li>
+            <li>
+              <i class="fas fa-envelope"></i>
+              <a href="mailto:<%= clinicEmail %>"><%= clinicEmail %></a>
+            </li>
+            <% if (typeof clinicTaxCode !== 'undefined' && clinicTaxCode) { %>
+            <li>
+              <i class="fas fa-file-invoice"></i>
+              <span>MST: <%= clinicTaxCode %></span>
+            </li>
+            <% } %>
+            <li>
+              <i class="fas fa-clock"></i>
+              <span><%= typeof clinicWorkingHours !== 'undefined' && clinicWorkingHours ? clinicWorkingHours : 'Thứ 2 — Thứ 7: 7:00 — 17:00' %></span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer-bottom">
+    <div class="container">
+      <div class="footer-bottom-inner">
+        <p>&copy; <%= new Date().getFullYear() %> <%= clinicName %>. Tất cả quyền được bảo lưu.</p>
+        <div class="footer-bottom-links">
+          <a href="/chinh-sach-bao-mat">Chính sách bảo mật</a>
+          <a href="#">Điều khoản dịch vụ</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>

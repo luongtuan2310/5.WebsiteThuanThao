@@ -1,0 +1,650 @@
+<%- include('../layouts/admin-top') %>
+
+<!-- Load Chart.js CDN for interactive analytics charts -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+  :root {
+    --dash-teal: #0090a1;
+    --dash-teal-light: #e0f7fa;
+    --dash-indigo: #6366f1;
+    --dash-indigo-light: #eef2ff;
+    --dash-amber: #f59e0b;
+    --dash-amber-light: #fef3c7;
+    --dash-green: #10b981;
+    --dash-green-light: #d1fae5;
+    --dash-rose: #f43f5e;
+    --dash-rose-light: #ffe4e6;
+  }
+
+  /* Welcome Banner */
+  .dash-welcome-card {
+    background: linear-gradient(135deg, #0090a1 0%, #006070 100%);
+    border-radius: 14px;
+    padding: 22px 26px;
+    color: #ffffff;
+    margin-bottom: 22px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    box-shadow: 0 4px 14px rgba(0, 144, 161, 0.2);
+  }
+  .dash-welcome-title {
+    font-size: 1.35rem;
+    font-weight: 800;
+    margin-bottom: 4px;
+    letter-spacing: -0.2px;
+  }
+  .dash-welcome-sub {
+    font-size: 0.86rem;
+    opacity: 0.9;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  /* Top Stat KPI Grid */
+  .dash-kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 22px;
+  }
+  .dash-kpi-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 18px 20px;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .dash-kpi-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.07);
+  }
+  .dash-kpi-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  .dash-kpi-icon {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    flex-shrink: 0;
+  }
+  .dash-kpi-icon.views { background: var(--dash-teal-light); color: var(--dash-teal); }
+  .dash-kpi-icon.visitors { background: var(--dash-indigo-light); color: var(--dash-indigo); }
+  .dash-kpi-icon.appts { background: var(--dash-amber-light); color: var(--dash-amber); }
+  .dash-kpi-icon.contacts { background: var(--dash-green-light); color: var(--dash-green); }
+
+  .dash-kpi-val {
+    font-size: 1.85rem;
+    font-weight: 800;
+    color: #0f172a;
+    line-height: 1.1;
+  }
+  .dash-kpi-label {
+    font-size: 0.82rem;
+    color: #64748b;
+    font-weight: 700;
+    margin-top: 3px;
+  }
+  .dash-kpi-footer {
+    border-top: 1px dashed #f1f5f9;
+    padding-top: 10px;
+    margin-top: 12px;
+    font-size: 0.78rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: #64748b;
+  }
+  .dash-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 8px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 800;
+  }
+  .dash-pill.success { background: #dcfce7; color: #15803d; }
+  .dash-pill.warning { background: #fef3c7; color: #b45309; }
+  .dash-pill.info { background: #e0f2fe; color: #0284c7; }
+
+  /* Charts Section */
+  .dash-charts-grid {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 18px;
+    margin-bottom: 22px;
+  }
+  @media (max-width: 1024px) {
+    .dash-charts-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  /* Table Cards */
+  .dash-section-card {
+    background: #ffffff;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    margin-bottom: 22px;
+    overflow: hidden;
+  }
+  .dash-section-header {
+    padding: 16px 20px;
+    border-bottom: 1px solid #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #ffffff;
+  }
+  .dash-section-title {
+    font-size: 0.96rem;
+    font-weight: 800;
+    color: #0f172a;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+  }
+
+  /* Split bottom grid */
+  .dash-bottom-grid {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 18px;
+  }
+  @media (max-width: 992px) {
+    .dash-bottom-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .mini-progress-bar {
+    height: 6px;
+    background: #f1f5f9;
+    border-radius: 4px;
+    overflow: hidden;
+    margin-top: 4px;
+  }
+  .mini-progress-fill {
+    height: 100%;
+    background: var(--dash-teal);
+    border-radius: 4px;
+  }
+
+  .activity-feed-item {
+    position: relative;
+    padding-left: 18px;
+    padding-bottom: 14px;
+    border-left: 2px solid #e2e8f0;
+  }
+  .activity-feed-item:last-child {
+    border-left-color: transparent;
+    padding-bottom: 0;
+  }
+  .activity-feed-dot {
+    position: absolute;
+    left: -5px;
+    top: 2px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--dash-teal);
+    border: 2px solid #ffffff;
+  }
+</style>
+
+<!-- 1. WELCOME GREETING BANNER -->
+<div class="dash-welcome-card">
+  <div>
+    <div class="dash-welcome-title">
+      Xin chào, <%= locals.currentUser ? (locals.currentUser.full_name || locals.currentUser.username) : 'Quản trị viên' %>! 👋
+    </div>
+    <div class="dash-welcome-sub">
+      <i class="far fa-calendar-alt"></i>
+      <span>Hôm nay: <%= new Date().toLocaleDateString('vi-VN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) %></span>
+      <span>•</span>
+      <i class="fas fa-shield-alt"></i>
+      <span>Vai trò: <%= locals.currentUser ? locals.currentUser.role_name : 'Quản trị hệ thống' %></span>
+    </div>
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 10px;">
+    <a href="/" target="_blank" class="btn" style="background: rgba(255,255,255,0.2); color: #ffffff; font-weight: 700; border-radius: 8px; backdrop-filter: blur(4px);">
+      <i class="fas fa-external-link-alt"></i> Xem Website
+    </a>
+    <% if (locals.hasPermission && locals.hasPermission('appointments.view')) { %>
+      <a href="/admin/appointments" class="btn" style="background: #ffffff; color: var(--primary); font-weight: 800; border-radius: 8px; box-shadow: 0 2px 6px rgba(0,0,0,0.1);">
+        <i class="fas fa-calendar-check"></i> Xử lý lịch hẹn
+      </a>
+    <% } %>
+  </div>
+</div>
+
+<!-- 2. TOP 4 STATISTIC KPI CARDS -->
+<div class="dash-kpi-grid">
+  <!-- Thẻ 1: Lượt xem trang hôm nay -->
+  <div class="dash-kpi-card">
+    <div class="dash-kpi-top">
+      <div>
+        <div class="dash-kpi-label">LƯỢT XEM HÔM NAY</div>
+        <div class="dash-kpi-val"><%= stats.viewsToday.toLocaleString() %></div>
+      </div>
+      <div class="dash-kpi-icon views">
+        <i class="fas fa-eye"></i>
+      </div>
+    </div>
+    <div class="dash-kpi-footer">
+      <span>
+        <% if (stats.viewsGrowth >= 0) { %>
+          <span class="dash-pill success"><i class="fas fa-arrow-up"></i> +<%= stats.viewsGrowth %>%</span>
+        <% } else { %>
+          <span class="dash-pill warning"><i class="fas fa-arrow-down"></i> <%= stats.viewsGrowth %>%</span>
+        <% } %>
+        so với hôm qua
+      </span>
+      <span style="font-weight: 700; color: #1e293b;">
+        Tổng <%= stats.viewsTotal.toLocaleString() %>
+      </span>
+    </div>
+  </div>
+
+  <!-- Thẻ 2: Khách truy cập hôm nay -->
+  <div class="dash-kpi-card">
+    <div class="dash-kpi-top">
+      <div>
+        <div class="dash-kpi-label">KHÁCH TRUY CẬP HÔM NAY</div>
+        <div class="dash-kpi-val"><%= stats.visitorsToday.toLocaleString() %></div>
+      </div>
+      <div class="dash-kpi-icon visitors">
+        <i class="fas fa-user-friends"></i>
+      </div>
+    </div>
+    <div class="dash-kpi-footer">
+      <span><i class="fas fa-broadcast-tower" style="color: #6366f1;"></i> Lưu lượng truy cập</span>
+      <span style="font-weight: 700; color: #1e293b;">
+        Tổng <%= stats.visitorsTotal.toLocaleString() %> khách
+      </span>
+    </div>
+  </div>
+
+  <!-- Thẻ 3: Lịch hẹn khám & Chờ duyệt -->
+  <div class="dash-kpi-card">
+    <div class="dash-kpi-top">
+      <div>
+        <div class="dash-kpi-label">LỊCH HẸN HÔM NAY</div>
+        <div class="dash-kpi-val"><%= stats.apptToday %></div>
+      </div>
+      <div class="dash-kpi-icon appts">
+        <i class="fas fa-calendar-check"></i>
+      </div>
+    </div>
+    <div class="dash-kpi-footer">
+      <span>
+        <% if (stats.apptPending > 0) { %>
+          <span class="dash-pill warning"><i class="fas fa-clock"></i> <%= stats.apptPending %> chờ duyệt</span>
+        <% } else { %>
+          <span class="dash-pill success"><i class="fas fa-check"></i> Đã xử lý hết</span>
+        <% } %>
+      </span>
+      <span style="font-weight: 700; color: #1e293b;">
+        Tổng <%= stats.apptTotal %> lịch
+      </span>
+    </div>
+  </div>
+
+  <!-- Thẻ 4: Yêu cầu tư vấn & Bác sĩ -->
+  <div class="dash-kpi-card">
+    <div class="dash-kpi-top">
+      <div>
+        <div class="dash-kpi-label">YÊU CẦU LIÊN HỆ MỚI</div>
+        <div class="dash-kpi-val"><%= stats.contactsNew %></div>
+      </div>
+      <div class="dash-kpi-icon contacts">
+        <i class="fas fa-comment-medical"></i>
+      </div>
+    </div>
+    <div class="dash-kpi-footer">
+      <span><i class="fas fa-user-md" style="color: #10b981;"></i> <%= stats.doctorCount %> Bác sĩ trực</span>
+      <span style="font-weight: 700; color: #1e293b;">
+        <%= stats.packageCount %> Gói khám
+      </span>
+    </div>
+  </div>
+</div>
+
+<!-- 3. INTERACTIVE ANALYTICS CHARTS -->
+<div class="dash-charts-grid">
+  <!-- Biểu đồ đường: Xu hướng truy cập 7 ngày qua -->
+  <div class="dash-section-card">
+    <div class="dash-section-header">
+      <div class="dash-section-title">
+        <i class="fas fa-chart-line" style="color: var(--dash-teal);"></i>
+        Thống Kê Lượt Xem & Khách Truy Cập (7 Ngày Qua)
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <span class="dash-pill info"><i class="fas fa-circle" style="font-size: 0.55rem; color: #0090a1;"></i> Lượt xem</span>
+        <span class="dash-pill" style="background: #eef2ff; color: #6366f1;"><i class="fas fa-circle" style="font-size: 0.55rem; color: #6366f1;"></i> Khách truy cập</span>
+      </div>
+    </div>
+    <div style="padding: 18px 20px;">
+      <div style="height: 250px; position: relative;">
+        <canvas id="trafficChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Biểu đồ Donut: Phân bổ trạng thái Lịch hẹn -->
+  <div class="dash-section-card">
+    <div class="dash-section-header">
+      <div class="dash-section-title">
+        <i class="fas fa-chart-pie" style="color: var(--dash-amber);"></i>
+        Tỷ Lệ Xử Lý Lịch Hẹn
+      </div>
+      <span style="font-size: 0.78rem; font-weight: 800; color: #10b981;">
+        <%= stats.apptConversionRate %>% Thành công
+      </span>
+    </div>
+    <div style="padding: 16px 20px; display: flex; flex-direction: column; align-items: center; justify-content: center;">
+      <div style="height: 185px; width: 185px; position: relative;">
+        <canvas id="apptPieChart"></canvas>
+      </div>
+      <div style="display: flex; justify-content: space-around; width: 100%; margin-top: 14px; font-size: 0.78rem; text-align: center;">
+        <div>
+          <div style="font-weight: 800; color: #10b981; font-size: 1rem;"><%= stats.apptConfirmed %></div>
+          <div style="color: #64748b;">Đã duyệt</div>
+        </div>
+        <div>
+          <div style="font-weight: 800; color: #f59e0b; font-size: 1rem;"><%= stats.apptPending %></div>
+          <div style="color: #64748b;">Chờ xử lý</div>
+        </div>
+        <div>
+          <div style="font-weight: 800; color: #ef4444; font-size: 1rem;"><%= stats.apptCancelled %></div>
+          <div style="color: #64748b;">Đã hủy</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. DATA TABLES & LIVE FEEDS -->
+<div class="dash-bottom-grid">
+  <!-- CỘT TRÁI: LỊCH HẸN GẦN ĐÂY -->
+  <div class="dash-section-card">
+    <div class="dash-section-header">
+      <div class="dash-section-title">
+        <i class="fas fa-calendar-alt" style="color: var(--dash-teal);"></i>
+        Lịch Hẹn Mới Nhất
+      </div>
+      <a href="/admin/appointments" class="btn btn-primary btn-sm" style="font-weight: 700; border-radius: 6px;">
+        Xem tất cả <i class="fas fa-arrow-right" style="font-size: 0.75rem;"></i>
+      </a>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th style="width: 50px;">Mã</th>
+            <th>Bệnh nhân</th>
+            <th>Bác sĩ / Dịch vụ</th>
+            <th>Ngày hẹn</th>
+            <th style="text-align: center;">Trạng thái</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (recentAppointments && recentAppointments.length > 0) { %>
+            <% recentAppointments.forEach(function(a) { %>
+            <tr>
+              <td style="font-weight: 800; color: var(--primary);">#<%= a.id %></td>
+              <td>
+                <div style="font-weight: 800; color: #0f172a;"><%= a.patient_name %></div>
+                <div style="font-size: 0.76rem; color: #64748b;"><i class="fas fa-phone-alt" style="font-size: 0.7rem;"></i> <%= a.phone %></div>
+              </td>
+              <td>
+                <div style="font-size: 0.84rem; font-weight: 700; color: #334155;">
+                  <%= a.doctor_name || a.package_name || 'Khám tổng quát' %>
+                </div>
+              </td>
+              <td>
+                <% if (a.appointment_date) { %>
+                  <div style="font-size: 0.82rem; font-weight: 700; color: #1e293b;">
+                    <%= new Date(a.appointment_date).toLocaleDateString('vi-VN') %>
+                  </div>
+                  <% if (a.appointment_time) { %>
+                    <div style="font-size: 0.74rem; color: #64748b;"><%= a.appointment_time %></div>
+                  <% } %>
+                <% } else { %>
+                  <span style="color: #94a3b8; font-size: 0.8rem;">Chưa chọn</span>
+                <% } %>
+              </td>
+              <td style="text-align: center;">
+                <% if (a.status === 'confirmed') { %>
+                  <span class="badge" style="background: #dcfce7; color: #15803d; border: 1px solid #bbf7d0;">Đã duyệt</span>
+                <% } else if (a.status === 'cancelled') { %>
+                  <span class="badge" style="background: #fee2e2; color: #b91c1c; border: 1px solid #fecaca;">Đã hủy</span>
+                <% } else { %>
+                  <span class="badge" style="background: #fef3c7; color: #b45309; border: 1px solid #fde68a;">Chờ duyệt</span>
+                <% } %>
+              </td>
+            </tr>
+            <% }) %>
+          <% } else { %>
+            <tr>
+              <td colspan="5" style="text-align: center; color: #94a3b8; padding: 28px 20px;">
+                Chưa có lịch hẹn nào được ghi nhận.
+              </td>
+            </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- CỘT PHẢI: TOP TRANG ĐƯỢC XEM NHIỀU & HOẠT ĐỘNG HỆ THỐNG -->
+  <div>
+    <!-- TOP TRANG ĐƯỢC XEM NHIỀU NHẤT -->
+    <div class="dash-section-card">
+      <div class="dash-section-header">
+        <div class="dash-section-title">
+          <i class="fas fa-fire" style="color: #ef4444;"></i>
+          Trang Được Xem Nhiều Nhất
+        </div>
+        <span style="font-size: 0.75rem; color: #64748b;">Lượt xem</span>
+      </div>
+      <div style="padding: 14px 18px;">
+        <% if (topPages && topPages.length > 0) { %>
+          <% 
+            const maxViews = topPages[0].view_count || 1;
+          %>
+          <div style="display: flex; flex-direction: column; gap: 12px;">
+            <% topPages.forEach(function(tp) { %>
+              <% 
+                const pct = Math.round((tp.view_count / maxViews) * 100);
+              %>
+              <div>
+                <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem;">
+                  <span style="font-weight: 700; color: #0f172a;">
+                    <%= tp.page_title || tp.page_path %>
+                    <span style="color: #94a3b8; font-weight: 500; font-size: 0.75rem;">(<%= tp.page_path %>)</span>
+                  </span>
+                  <span style="font-weight: 800; color: var(--primary);">
+                    <%= tp.view_count.toLocaleString() %>
+                  </span>
+                </div>
+                <div class="mini-progress-bar">
+                  <div class="mini-progress-fill" style="width: <%= pct %>%;"></div>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        <% } else { %>
+          <div style="text-align: center; color: #94a3b8; font-size: 0.82rem; padding: 12px 0;">
+            Chưa có dữ liệu lượt xem trang.
+          </div>
+        <% } %>
+      </div>
+    </div>
+
+    <!-- NHẬT KÝ HOẠT ĐỘNG HỆ THỐNG GẦN ĐÂY -->
+    <div class="dash-section-card">
+      <div class="dash-section-header">
+        <div class="dash-section-title">
+          <i class="fas fa-history" style="color: #8b5cf6;"></i>
+          Nhật Ký Hoạt Động Gần Đây
+        </div>
+        <% if (locals.hasPermission && locals.hasPermission('logs.view')) { %>
+          <a href="/admin/logs" style="font-size: 0.76rem; color: var(--primary); font-weight: 700; text-decoration: none;">Xem tất cả</a>
+        <% } %>
+      </div>
+      <div style="padding: 16px 18px;">
+        <% if (recentActivityLogs && recentActivityLogs.length > 0) { %>
+          <div>
+            <% recentActivityLogs.forEach(function(log) { %>
+              <div class="activity-feed-item">
+                <div class="activity-feed-dot"></div>
+                <div style="font-size: 0.82rem; font-weight: 700; color: #1e293b; line-height: 1.3;">
+                  <%= log.description || (log.action + ' ' + log.module) %>
+                </div>
+                <div style="font-size: 0.72rem; color: #94a3b8; margin-top: 2px; display: flex; align-items: center; gap: 6px;">
+                  <span style="color: #64748b; font-weight: 600;">@<%= log.username || 'System' %></span>
+                  <span>•</span>
+                  <span><%= new Date(log.created_at).toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }) %></span>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        <% } else { %>
+          <div style="text-align: center; color: #94a3b8; font-size: 0.82rem; padding: 12px 0;">
+            Chưa có nhật ký hoạt động nào.
+          </div>
+        <% } %>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RENDER CHART.JS SCRIPTS -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // 1. Line / Area Chart: Traffic 7 Days
+    const trafficData = <%- JSON.stringify(traffic7Days || []) %>;
+    const labels = trafficData.map(d => d.date_label);
+    const viewsData = trafficData.map(d => d.page_views);
+    const visitorsData = trafficData.map(d => d.visitors);
+
+    const trafficCtx = document.getElementById('trafficChart')?.getContext('2d');
+    if (trafficCtx) {
+      new Chart(trafficCtx, {
+        type: 'line',
+        data: {
+          labels: labels.length ? labels : ['Hôm qua', 'Hôm nay'],
+          datasets: [
+            {
+              label: 'Lượt xem trang',
+              data: viewsData.length ? viewsData : [0, 0],
+              borderColor: '#0090a1',
+              backgroundColor: 'rgba(0, 144, 161, 0.08)',
+              fill: true,
+              tension: 0.35,
+              borderWidth: 2.5,
+              pointBackgroundColor: '#0090a1',
+              pointRadius: 4,
+              pointHoverRadius: 6
+            },
+            {
+              label: 'Khách truy cập',
+              data: visitorsData.length ? visitorsData : [0, 0],
+              borderColor: '#6366f1',
+              backgroundColor: 'rgba(99, 102, 241, 0.04)',
+              fill: true,
+              tension: 0.35,
+              borderWidth: 2.5,
+              pointBackgroundColor: '#6366f1',
+              pointRadius: 4,
+              pointHoverRadius: 6
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#0f172a',
+              padding: 10,
+              cornerRadius: 8,
+              titleFont: { weight: 'bold' }
+            }
+          },
+          scales: {
+            x: {
+              grid: { display: false },
+              ticks: { font: { size: 11, family: 'Mulish' }, color: '#64748b' }
+            },
+            y: {
+              beginAtZero: true,
+              grid: { color: '#f1f5f9' },
+              ticks: { font: { size: 11, family: 'Mulish' }, color: '#64748b', precision: 0 }
+            }
+          }
+        }
+      });
+    }
+
+    // 2. Donut Chart: Appointment Status
+    const apptCtx = document.getElementById('apptPieChart')?.getContext('2d');
+    if (apptCtx) {
+      const confirmed = <%= stats.apptConfirmed %>;
+      const pending = <%= stats.apptPending %>;
+      const cancelled = <%= stats.apptCancelled %>;
+      const total = confirmed + pending + cancelled;
+
+      new Chart(apptCtx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Đã duyệt', 'Chờ xử lý', 'Đã hủy'],
+          datasets: [{
+            data: total > 0 ? [confirmed, pending, cancelled] : [1, 0, 0],
+            backgroundColor: total > 0 ? ['#10b981', '#f59e0b', '#ef4444'] : ['#e2e8f0', '#e2e8f0', '#e2e8f0'],
+            borderWidth: 3,
+            borderColor: '#ffffff',
+            hoverOffset: 4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '72%',
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              enabled: total > 0,
+              backgroundColor: '#0f172a',
+              padding: 10,
+              cornerRadius: 8
+            }
+          }
+        }
+      });
+    }
+  });
+</script>
+
+<%- include('../layouts/admin-bottom') %>
