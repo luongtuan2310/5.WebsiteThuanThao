@@ -35,7 +35,8 @@ async function setupDatabase() {
 
     console.log(`📦 Đang khởi tạo CSDL "${dbName}" và import dữ liệu mẫu...`);
 
-    // 3. Thực thi toàn bộ lệnh SQL trong schema.sql
+    // 3. Đảm bảo Database tồn tại và chọn Database trước khi import
+    await connection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci; USE \`${dbName}\`;`);
     await connection.query(sqlContent);
 
     console.log('====================================================');
