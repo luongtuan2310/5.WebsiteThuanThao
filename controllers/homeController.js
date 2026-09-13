@@ -58,7 +58,7 @@ exports.about = async (req, res) => {
     if (aboutSetting && aboutSetting.setting_value) {
       try {
         const parsed = JSON.parse(aboutSetting.setting_value);
-        if (!parsed.image_url || parsed.image_url.includes('unsplash')) {
+        if (!parsed.image_url || parsed.image_url.includes('unsplash') || parsed.image_url.includes('1788166794999')) {
           parsed.image_url = '/images/about-portrait.png';
         }
         aboutData = { ...aboutData, ...parsed };

@@ -8,7 +8,7 @@
   const missionTitle = info.mission_title || 'Sứ Mệnh Của Chúng Tôi';
   const missionDesc = info.mission_desc || 'Mang đến dịch vụ y tế toàn diện, chuẩn mực và nhân văn. Chúng tôi đặt y đức, sự an toàn và trải nghiệm thoải mái của bệnh nhân làm kim chỉ nam trong mọi hoạt động khám và điều trị.';
   let imageUrl = info.image_url;
-  if (!imageUrl || imageUrl.includes('unsplash')) {
+  if (!imageUrl || imageUrl.includes('unsplash') || imageUrl.includes('1788166794999')) {
     imageUrl = '/images/about-portrait.png';
   }
   const valuesStr = info.values || 'Tận Tâm, Chuyên Nghiệp, Hiện Đại, Trách Nhiệm';
