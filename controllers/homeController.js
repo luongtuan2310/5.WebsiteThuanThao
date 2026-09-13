@@ -52,12 +52,15 @@ exports.about = async (req, res) => {
       mission_title: 'Sứ Mệnh Của Chúng Tôi',
       mission_desc: 'Mang đến dịch vụ y tế toàn diện, chuẩn mực và nhân văn. Chúng tôi đặt y đức, sự an toàn và trải nghiệm thoải mái của bệnh nhân làm kim chỉ nam trong mọi hoạt động khám và điều trị.',
       values: 'Tận Tâm, Chuyên Nghiệp, Hiện Đại, Trách Nhiệm',
-      image_url: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800'
+      image_url: '/images/about-portrait.png'
     };
 
     if (aboutSetting && aboutSetting.setting_value) {
       try {
         const parsed = JSON.parse(aboutSetting.setting_value);
+        if (parsed.image_url && parsed.image_url.includes('unsplash')) {
+          parsed.image_url = '/images/about-portrait.png';
+        }
         aboutData = { ...aboutData, ...parsed };
       } catch (e) {}
     }

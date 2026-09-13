@@ -7,7 +7,7 @@
   const leadText = info.lead_text || 'Chào mừng Quý khách đến với ' + (clinicName || 'Phòng Khám VIP') + '. Chúng tôi vinh hạnh được là người bạn đồng hành tin cậy trên hành trình chăm sóc và bảo vệ sức khỏe cho bạn cùng những người thân yêu.';
   const missionTitle = info.mission_title || 'Sứ Mệnh Của Chúng Tôi';
   const missionDesc = info.mission_desc || 'Mang đến dịch vụ y tế toàn diện, chuẩn mực và nhân văn. Chúng tôi đặt y đức, sự an toàn và trải nghiệm thoải mái của bệnh nhân làm kim chỉ nam trong mọi hoạt động khám và điều trị.';
-  const imageUrl = info.image_url || 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?w=800';
+  const imageUrl = (info.image_url && !info.image_url.includes('unsplash')) ? info.image_url : '/images/about-portrait.png';
   const valuesStr = info.values || 'Tận Tâm, Chuyên Nghiệp, Hiện Đại, Trách Nhiệm';
   const valuesList = valuesStr.split(/,|\n/).map(v => v.trim()).filter(v => v.length > 0);
 %>
