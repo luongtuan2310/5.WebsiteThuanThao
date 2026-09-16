@@ -28,7 +28,12 @@
             <a href="<%= socialZalo.startsWith('http') ? socialZalo : 'https://zalo.me/' + socialZalo.replace(/\D/g,'') %>" target="_blank" rel="noopener" aria-label="Zalo"><i class="fas fa-comment-dots"></i></a>
           <% } %>
           <% if (typeof socialTiktok !== 'undefined' && socialTiktok) { %>
-            <a href="<%= socialTiktok %>" target="_blank" rel="noopener" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+            <a href="<%= socialTiktok %>" target="_blank" rel="noopener noreferrer" aria-label="TikTok"><i class="fab fa-tiktok"></i></a>
+          <% } %>
+          <% if (typeof healthDepartmentUrl !== 'undefined' && healthDepartmentUrl && healthDepartmentUrl.trim()) { %>
+            <a href="<%= healthDepartmentUrl %>" target="_blank" rel="noopener noreferrer" aria-label="Cổng thông tin Sở Y tế TP.HCM" title="Cổng thông tin Sở Y tế TP.HCM" class="social-link health-department-link">
+              <img src="/images/so-y-te-tphcm.png" alt="Sở Y tế TP.HCM" class="health-department-logo">
+            </a>
           <% } %>
         </div>
       </div>

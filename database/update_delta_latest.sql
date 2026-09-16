@@ -74,3 +74,7 @@ ALTER TABLE `contacts`
   ADD COLUMN IF NOT EXISTS `status` varchar(50) DEFAULT 'new' AFTER `message`,
   ADD COLUMN IF NOT EXISTS `admin_notes` text NULL AFTER `status`;
 
+-- 7. Cấu hình Cổng thông tin Sở Y tế TP.HCM
+INSERT IGNORE INTO `settings` (`setting_key`, `setting_value`) VALUES ('health_department_url', '');
+
+

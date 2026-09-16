@@ -126,6 +126,7 @@ app.use(async (req, res, next) => {
     res.locals.socialZalo = settingsMap.social_zalo || '#';
     res.locals.socialYoutube = settingsMap.social_youtube || '#';
     res.locals.socialTiktok = settingsMap.social_tiktok || '';
+    res.locals.healthDepartmentUrl = settingsMap.health_department_url || '';
     res.locals.clinicMapUrl = settingsMap.clinic_map_url || '';
 
     // Cache app defaults
@@ -163,6 +164,7 @@ app.use(async (req, res, next) => {
     res.locals.socialZalo = '#';
     res.locals.socialYoutube = '#';
     res.locals.socialTiktok = '';
+    res.locals.healthDepartmentUrl = '';
     res.locals.clinicMapUrl = '';
     res.locals.hasPackages = true;
     res.locals.hasServices = true;

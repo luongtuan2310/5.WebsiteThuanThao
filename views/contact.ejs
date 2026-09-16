@@ -59,6 +59,17 @@
               <span><%= typeof clinicWorkingHours !== 'undefined' && clinicWorkingHours ? clinicWorkingHours : 'Thứ 2 — Thứ 7: 7:00 — 17:00' %></span>
             </div>
           </li>
+          <% if (typeof healthDepartmentUrl !== 'undefined' && healthDepartmentUrl && healthDepartmentUrl.trim()) { %>
+          <li>
+            <div class="contact-icon" style="background:#e0f2fe;"><img src="/images/so-y-te-tphcm.png" alt="Sở Y tế TP.HCM" style="width:24px;height:24px;object-fit:contain;"></div>
+            <div>
+              <strong>Cổng thông tin Sở Y tế TP.HCM</strong>
+              <a href="<%= healthDepartmentUrl %>" target="_blank" rel="noopener noreferrer" title="Cổng thông tin Sở Y tế TP.HCM" style="color:var(--primary);font-weight:700;display:inline-flex;align-items:center;gap:5px;">
+                <span>Xem thông tin chính thức</span> <i class="fas fa-external-link-alt" style="font-size:0.75rem;"></i>
+              </a>
+            </div>
+          </li>
+          <% } %>
         </ul>
 
         <!-- Map -->

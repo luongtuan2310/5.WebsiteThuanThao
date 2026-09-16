@@ -1027,6 +1027,7 @@ exports.settingsPage = async (req, res) => {
     if (!settings.social_zalo) settings.social_zalo = '#';
     if (!settings.social_youtube) settings.social_youtube = '#';
     if (!settings.social_tiktok) settings.social_tiktok = '';
+    if (!settings.health_department_url) settings.health_department_url = '';
     if (!settings.clinic_map_url) settings.clinic_map_url = '';
 
     res.render('admin/settings', {
@@ -1044,6 +1045,29 @@ exports.settingsUpdate = async (req, res) => {
     const brandingDir = path.join(__dirname, '../public/uploads/branding');
     if (!fs.existsSync(brandingDir)) {
       fs.mkdirSync(brandingDir, { recursive: true });
+    }
+
+    // Validate Health Department URL if provided
+    if (req.body.health_department_url !== undefined) {
+      let val = req.body.health_department_url.toString().trim();
+      if (val.length > 0) {
+        if (val.toLowerCase().startsWith('javascript:')) {
+          req.flash('error', 'Cổng thông tin Sở Y tế chứa ký tự không an toàn.');
+          return res.redirect('/admin/settings');
+        }
+        if (!/^https?:\/\//i.test(val)) {
+          val = 'https://' + val;
+        }
+        try {
+          new URL(val);
+          req.body.health_department_url = val;
+        } catch (e) {
+          req.flash('error', 'Đường dẫn Cổng thông tin Sở Y tế không hợp lệ (Ví dụ hợp lệ: https://medinet.gov.vn/).');
+          return res.redirect('/admin/settings');
+        }
+      } else {
+        req.body.health_department_url = '';
+      }
     }
 
     // Handle Logo Upload
@@ -1090,6 +1114,7 @@ exports.settingsUpdate = async (req, res) => {
       'social_zalo',
       'social_youtube',
       'social_tiktok',
+      'health_department_url',
       'clinic_map_url'
     ];
 
